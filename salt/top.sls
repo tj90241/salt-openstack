@@ -6,5 +6,6 @@ base:
 
 {# General states #}
   '*':
+    - apt
     - htop
     - salt

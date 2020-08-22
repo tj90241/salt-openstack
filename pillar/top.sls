@@ -6,3 +6,6 @@ base:
   '{{ grains.id }}':
     - ignore_missing: True
     - salt.{{ grains.id }}
+
+  '*':
+    - apt
