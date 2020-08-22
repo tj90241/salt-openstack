@@ -1,3 +1,4 @@
 base:
   '*':
+    - htop
     - salt
