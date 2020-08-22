@@ -8,4 +8,5 @@ base:
   '*':
     - apt
     - htop
+    - man-db
     - salt
