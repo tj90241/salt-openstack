@@ -1,0 +1,12 @@
+[Unit]
+Description=Volatile Salt Master Job Cache File System
+
+[Mount]
+What=tmpfs
+Where=/var/cache/salt/master/jobs
+Type=tmpfs
+Options=nosuid,nodev,noexec,mode=0755
+
+[Install]
+RequiredBy=salt-master.service
+Before=salt-master.service

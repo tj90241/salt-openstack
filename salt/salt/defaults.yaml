@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+
+{% set salt = pillar.get('salt', {}) %}
+{% set master = salt.get('master', {}) %}
+{% set minion = salt.get('minion', {}) %}
+
+# Either 'latest' or a specific release (e.g., 'YYYY.MM').
+release: {{ salt.get('release', 'latest') }}
+
+master:
+  # Salt runs a lightweight file server written in zeromq to deliver files to
+  # minions. This file server is built into the master daemon and does not
+  # require a dedicated port.
+
+  # The file server works on environments passed to the master, each environment
+  # can have multiple root directories, the subdirectories in the multiple file
+  # roots cannot match, otherwise the downloaded files will not be able to be
+  # reliably ensured. A base environment is required to house the top file.
+  file_roots: {{ master.get('file_roots', {'base': ['/srv/salt']}) }}
+
+  # Salt Pillars allow for the building of global data that can be made selectively
+  # available to different minions based on minion grain filtering. The Salt
+  # Pillar is laid out in the same fashion as the file server, with environments,
+  # a top file and sls files. However, pillar data does not need to be in the
+  # highstate format, and is generally just key/value pairs.
+  pillar_roots: {{ master.get('pillar_roots', {'base': ['/srv/pillar']}) }}
+
+  ext_pillar: {{ master.get('ext_pillar', []) }}
+
+  # Define a salt reactor. See https://docs.saltstack.com/en/latest/topics/reactor/
+  reactor: {{ master.get('reactor', []) }}
+
+  # Configure the number of workers for the runner/wheel in the reactor.
+  reactor_worker_threads: {{ master.get('reactor_worker_threads', 10) }}
+
+  # Define the queue size for workers in the reactor.
+  reactor_worker_hwm: {{ master.get('reactor_worker_hwm', 10000) }}
+
+minion:
+  # Disable specific modules. This allows the admin to limit the level of
+  # access the master has to the minion.  The default here is the empty list,
+  # below is an example of how this needs to be formatted in the config file
+  disable_modules: {{ minion.get('disable_modules', []) }}
+
+  # The minion can take a while to start up when lspci and/or dmidecode is used
+  # to populate the grains for the minion. Set this to False if you do not need
+  # GPU hardware grains for your minion.
+  enable_gpu_grains: {{ minion.get('enable_gpu_grains', True) }}
+
+  # Determines whether or not the salt minion should run scheduled mine updates.
+  # Defaults to "True". Set to "False" to disable the scheduled mine updates
+  # (this essentially just does not add the mine update function to the minion's
+  # scheduler).
+  mine_enabled: {{ minion.get('mine_enabled', True) }}
+
+  # Limit the maximum amount of processes or threads created by salt-minion.
+  # This is useful to avoid resource exhaustion in case the minion receives more
+  # publications than it is able to handle, as it limits the number of spawned
+  # processes or threads. -1 is the default and disables the limit.
+  process_count_max: {{ minion.get('process_count_max', -1) }}

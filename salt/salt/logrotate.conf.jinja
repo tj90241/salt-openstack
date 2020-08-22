@@ -1,0 +1,9 @@
+{%- for log in (['master', 'minion', 'key'] if 'salt-master' in grains.get('roles', []) else ['minion']) %}
+/var/log/salt/{{ log }} {
+	daily
+	missingok
+	rotate 7
+	compress
+	notifempty
+}
+{% endfor %}

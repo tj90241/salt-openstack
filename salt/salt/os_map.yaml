@@ -1,0 +1,25 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+
+{% import_yaml 'salt/defaults.yaml' as salt_defaults %}
+{% import_yaml 'salt/osdefs_map.yaml' as osdefs_map %}
+
+{% set osdefs_map = salt['grains.filter_by'](osdefs_map, grain='os') or {} %}
+{% set osreldefs_map = salt['grains.filter_by'](osdefs_map, grain='oscodename') or osdefs_map['default'] %}
+
+{% set python_version = osreldefs_map.get('python', 3) %}
+{% set install_transport_https = osreldefs_map.get('transport-https', False) %}
+
+{% set pyver_dir = 'apt' if python_version == 2 else 'py3' %}
+{% set osmajorrelease = grains.get('osmajorrelease', grains['osrelease_info'][0]) | string %}
+{% set salt_release = salt_defaults.get('release', 'latest') | string %}
+{% set salt_release = 'latest' if salt_release.lower().strip() == 'latest' else 'archive/' + salt_release %}
+
+Debian:
+  pkgrepo: 'deb http://repo.saltstack.com/{{ pyver_dir }}/{{ grains.os | lower }}/{{ osmajorrelease }}/amd64/{{ salt_release }} {{ grains.oscodename | lower }} main'
+  key_url: 'https://repo.saltstack.com/{{ pyver_dir }}/{{ grains.os | lower }}/{{ osmajorrelease }}/amd64/{{ salt_release }}/SALTSTACK-GPG-KEY.pub'
+  install_transport_https: {{ install_transport_https }}
+
+  croniter: {{ 'python-croniter' if python_version == 2 else 'python3-croniter' }}
+  psutil: {{ 'python-psutil' if python_version == 2 else 'python3-psutil' }}
+  tornado: {{ 'python-tornado' if python_version == 2 else 'python3-tornado' }}
