@@ -37,6 +37,7 @@ base:
     - psmisc
     - salt
     - sysstat
+    - tasksel
     - tmux
     - traceroute
     - vim
