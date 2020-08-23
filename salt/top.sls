@@ -18,4 +18,5 @@ base:
     - iftop
     - jq
     - man-db
+    - motd
     - salt
