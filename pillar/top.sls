@@ -9,8 +9,10 @@ base:
 
   '{{ grains.id }}':
     - ignore_missing: True
+    - grub.{{ grains.id }}
     - salt.{{ grains.id }}
 
   '*':
     - apt
     - chrony
+    - grub

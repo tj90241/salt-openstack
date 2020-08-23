@@ -22,6 +22,7 @@ base:
     - dosfstools
     - dnsutils
     - gnupg2
+    - grub
     - htop
     - iftop
     - iotop
