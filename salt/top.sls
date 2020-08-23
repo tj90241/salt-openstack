@@ -11,6 +11,7 @@ base:
   '*':
     - apt
     - curl
+    - dosfstools
     - htop
     - man-db
     - salt
