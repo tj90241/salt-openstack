@@ -19,6 +19,7 @@ base:
     - jq
     - kexec-tools
     - less
+    - lsof
     - man-db
     - motd
     - salt
