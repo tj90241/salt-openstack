@@ -17,6 +17,7 @@ base:
     - htop
     - iftop
     - jq
+    - less
     - man-db
     - motd
     - salt
