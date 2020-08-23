@@ -22,5 +22,6 @@ base:
     - lsof
     - man-db
     - motd
+    - net-tools
     - salt
     - tmux
