@@ -14,6 +14,7 @@ base:
 {% else %}
     - rng-tools5
 {% endif %}
+    - uuid-runtime
 
 {# General states #}
     - apt
