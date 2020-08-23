@@ -35,5 +35,6 @@ base:
     - salt
     - sysstat
     - tmux
+    - traceroute
     - vim
     - zip
