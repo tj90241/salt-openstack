@@ -35,3 +35,4 @@ base:
     - salt
     - sysstat
     - tmux
+    - vim
