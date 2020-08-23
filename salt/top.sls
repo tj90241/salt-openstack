@@ -12,6 +12,7 @@ base:
     - apt
     - curl
     - dosfstools
+    - dnsutils
     - htop
     - man-db
     - salt
