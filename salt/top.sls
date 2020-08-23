@@ -36,3 +36,4 @@ base:
     - sysstat
     - tmux
     - vim
+    - zip
