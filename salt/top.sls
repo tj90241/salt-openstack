@@ -15,5 +15,6 @@ base:
     - dnsutils
     - gnupg2
     - htop
+    - iftop
     - man-db
     - salt
