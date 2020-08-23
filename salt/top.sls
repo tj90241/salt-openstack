@@ -1,6 +1,13 @@
 base:
 {# Essential daemons (time, entropy, etc.) #}
     - chrony
+{% if salt['file.is_chrdev']('/dev/hwrng') %}
+    - rng-tools
+{% elif 'rdrand' not in grains.get('cpu_flags', []) %}
+    - haveged
+{% else %}
+    - rng-tools5
+{% endif %}
 
 {# Host-specific default states #}
   'cpu_flags:pdpe1gb':
