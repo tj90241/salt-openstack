@@ -13,6 +13,7 @@ base:
     - curl
     - dosfstools
     - dnsutils
+    - gnupg2
     - htop
     - man-db
     - salt
