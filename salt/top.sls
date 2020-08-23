@@ -17,6 +17,7 @@ base:
     - htop
     - iftop
     - jq
+    - kexec-tools
     - less
     - man-db
     - motd
