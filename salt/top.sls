@@ -20,3 +20,4 @@ base:
     - man-db
     - motd
     - salt
+    - tmux
