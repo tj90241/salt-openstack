@@ -10,6 +10,7 @@ base:
 {# General states #}
   '*':
     - apt
+    - curl
     - htop
     - man-db
     - salt
