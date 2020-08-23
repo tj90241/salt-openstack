@@ -1,0 +1,3 @@
+[Unit]
+Requires=network.target{% if 'nameserver' in pillar.get('roles', []) %} bind9.service{% endif %}
+After=network.target{% if 'nameserver' in pillar.get('roles', []) %} bind9.service{% endif %}

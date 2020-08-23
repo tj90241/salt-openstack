@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -o pipefail
+
+while
+	leap_status="`/usr/bin/chronyc tracking 2>&1 | /bin/sed -n 's/^[Ll]eap status *: *\([ a-zA-Z]*$\)/\L\1/p'`"
+	(( $? )) || [ "${leap_status}" = "not synchronised" ]
+do
+	sleep 1
+done
+
+mkdir -p /run/systemd/timesync > /dev/null 2>&1
+touch /run/systemd/timesync/synchronized > /dev/null 2>&1
+exec /lib/systemd/systemd-time-wait-sync
