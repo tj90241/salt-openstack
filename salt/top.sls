@@ -34,6 +34,7 @@ base:
     - motd
     - net-tools
     - parted
+    - psmisc
     - salt
     - sysstat
     - tmux
