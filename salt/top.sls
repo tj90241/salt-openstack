@@ -24,4 +24,5 @@ base:
     - motd
     - net-tools
     - salt
+    - sysstat
     - tmux
