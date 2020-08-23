@@ -1,4 +1,10 @@
 base:
+{# Host-specific default states #}
+  'cpu_flags:pdpe1gb':
+    - match: grain
+    - hugepages1G
+
+  '*':
 {# Essential daemons (time, entropy, etc.) #}
     - chrony
 {% if salt['file.is_chrdev']('/dev/hwrng') %}
@@ -9,13 +15,7 @@ base:
     - rng-tools5
 {% endif %}
 
-{# Host-specific default states #}
-  'cpu_flags:pdpe1gb':
-    - match: grain
-    - hugepages1G
-
 {# General states #}
-  '*':
     - apt
     - curl
     - dosfstools
