@@ -33,6 +33,7 @@ base:
     - man-db
     - motd
     - net-tools
+    - parted
     - salt
     - sysstat
     - tmux
