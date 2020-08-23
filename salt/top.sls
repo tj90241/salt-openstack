@@ -34,6 +34,7 @@ base:
     - motd
     - net-tools
     - parted
+    - procps
     - psmisc
     - salt
     - sysstat
