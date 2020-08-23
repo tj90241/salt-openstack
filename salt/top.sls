@@ -16,5 +16,6 @@ base:
     - gnupg2
     - htop
     - iftop
+    - jq
     - man-db
     - salt
