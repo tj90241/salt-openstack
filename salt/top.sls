@@ -16,6 +16,7 @@ base:
     - gnupg2
     - htop
     - iftop
+    - iotop
     - jq
     - kexec-tools
     - less
