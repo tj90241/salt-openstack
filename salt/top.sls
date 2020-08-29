@@ -25,6 +25,7 @@ base:
     - grub
     - htop
     - iftop
+    - initramfs-tools
     - iotop
     - jq
     - kexec-tools

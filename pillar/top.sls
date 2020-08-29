@@ -16,3 +16,4 @@ base:
     - apt
     - chrony
     - grub
+    - initramfs-tools

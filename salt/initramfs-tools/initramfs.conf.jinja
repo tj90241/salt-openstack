@@ -1,0 +1,18 @@
+#
+# initramfs.conf
+# salt-openstack overrides for mkinitramfs(8). See initramfs.conf(5).
+
+#
+# COMPRESS: [ gzip | bzip2 | lz4 | lzma | lzop | xz ]
+#
+
+COMPRESS=lzma
+
+#
+# RUNSIZE: ...
+#
+# The size of the /run tmpfs mount point, like 256M or 10%
+# Overridden by optional initramfs.runsize= bootarg
+#
+
+RUNSIZE={{ pillar.get('initramfs-tools', {}).get('runsize', '10%') }}
