@@ -37,6 +37,7 @@ base:
     - procps
     - psmisc
     - salt
+    - sosreport
     - sysstat
     - tasksel
     - tmux
