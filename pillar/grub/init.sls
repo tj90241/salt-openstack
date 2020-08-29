@@ -2,7 +2,6 @@ grub:
   timeout: 1
 
   cmdline_linux:
-    - elevator={{ 'noop' if grains.get('virtual', 'physical') != 'physical' else 'deadline' }}
     - transparent_hugepage=madvise
 
   cmdline_linux_default:
