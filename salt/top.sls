@@ -32,6 +32,8 @@ base:
     - less
     - lsof
     - man-db
+    - manpages
+    - manpages-dev
     - motd
     - net-tools
     - parted
