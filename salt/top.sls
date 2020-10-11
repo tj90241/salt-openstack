@@ -38,6 +38,7 @@ base:
     - procps
     - psmisc
     - salt
+    - screen
     - sosreport
     - sysstat
     - tasksel
