@@ -1,0 +1,76 @@
+#!/bin/bash -xe
+# -----------------------------------------------------------------------------
+#  This script will bootstrap and baseline a Salt Master node, the heart of
+#  the salt-openstack automation.   It can be specified as userdata script when
+#  launching an OpenStack instance, or uploaded and run on a baremetal node.
+# -----------------------------------------------------------------------------
+DEBIAN_MAJOR_VERSION=`awk -F '.' '{print $1}' /etc/debian_version`
+DEFAULT_MINION_NAME=salt
+
+# Upgrade the base system, install curl, git, and gnupg2 (for apt-key).
+export DEBIAN_FRONTEND=noninteractive
+apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" 
+apt-get install -y curl git gnupg2
+
+# Clone the upstream repository locally, setup symlinks.
+rm -rfv /srv
+git clone https://github.com/tj90241/salt-openstack.git /srv
+
+# Provision the upstream Saltstack repository.
+curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/latest/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/latest buster main" > /etc/apt/sources.list.d/saltstack.list
+apt-get update
+
+# Install and configure the local minion.
+apt-get install -y salt-minion
+echo 'grains: {roles: [salt-master]}' > /etc/salt/minion.d/grains.conf
+echo 'master: localhost' > /etc/salt/minion.d/master.conf
+echo "${DEFAULT_MINION_NAME}" > /etc/salt/minion_id
+systemctl restart salt-minion
+
+# Install the master.
+apt-get install -y salt-master
+
+# Ensure we only accept a key from the local minion for now.
+# Poll until the local minion accepts to perform a key-exchange.
+ifdown -a
+ifup lo
+salt-key -Dy
+systemctl restart salt-minion
+
+while [ 1 ]; do
+  salt-key -a salt -y
+  salt-key --no-color -l acc | grep "^${DEFAULT_MINION_NAME}\$" && break
+done
+
+# Wait for key acceptance, sync the world.
+while [ 1 ]; do
+  salt salt test.ping && break
+done
+
+salt-run saltutil.sync_all
+salt-call saltutil.sync_all
+
+# No need to be lights-out anymore...
+ifup -a
+
+# Baseline the master, poll till its up.
+salt-call state.apply salt.master
+
+while [ 1 ]; do
+  salt-call test.ping && break
+done
+
+# Baseline the minion, poll till its up.
+salt-call state.apply salt.minion
+systemctl restart salt-minion
+
+while [ 1 ]; do
+  salt-call test.ping && break
+done
+
+# Run a highstate.
+salt-call state.highstate
+
+# Reboot into a clean state.
+systemctl reboot
