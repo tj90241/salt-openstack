@@ -23,6 +23,7 @@ base:
     - dnsutils
     - gnupg2
     - grub
+    - hover
     - htop
     - iftop
     - initramfs-tools

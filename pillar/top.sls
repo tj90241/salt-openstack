@@ -10,10 +10,12 @@ base:
   '{{ grains.id }}':
     - ignore_missing: True
     - grub.{{ grains.id }}
+    - hover.{{ grains.id }}
     - salt.{{ grains.id }}
 
   '*':
     - apt
     - chrony
     - grub
+    - hover
     - initramfs-tools
