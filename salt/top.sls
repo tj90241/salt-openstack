@@ -45,6 +45,7 @@ base:
     - parted
     - procps
     - psmisc
+    - python2
     - salt
     - screen
     - sosreport
