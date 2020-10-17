@@ -1,5 +1,9 @@
 base:
 {# Host-specific default states #}
+  'cpu_flags:pse':
+    - match: grain
+    - hugepages2M
+
   'cpu_flags:pdpe1gb':
     - match: grain
     - hugepages1G
