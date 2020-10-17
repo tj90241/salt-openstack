@@ -22,6 +22,7 @@ base:
 
 {# General states #}
     - apt
+    - cloud-init
     - curl
     - dosfstools
     - dnsutils
