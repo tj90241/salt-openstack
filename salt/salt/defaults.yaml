@@ -2,11 +2,24 @@
 # vim: ft=yaml
 
 {% set salt = pillar.get('salt', {}) %}
+{% set api = salt.get('api', {}) %}
 {% set master = salt.get('master', {}) %}
 {% set minion = salt.get('minion', {}) %}
 
 # Either 'latest' or a specific release (e.g., 'YYYY.MM').
 release: {{ salt.get('release', 'latest') }}
+
+api:
+  # The socket interface for the HTTP server to listen on.
+  host: {{ api.get('host', '0.0.0.0') }}
+  port: {{ api.get('port', 8000) }}
+
+  # A URL path to the main entry point for the application.
+  # This is useful for serving multiple applications from the same URL.
+  root_prefix: {{ api.get('root_prefix', '/') }}
+
+  # The number of worker threads to start up in the pool.
+  thread_pool: {{ api.get('thread_pool', 100) }}
 
 master:
   # Salt runs a lightweight file server written in zeromq to deliver files to

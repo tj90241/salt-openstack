@@ -5,6 +5,9 @@ salt:
     roles:
       - salt-master
 
+  api:
+    root_prefix: /salt
+
   master:
     file_roots:
       base:

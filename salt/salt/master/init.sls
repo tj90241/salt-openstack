@@ -4,6 +4,7 @@ include:
   - salt.pkgrepo
   - salt.packages
   - .sync
+  - .api
 
 {% if salt_defaults.get('tmpfs_job_cache', False) %}
 manage-salt-master-job-cache:
