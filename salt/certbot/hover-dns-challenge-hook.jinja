@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# FQDN or SAN
+if [[ "${CERTBOT_DOMAIN}" =~ [[:alnum:]]+\.{{ hover_domain }}$ ]]; then
+	CERTBOT_HOST=${CERTBOT_DOMAIN%.{{ hover_domain }}*}
+
+# Wildcard
+elif [[ "${CERTBOT_DOMAIN}" = "{{ hover_domain }}" ]]; then
+  CERTBOT_HOST="*"
+fi
+
+salt-call hover.put_acme_challenge "{{ hover_domain }}" "${CERTBOT_VALIDATION}" "${CERTBOT_HOST}"
+
+# Without this, letsencrypt/certbot challenges will sometimes fail?
+# Hover takes some time to propagate the value from the API to DNS config?
+sleep 10

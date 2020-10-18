@@ -9,12 +9,14 @@ base:
 
   '{{ grains.id }}':
     - ignore_missing: True
+    - certbot.{{ grains.id }}
     - grub.{{ grains.id }}
     - hover.{{ grains.id }}
     - salt.{{ grains.id }}
 
   '*':
     - apt
+    - certbot
     - chrony
     - grub
     - hover

@@ -18,4 +18,4 @@ salt:
       - file_tree:
           root_dir: /etc/salt/file_tree_pillar
           follow_dir_links: True
-          keep_newline: True
+          keep_newline: False

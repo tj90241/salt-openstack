@@ -16,4 +16,5 @@ ehthumbs.db
 Thumbs.db
 
 # Credentials/secrets
+/pillar/certbot
 /pillar/hover

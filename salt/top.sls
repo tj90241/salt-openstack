@@ -8,6 +8,10 @@ base:
     - match: grain
     - hugepages1G
 
+  'roles:salt-master':
+    - match: grain
+    - certbot
+
   '*':
 {# Essential daemons (time, entropy, etc.) #}
     - chrony
@@ -49,6 +53,7 @@ base:
     - salt
     - screen
     - sosreport
+    - ssl
     - sysstat
     - tasksel
     - tmux

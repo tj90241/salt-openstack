@@ -48,3 +48,52 @@ hover:
         - '@'
         - '*'
 ```
+
+## Setting up SSL Certificates and Keys (Distribution and Auto-Renewal)
+
+SSL certificates and keys are distributed to cloud infrastructure members via
+the Salt Master by way of pillar data (which are AES-encrypted channels).  SSL
+certificates and keys are expected to be found on the Salt Masters at
+`/etc/salt/file_tree_pillar/hosts/<minion_name>/<pemfile>`, where `<pemfile>`
+is all of:
+
+  * `cert.pem`: The certificate for your domain (containing your public key)
+  * `chain.pem`: The intermediate certificate (from your CA)
+  * `privkey.pem`: The private key for your domain
+
+These files and derivatives of the same will be rendered locally on cloud
+infrastructure members when the associated minions run highstates (or whenever
+the `ssl` state is applied on the minions).
+
+To faciliate creation and renewal of SSL artifacts, this project can optionally
+integrate with Let's Encrypt and Hover (a domain registrar) to automatically
+renew certificates, even when one does not have a publicly-routable IP address.
+This is done via DNS-based Let's Encrypt challenges.
+
+In order to leverage this automated functionality, create a pillar record for
+your Salt Master under the `certbot` pillar directory.  The name of the pillar
+file should be the name of the Salt Master's Minion (by default, `salt`), e.g.:
+`/srv/pillar/certbot/salt.sls`.  A template for the file is as follows:
+```
+certbot:
+  certs:
+    salt:
+      challenge: hover-dns
+      email: someperson@somedomain.com
+      hover_domain: example.com
+      domains:
+        - myhost.example.com
+        - san.example.com
+```
+
+Note that your Salt Master's Minion must also have credentials for Hover in
+order to push DNS TXT records for the challenge, so you must also minimally
+create a Hover pillar for the Salt Master's Minion under the Hover directory
+(e.g.: `/srv/pillar/hover/salt.sls`) with the credentials for appropriate
+domains:
+```
+hover:
+  example.com:
+    username: hoveruser
+    password: hoverpassword
+```
