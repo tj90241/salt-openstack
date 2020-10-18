@@ -7,7 +7,7 @@ master-salt-run-sync:
 
 master-salt-sync:
   module.run:
-    - name: saltutil.sync_all
+    - saltutil.sync_all:
 
     {# Force this to execute before anything in salt.master. #}
     - order: 2

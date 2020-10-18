@@ -17,7 +17,7 @@ manage-salt-master-job-cache:
       - pkg: manage-salt-master
 
   module.run:
-    - name: service.systemctl_reload
+    - service.systemctl_reload:
     - onchanges:
       - file: manage-salt-master-job-cache
 
@@ -70,7 +70,7 @@ manage-salt-master-override:
     - makedirs: True
 
   module.run:
-    - name: service.systemctl_reload
+    - service.systemctl_reload:
     - onchanges:
       - file: manage-salt-master-override
 
@@ -82,12 +82,20 @@ manage-file-tree-pillar:
     - dir_mode: 0700
     - makedirs: True
     - follow_symlinks: False
+    - watch_in:
+      - service: manage-salt-master
+
+manage-file-tree-pillar-perms:
+  file.directory:
+    - name: /etc/salt/file_tree_pillar
+    - user: root
+    - group: root
+    - dir_mode: 0700
+    - follow_symlinks: False
     - recurse:
       - user
       - group
       - mode
-    - watch_in:
-      - service: manage-salt-master
 
 remove-master-defaults-conf:
   file.absent:

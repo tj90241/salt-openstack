@@ -14,7 +14,7 @@ manage-dev-hugepages2M-mount:
     - mode: 0644
 
   module.run:
-    - name: service.systemctl_reload
+    - service.systemctl_reload:
     - watch:
       - file: manage-dev-hugepages2M-mount
 

@@ -30,7 +30,7 @@ certbot-symlink-{{ minion}}-cert:
 
 certbot-refresh-pillar:
   module.run:
-    - name: saltutil.refresh_pillar
+    - saltutil.refresh_pillar:
 
 schedule-certbot-renewal:
   schedule.present:

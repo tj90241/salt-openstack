@@ -20,7 +20,7 @@ manage-saltstack-repo:
     - order: 4
 
   module.run:
-    - name: pkg.refresh_db
+    - pkg.refresh_db:
     - failhard: True
 
     {# We can't put a require_in on pkg: salt-{master,minion} here. #}

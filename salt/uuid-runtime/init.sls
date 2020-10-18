@@ -19,6 +19,6 @@ manage-uuid-runtime:
     - makedirs: True
 
   module.run:
-    - name: service.systemctl_reload
+    - service.systemctl_reload:
     - onchanges:
       - file: manage-uuid-runtime

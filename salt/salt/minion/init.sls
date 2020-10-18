@@ -41,7 +41,7 @@ manage-salt-minion-override:
     - makedirs: True
 
   module.run:
-    - name: service.systemctl_reload
+    - service.systemctl_reload:
     - onchanges:
       - file: manage-salt-minion-override
 

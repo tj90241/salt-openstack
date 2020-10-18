@@ -56,7 +56,7 @@ manage-chronyd-override:
     - makedirs: True
 
   module.run:
-    - name: service.systemctl_reload
+    - service.systemctl_reload:
     - onchanges:
       - file: /etc/systemd/system/chrony.service.d/override.conf
 
@@ -100,7 +100,7 @@ workaround-systemd-time-wait-sync-bug:
     - makedirs: True
 
   module.run:
-    - name: service.systemctl_reload
+    - service.systemctl_reload:
     - onchanges:
       - file: workaround-systemd-time-wait-sync-bug
 

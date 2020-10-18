@@ -3,11 +3,11 @@
 {% for hostname in options['a_records'].get('hosts', ['@', '*']) %}
 manage-{{ domain.replace('.', '_') }}-a-records-{{ loop.index }}:
   module.run:
-    - name: hover.put_a_aaaa_records
-    - domain: {{ domain }}
-    - ip_address: {{ grains.ip4_interfaces[options['a_records']['interface']][0] }}
-    - record_type: A
-    - hostname: '{{ hostname }}'
+    - hover.put_a_aaaa_records:
+      - domain: {{ domain }}
+      - ip_address: {{ grains.ip4_interfaces[options['a_records']['interface']][0] }}
+      - record_type: A
+      - hostname: '{{ hostname }}'
 {% endfor %}
 {% endif %}
 
@@ -15,11 +15,11 @@ manage-{{ domain.replace('.', '_') }}-a-records-{{ loop.index }}:
 {% for hostname in options['aaaa_records'].get('hosts', ['@', '*']) %}
 manage-{{ domain.replace('.', '_') }}-aaaa-records-{{ loop.index }}:
   module.run:
-    - name: hover.put_a_aaaa_records
-    - domain: {{ domain }}
-    - ip_address: {{ grains.ip6_interfaces[options['aaaa_records']['interface']][0] }}
-    - record_type: AAAA
-    - hostname: '{{ hostname }}'
+    - hover.put_a_aaaa_records:
+      - domain: {{ domain }}
+      - ip_address: {{ grains.ip6_interfaces[options['aaaa_records']['interface']][0] }}
+      - record_type: AAAA
+      - hostname: '{{ hostname }}'
 {% endfor %}
 {% endif %}
 {% endfor %}
