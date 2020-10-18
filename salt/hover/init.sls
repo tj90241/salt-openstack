@@ -23,3 +23,10 @@ manage-{{ domain.replace('.', '_') }}-aaaa-records-{{ loop.index }}:
 {% endfor %}
 {% endif %}
 {% endfor %}
+
+schedule-hover-sync:
+  schedule.present:
+    - function: state.sls
+    - job_args:
+      - hover
+    - cron: '{{ pillar['hover']['schedule'] }}'

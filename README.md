@@ -30,11 +30,11 @@ DNS tab, and create DNS records with any initial value, as shown below:
 
 Once complete, create a pillar record for your WAN-facing host under the `hover`
 pillar directory.  The name of the pillar file should be the name of the WAN-
-facing minion (e.g., `/srv/pillar/hover/some_minion.sls`).  In the pillar file,
-use the template below to provide the domain(s) you wish to update, along with
-the credentials for the domain.  You may then specify A/AAAA records to maintain
-along with the interface on the minion which contains the publicly routable
-address that should be used to populate the A/AAAA records.
+facing host/minion (e.g., `/srv/pillar/hover/myhost.sls`).  In the pillar
+file, use the template below to provide the domain(s) you wish to update, along
+with the credentials for the domain.  You may then specify A/AAAA records to
+maintain along with the interface on the minion which contains the publicly
+routable address that should be used to populate the A/AAAA records.
 ```
 hover:
   example.com:
@@ -53,6 +53,12 @@ hover:
         - '@'
         - '*'
 ```
+
+To initially sync your A/AAAA records and setup a periodic job which maintains
+them, simply run `salt -G roles:salt-master state.apply hover` on your Salt
+Master host.  This will immediately provision the DNS records, and create a
+scheduled Salt task that pushes your router's IP address(es) every 1 minute
+past the hour.
 
 ## Setting up SSL Certificates and Keys (optional, recommended)
 
@@ -119,4 +125,6 @@ would want to create a TXT record for `_acme-challenge.myhost`, as shown below:
 Once TXT records are created, simply run the following on your Salt Master:
 `salt -G roles:salt-master state.apply certbot.renew; salt \* state.apply ssl`.
 This will renew certificates and push them out to cloud infrastructure members
-as necessary.
+as necessary.  It will also schedule a task which checks if SSL certificates
+need to be renewed twice daily.  Once/when renewed, certificates will be
+deployed to cloud infrastructure members on their next highstate run.

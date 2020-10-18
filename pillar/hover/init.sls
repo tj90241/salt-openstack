@@ -1,0 +1,2 @@
+hover:
+  schedule: '1 * * * *'

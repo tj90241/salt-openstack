@@ -28,6 +28,13 @@ certbot-symlink-{{ minion}}-cert:
 {% endif %}
 {% endfor %}
 
-certbot-refresh-pillar;
+certbot-refresh-pillar:
   module.run:
     - name: saltutil.refresh_pillar
+
+schedule-certbot-renewal:
+  schedule.present:
+    - function: state.sls
+    - job_args:
+      - certbot.renew
+    - cron: '{{ pillar['certbot']['schedule'] }}'
