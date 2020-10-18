@@ -84,7 +84,9 @@ This is done via DNS-based Let's Encrypt challenges.
 In order to leverage this automated functionality, create a pillar record for
 your Salt Master under the `certbot` pillar directory.  The name of the pillar
 file should be the name of the Salt Master's Minion (by default, `salt`), e.g.:
-`/srv/pillar/certbot/salt.sls`.  A template for the file is as follows:
+`/srv/pillar/certbot/salt.sls`.  The key for each dictionary under `certs` is
+the minion/host for which a SSL certificate should be generated and deployed.
+A template for the file is as follows:
 ```
 certbot:
   certs:
@@ -93,8 +95,16 @@ certbot:
       email: someperson@somedomain.com
       hover_domain: example.com
       domains:
-        - myhost.example.com
+        - salt.example.com
+        - salt-api.example.com
         - san.example.com
+
+    infrahost1:
+      challenge: hover-dns
+      email: someperson@somedomain.com
+      hover_domain: example.com
+      domains:
+        - infrahost1.example.com
 ```
 
 Note that your Salt Master's Minion must also have credentials for Hover in
