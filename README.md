@@ -15,13 +15,18 @@ Once complete, upload `scripts/baseline-salt-master` to the host and execute
 the script as `root`. The script will setup the Salt infrastructure and clone
 this repository into `/srv`.
 
-## Setting up Dynamic DNS
+## Setting up Dynamic DNS (optional)
 
 A plugin for Hover (a domain registrar) is provided if you wish to make use
 of dynamic DNS.  This will enable your cloud to be referenced externally on the
 internet.  In order to do so, you must have a Hover account that has the A/AAAA
 records you wish to maintain initially provisioned via Hover's web interface;
 they will not be automatically created as needed.
+
+To create a record, simply login to the Hover web interface, navigate to the
+DNS tab, and create DNS records with any initial value, as shown below:
+
+![Hover A record creation](/images/hover_create_a_record.png)
 
 Once complete, create a pillar record for your WAN-facing host under the `hover`
 pillar directory.  The name of the pillar file should be the name of the WAN-
@@ -49,7 +54,7 @@ hover:
         - '*'
 ```
 
-## Setting up SSL Certificates and Keys (Distribution and Auto-Renewal)
+## Setting up SSL Certificates and Keys (optional, recommended)
 
 SSL certificates and keys are distributed to cloud infrastructure members via
 the Salt Master by way of pillar data (which are AES-encrypted channels).  SSL
@@ -97,3 +102,21 @@ hover:
     username: hoveruser
     password: hoverpassword
 ```
+
+Lastly, for each domain (FQDN or SAN) for which you wish to provision SSL
+certificates for, you must initially provision DNS TXT records in Hover. These
+TXT records will be used by Let's Encrypt as part of the challenges (to verify
+that you actually own the domain for which you are registering certificates
+for).
+
+The TXT records should have a hostname of `_acme-challenge.<yourhost>`, where
+`<yourhost>` is the FQDN or SAN you wish to use, less the Hover domain name.
+As an example, when creating an SSL certificate for `myhost.example.com`, you
+would want to create a TXT record for `_acme-challenge.myhost`, as shown below:
+
+![Hover TXT record creation](/images/hover_create_txt_record.png)
+
+Once TXT records are created, simply run the following on your Salt Master:
+`salt -G roles:salt-master state.apply certbot.renew; salt \* state.apply ssl`.
+This will renew certificates and push them out to cloud infrastructure members
+as necessary.
