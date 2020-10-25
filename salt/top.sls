@@ -61,3 +61,14 @@ base:
     - unzip
     - vim
     - zip
+
+{# Role-specific states #}
+  'roles:devpi-client':
+    - match: grain
+    - devpi
+    - devpi.client
+
+  'roles:devpi-server':
+    - match: grain
+    - devpi
+    - devpi.server

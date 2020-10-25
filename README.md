@@ -2,6 +2,31 @@
 
 A SaltStack repository for configuring an opinionated OpenStack cluster.
 
+## Planning and Base OS Install
+
+An OpenStack cloud is a complex piece of infrastructure, and the additional
+components which form a full `salt-openstack` cluster by no means make this
+any less complex.  There's no canonical way to deploy a `salt-openstack`
+cluster: you may have as few or many infrastructure roles as you like (e.g.,
+a host for every role, or a condensed, low-footprint install where one or a
+few infrastructure hosts serve many roles).
+
+As a starting point, we recommend installing a development cluster where all
+hosts are provisioned on the same subnet, in the same DNS domain, and where
+each host serves a dedicated, specific role.  Although this may not be an
+effective use of resources, or result in an environment in which it is easy to
+to author effective security policies (as all hosts live in the same subnet),
+you will be able to hit the ground running and avoid complex deployment issues
+until you are more familiar with the `salt-openstack` cluster topology.
+
+To begin, install [Debian GNU/Linux](https://www.debian.org/) as you normally
+would on a set of hosts to be used with `salt-openstack`.  Below are the roles
+of a `salt-openstack` cluster and suggested hostnames to use as a starting
+point:
+
+ * PyPI server: `devpi`
+ * Salt Master: `salt`
+
 ## Bootstrapping the Salt Master
 
 Install Debian GNU/Linux 10 ("buster") on a host which is destined to become

@@ -1,0 +1,13 @@
+[Unit]
+Description=PyPI Server (devpi)
+Requires=systemd-time-wait-sync.service
+After=systemdd-time-wait-sync.service
+
+[Service]
+Restart=on-success
+ExecStart={{ salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'devpi-server') }} --role {{ pillar['devpi']['server']['role'] }} --host {{ pillar['devpi']['server']['host']  }} --port {{ pillar['devpi']['server']['port'] }} --threads {{ pillar['devpi']['server']['threads'] }} --serverdir {{ pillar['devpi']['server']['serverdir'] }} --storage {{ pillar['devpi']['server']['storage'] }} --keyfs-cache-size {{ pillar['devpi']['server']['keyfs_cache_size'] }} --restrict-modify=root
+User={{ pillar['devpi']['user'] }}
+Group={{ pillar['devpi']['group'] }}
+
+[Install]
+WantedBy=multi-user.target

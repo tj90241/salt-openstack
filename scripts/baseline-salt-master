@@ -12,9 +12,10 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" 
 apt-get install -y curl git gnupg2
 
-# Clone the upstream repository locally, setup symlinks.
+# Clone the upstream repository locally, setup symlinks, generate credentials.
 rm -rfv /srv
 git clone https://github.com/tj90241/salt-openstack.git /srv
+/srv/scripts/generate-credentials
 
 # Provision the upstream Saltstack repository.
 curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/latest/SALTSTACK-GPG-KEY.pub" | apt-key add -

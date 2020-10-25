@@ -16,5 +16,9 @@ ehthumbs.db
 Thumbs.db
 
 # Credentials/secrets
-/pillar/certbot
-/pillar/hover
+/pillar/certbot/
+/pillar/devpi/hosts/
+/pillar/devpi/root.sls
+/pillar/grub/hosts/
+/pillar/hover/
+/pillar/salt/hosts/
