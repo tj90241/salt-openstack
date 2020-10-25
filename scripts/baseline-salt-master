@@ -2,7 +2,7 @@
 # -----------------------------------------------------------------------------
 #  This script will bootstrap and baseline a Salt Master node, the heart of
 #  the salt-openstack automation.   It can be specified as userdata script when
-#  launching an OpenStack instance, or uploaded and run on a baremetal node.
+#  launching an OpenStack instance, or uploaded to and run on a baremetal node.
 # -----------------------------------------------------------------------------
 DEBIAN_MAJOR_VERSION=`awk -F '.' '{print $1}' /etc/debian_version`
 DEFAULT_MINION_NAME=$( hostname -s )
