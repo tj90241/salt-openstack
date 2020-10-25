@@ -21,3 +21,4 @@ base:
     - grub
     - hover
     - initramfs-tools
+    - salt

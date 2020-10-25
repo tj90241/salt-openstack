@@ -65,12 +65,6 @@ schedule-minion-state-highstate:
 {% if 'minion_system_reboot' in pillar.salt.get('schedule', {}) %}
 schedule-minion-reboot:
   schedule.present:
-{% if 'rabbitmq-server' in grains.get('roles', []) %}
-    - function: state.sls
-    - job_args:
-      - atomic-pi.rabbit-system-reboot
-{% else %}
     - function: system.reboot
-{% endif %}
     - cron: {{ pillar.salt.schedule.minion_system_reboot }}
 {% endif %}

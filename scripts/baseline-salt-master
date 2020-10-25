@@ -5,7 +5,7 @@
 #  launching an OpenStack instance, or uploaded and run on a baremetal node.
 # -----------------------------------------------------------------------------
 DEBIAN_MAJOR_VERSION=`awk -F '.' '{print $1}' /etc/debian_version`
-DEFAULT_MINION_NAME=salt
+DEFAULT_MINION_NAME=$( hostname -s )
 
 # Upgrade the base system, install curl, git, and gnupg2 (for apt-key).
 export DEBIAN_FRONTEND=noninteractive
@@ -20,6 +20,11 @@ git clone https://github.com/tj90241/salt-openstack.git /srv
 curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/latest/SALTSTACK-GPG-KEY.pub" | apt-key add -
 echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/latest buster main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
+
+# Don't block startup of services on systemd-wait-time-sync.
+# It may not be provisioned yet.
+mkdir -p /run/systemd/timesync
+touch /run/systemd/timesync/synchronized > /dev/null 2>&1
 
 # Install and configure the local minion.
 apt-get install -y salt-minion
