@@ -46,6 +46,7 @@ base:
     - manpages-dev
     - motd
     - net-tools
+    - openssl
     - parted
     - procps
     - psmisc

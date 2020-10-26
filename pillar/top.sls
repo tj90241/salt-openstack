@@ -37,4 +37,5 @@ base:
     - grub
     - hover
     - initramfs-tools
+    - openssl
     - salt
