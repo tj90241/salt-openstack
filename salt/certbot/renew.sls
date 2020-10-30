@@ -12,7 +12,7 @@ certbot-renew-{{ minion}}-cert:
         hover_domain: {{ options['hover_domain'] }}
 
   cmd.run:
-    - name: certbot certonly --cert-name '{{ minion }}' -d '{{ ','.join(options['domains']) }}' --email '{{ options['email'] }}' --non-interactive --agree-tos --manual --manual-public-ip-logging-ok --preferred-challenges=dns --manual-auth-hook /usr/local/sbin/hover-dns-challenge-hook; rm -v /usr/local/sbin/hover-dns-challenge-hook
+    - name: certbot certonly --cert-name '{{ minion }}' -d '{{ ','.join(options['domains']) }}' --rsa-key-size {{ options.get('rsa_key_size', 4096) }} --email '{{ options['email'] }}' --non-interactive --agree-tos --manual --manual-public-ip-logging-ok --preferred-challenges=dns --manual-auth-hook /usr/local/sbin/hover-dns-challenge-hook; rm -v /usr/local/sbin/hover-dns-challenge-hook
 
 {% if 'salt-master' in grains.get('roles', []) %}
 certbot-symlink-{{ minion}}-cert:
