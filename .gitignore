@@ -21,4 +21,5 @@ Thumbs.db
 /pillar/devpi/root.sls
 /pillar/grub/hosts/
 /pillar/hover/
+/pillar/nginx/hosts/
 /pillar/salt/hosts/

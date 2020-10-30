@@ -1,4 +1,16 @@
 base:
+  # common data
+  '*':
+    - apt
+    - certbot
+    - chrony
+    - grub
+    - hover
+    - initramfs-tools
+    - openssl
+    - nginx
+    - salt
+
   # role-specific data and defaults
   'roles:devpi-client':
     - match: grain
@@ -27,15 +39,5 @@ base:
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
     - hover.{{ grains.id }}
+    - nginx.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}
-
-  # common data
-  '*':
-    - apt
-    - certbot
-    - chrony
-    - grub
-    - hover
-    - initramfs-tools
-    - openssl
-    - salt

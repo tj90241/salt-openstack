@@ -13,8 +13,9 @@ base:
     - certbot
 
   '*':
-{# Essential daemons (time, entropy, etc.) #}
+{# Essential daemons (time, entropy, SSL, etc.) #}
     - chrony
+    - openssl
 {% if salt['file.is_chrdev']('/dev/hwrng') %}
     - rng-tools
 {% elif 'rdrand' not in grains.get('cpu_flags', []) %}
@@ -22,6 +23,7 @@ base:
 {% else %}
     - rng-tools5
 {% endif %}
+    - ssl
     - uuid-runtime
 
 {# General states #}
@@ -46,7 +48,6 @@ base:
     - manpages-dev
     - motd
     - net-tools
-    - openssl
     - parted
     - procps
     - psmisc
@@ -54,7 +55,6 @@ base:
     - salt
     - screen
     - sosreport
-    - ssl
     - sysstat
     - tasksel
     - tmux
@@ -73,3 +73,4 @@ base:
     - match: grain
     - devpi
     - devpi.server
+    - nginx-light
