@@ -130,19 +130,17 @@ certbot:
       hover_domain: example.com
       domains:
         - infrahost1.example.com
-```
 
-Note that your Salt Master's Minion must also have credentials for Hover in
-order to push DNS TXT records for the challenge, so you must also minimally
-create a Hover pillar for the Salt Master's Minion under the Hover directory
-(e.g.: `/srv/pillar/hover/salt.sls`) with the credentials for appropriate
-domains:
-```
 hover:
   example.com:
     username: hoveruser
     password: hoverpassword
 ```
+
+Note that your Salt Master's Minion must also have credentials for Hover in
+order to push DNS TXT records for the challenge, so you must also minimally
+also include your Hover credentials in the `certbot` pillar (as shown above)
+for appropriate domains.
 
 Lastly, for each domain (FQDN or SAN) for which you wish to provision SSL
 certificates for, you must initially provision DNS TXT records in Hover. These
