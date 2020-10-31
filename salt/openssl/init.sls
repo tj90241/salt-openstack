@@ -18,8 +18,9 @@ manage-host-dhparams:
     - user: root
     - group: root
     - mode: 0644
+    - replace: False
 
   cmd.run:
     - name: sudo openssl dhparam -out /etc/ssl/dhparam-{{ pillar['openssl']['dhparam_bits'] }}.pem {{ pillar['openssl']['dhparam_bits'] }}
-    - watch:
+    - onchanges:
       - file: manage-host-dhparams
