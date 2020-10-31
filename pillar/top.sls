@@ -23,6 +23,8 @@ base:
     - devpi.packages
     - devpi.server
     - devpi.root
+    - openstack.devpi.indexes
+    - openstack.devpi.user
 
   'roles:salt-master':
     - match: grain

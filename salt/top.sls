@@ -74,3 +74,4 @@ base:
     - nginx-light
     - devpi
     - devpi.server
+    - devpi.users_indexes
