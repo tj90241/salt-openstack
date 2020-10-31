@@ -71,6 +71,6 @@ base:
 
   'roles:devpi-server':
     - match: grain
+    - nginx-light
     - devpi
     - devpi.server
-    - nginx-light

@@ -1,0 +1,15 @@
+[Unit]
+Description=PyPI Server (devpi)
+Requires=systemd-time-wait-sync.service
+After=systemdd-time-wait-sync.service
+
+[Service]
+Restart=on-success
+ExecStartPre=/bin/sh -c '/bin/mkdir -p /var/run/devpi; /bin/chown devpi:www-data /var/run/devpi; /bin/chmod 0750 /var/run/devpi'
+ExecStart={{ salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'devpi-server') }} --role {{ pillar['devpi']['server']['role'] }} --unix-socket /var/run/devpi/devpi.sock --unix-socket-perms 660 --threads {{ pillar['devpi']['server']['threads'] }} --serverdir {{ pillar['devpi']['server']['serverdir'] }} --storage {{ pillar['devpi']['server']['storage'] }} --keyfs-cache-size {{ pillar['devpi']['server']['keyfs_cache_size'] }} --restrict-modify=root
+PermissionsStartOnly=true
+User={{ pillar['devpi']['user'] }}
+Group=www-data
+
+[Install]
+WantedBy=multi-user.target

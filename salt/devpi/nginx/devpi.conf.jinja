@@ -1,0 +1,50 @@
+{%- set ssl_fullchain_filepath = '/etc/ssl/certs/' + grains.id + '-fullchain.pem' -%}
+{%- set ssl_key_filepath = '/etc/ssl/private/' + grains.id + '-privkey.pem' -%}
+server {
+	server_name $hostname;
+{% if salt['file.file_exists'](ssl_fullchain_filepath) and salt['file.file_exists'](ssl_key_filepath) %}
+	listen 443 ssl default_server;
+	listen [::]:443 ssl default_server;
+{% else %}
+	listen 80 default_server;
+	listen [::]:80 default_server;
+{% endif %}
+	gzip on;
+	gzip_min_length 2000;
+	gzip_proxied any;
+	gzip_types application/json;
+
+	proxy_read_timeout 60s;
+	client_max_body_size 64M;
+
+	root {{ pillar['devpi']['server']['serverdir'] }};
+
+	# Try serving static files directly...
+	location ~ /\+f/ {
+		error_page 418 = @proxy_to_app;
+		if ($request_method !~ (GET)|(HEAD)) {
+			return 418;
+		}
+
+		expires max;
+		try_files /+files$uri @proxy_to_app;
+	}
+
+	# Try serving docs directory...
+	location ~ /\+doc/ {
+		root {{ pillar['devpi']['server']['serverdir'] }};
+		try_files $uri @proxy_to_app;
+	}
+
+	# Could not serve the request; proxy to the python application.
+	location / {
+		error_page 418 = @proxy_to_app;
+		return 418;
+	}
+
+	location @proxy_to_app {
+		proxy_pass http://unix:/var/run/devpi/devpi.sock;
+		proxy_set_header X-outside-url $scheme://$http_host;
+		proxy_set_header X-Real-IP $remote_addr;
+	}
+}

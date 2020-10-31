@@ -68,7 +68,7 @@ initialize-devpi-serverdir:
 manage-devpi-server:
   file.managed:
     - name: /etc/systemd/system/devpi-server.service
-    - source: salt://devpi/devpi-server.service.jinja
+    - source: salt://devpi/systemd/devpi-server.service.jinja
     - template: jinja
     - user: root
     - group: root
@@ -85,3 +85,19 @@ manage-devpi-server:
     - restart: True
     - watch:
       - file: manage-devpi-server
+
+{# Manage the nginx site for this server. #}
+manage-nginx-devpi-site:
+  file.managed:
+    - name: /etc/nginx/sites.d/devpi.conf
+    - source: salt://devpi/nginx/devpi.conf.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+
+  service.running:
+    - name: nginx
+    - reload: True
+    - watch:
+      - file: manage-nginx-devpi-site
