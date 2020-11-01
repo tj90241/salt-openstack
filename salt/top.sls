@@ -59,6 +59,7 @@ base:
     - tasksel
     - tmux
     - traceroute
+    - twine
     - unzip
     - vim
     - zip

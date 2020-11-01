@@ -3,9 +3,9 @@ include:
   - python3.py
   - python3.requests
 
-{% set common = pillar['devpi']['packages']['common'] %}
+{% set common = pillar['devpi']['packages']['devpi-common'] %}
 
-{% if salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"devpi-common\\").version)"') != common['version'] %}
+{% if not salt['file.directory_exists'](pillar['devpi']['virtualenv']) or salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"devpi-common\\").version)"') != common['version'] %}
 install-devpi-common-package:
   file.managed:
     - name:  {{ salt['file.join'](pillar['devpi']['tmpdir'], 'common', salt['file.basename'](common['source'])) }}

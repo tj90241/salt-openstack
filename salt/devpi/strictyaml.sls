@@ -4,7 +4,7 @@ include:
 
 {% set strictyaml = pillar['devpi']['packages']['strictyaml'] %}
 
-{% if salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"strictyaml\\").version)"') != strictyaml['version'] %}
+{% if not salt['file.directory_exists'](pillar['devpi']['virtualenv']) or salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"strictyaml\\").version)"') != strictyaml['version'] %}
 install-devpi-strictyaml-package:
   file.managed:
     - name:  {{ salt['file.join'](pillar['devpi']['tmpdir'], 'strictyaml', salt['file.basename'](strictyaml['source'])) }}

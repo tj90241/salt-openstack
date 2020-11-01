@@ -9,9 +9,9 @@ include:
   - python3.readme-renderer
   - python3.whoosh
 
-{% set web = pillar['devpi']['packages']['web'] %}
+{% set web = pillar['devpi']['packages']['devpi-web'] %}
 
-{% if salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"devpi-web\\").version)"') != web['version'] %}
+{% if not salt['file.directory_exists'](pillar['devpi']['virtualenv']) or salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"devpi-web\\").version)"') != web['version'] %}
 install-devpi-web-package:
   file.managed:
     - name:  {{ salt['file.join'](pillar['devpi']['tmpdir'], 'web', salt['file.basename'](web['source'])) }}

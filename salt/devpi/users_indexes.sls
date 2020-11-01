@@ -1,4 +1,4 @@
-{% set have = salt['devpi.get_users_and_indexes']() %}
+{% set have = salt['devpi.get_users_and_indexes'](raise_on_error=False) %}
 {% set want = pillar['devpi']['users'] %}
 
 {# Delete users and indexes which should no longer exist. #}

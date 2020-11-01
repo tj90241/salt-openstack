@@ -101,25 +101,13 @@ def _api_request(uri, headers={}, method='GET', data=None, user=None):
         raise salt.exceptions.CommandExecutionError(message)
 
 
-def _default_transport():
-    """
-    Returns 'https' if SSL fullchain and private key are present; else 'http'.
-    """
-    ssl_fullchain_filepath = '/etc/ssl/certs/{0}-fullchain.pem'.format(__grains__['id'])
-    ssl_key_filepath = '/etc/ssl/private/{0}-privkey.pem'.format(__grains__['id'])
-
-    ssl_keychain_exists = __salt__['file.file_exists'](ssl_fullchain_filepath)
-    ssl_key_exists = __salt__['file.file_exists'](ssl_fullchain_filepath)
-    return 'https' if ssl_keychain_exists and ssl_key_exists else 'http'
-
-
 def create_index(username, index, bases=[], volatile=True, endpoint=None,
                  user=None):
     """
     Creates an index for the given user with the specified properties.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     data = {
         'bases': bases,
@@ -139,7 +127,7 @@ def create_user(username, password, endpoint=None, email=None, user=None):
     Creates the specified user with the given username/password/e-mail.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     account = {'password': password}
 
@@ -154,12 +142,24 @@ def create_user(username, password, endpoint=None, email=None, user=None):
     return _api_request(uri, method='PUT', data=account, user=user)['result']
 
 
+def default_transport():
+    """
+    Returns 'https' if SSL fullchain and private key are present; else 'http'.
+    """
+    ssl_fullchain_filepath = '/etc/ssl/certs/{0}-fullchain.pem'.format(__grains__['id'])
+    ssl_key_filepath = '/etc/ssl/private/{0}-privkey.pem'.format(__grains__['id'])
+
+    ssl_keychain_exists = __salt__['file.file_exists'](ssl_fullchain_filepath)
+    ssl_key_exists = __salt__['file.file_exists'](ssl_fullchain_filepath)
+    return 'https' if ssl_keychain_exists and ssl_key_exists else 'http'
+
+
 def delete_index(username, index, endpoint=None, user=None):
     """
     Deletes the specified index.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     if not endpoint.endswith('/'):
         uri = '{0}/{1}/{2}'.format(endpoint, username, index)
@@ -174,7 +174,7 @@ def delete_user(username, endpoint=None, user=None):
     Deletes the specified user.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     if username == 'root':
         message = 'Refusing to delete the "root" user'
@@ -193,7 +193,7 @@ def get_index(username, index, endpoint=None, user=None):
     Returns index information for a specific user.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     if not endpoint.endswith('/'):
         uri = '{0}/{1}/{2}'.format(endpoint, username, index)
@@ -208,7 +208,7 @@ def get_user(username, endpoint=None, user=None):
     Returns information and indexes for a specific user.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     if not endpoint.endswith('/'):
         uri = '{0}/{1}'.format(endpoint, username)
@@ -218,17 +218,24 @@ def get_user(username, endpoint=None, user=None):
     return _api_request(uri, user=user)['result']
 
 
-def get_users_and_indexes(endpoint=None, user=None):
+def get_users_and_indexes(endpoint=None, user=None, raise_on_error=True):
     """
     Returns a map of all users and indexes.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     if not endpoint.endswith('/'):
         endpoint = endpoint + '/'
 
-    return _api_request(endpoint, user=user)['result']
+    try:
+        return _api_request(endpoint, user=user)['result']
+
+    except:
+        if not raise_on_error:
+            return {}
+
+        raise
 
 
 def modify_user(username, password, endpoint=None, email=None, user=None):
@@ -236,7 +243,7 @@ def modify_user(username, password, endpoint=None, email=None, user=None):
     Changes the specified by setting the given username/password/e-mail.
     """
     if endpoint is None:
-        endpoint = '{0}://{1}'.format(_default_transport(), __grains__['fqdn'])
+        endpoint = '{0}://{1}'.format(default_transport(), __grains__['fqdn'])
 
     account = {'password': password}
 

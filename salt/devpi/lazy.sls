@@ -4,7 +4,7 @@ include:
 
 {% set lazy = pillar['devpi']['packages']['lazy'] %}
 
-{% if salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"lazy\\").version)"') != lazy['version'] %}
+{% if not salt['file.directory_exists'](pillar['devpi']['virtualenv']) or salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"lazy\\").version)"') != lazy['version'] %}
 install-devpi-lazy-package:
   file.managed:
     - name:  {{ salt['file.join'](pillar['devpi']['tmpdir'], 'lazy', salt['file.basename'](lazy['source'])) }}

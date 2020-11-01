@@ -6,9 +6,9 @@ include:
   - python3.py
   - python3.tox
 
-{% set client = pillar['devpi']['packages']['client'] %}
+{% set client = pillar['devpi']['packages']['devpi-client'] %}
 
-{% if salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"devpi-client\\").version)"') != client['version'] %}
+{% if not salt['file.directory_exists'](pillar['devpi']['virtualenv']) or salt['cmd.run'](salt['file.join'](pillar['devpi']['virtualenv'], 'bin', 'python3') + ' -c "import pkg_resources; print(pkg_resources.get_distribution(\\"devpi-client\\").version)"') != client['version'] %}
 install-devpi-client-package:
   file.managed:
     - name:  {{ salt['file.join'](pillar['devpi']['tmpdir'], 'client', salt['file.basename'](client['source'])) }}
