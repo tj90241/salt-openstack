@@ -27,6 +27,95 @@ point:
  * PyPI server: `devpi`
  * Salt Master: `salt`
 
+## Preparing Local VMs (Homelab)
+
+Use whatever tools you feel comfortable with if you are planning to host
+your `salt-openstack` cloud on a virtualized environment on one or more
+physical servers.  If you wish, a local tool built around `libvirt` is
+included under the `scripts` directory.  Prerequisites for this solution
+are the following:
+
+  * `libvirt-daemon-system`
+  * `openvswitch-switch`
+  * `python3-libvirt`
+  * `qemu-kvm`
+  * `sgabios`
+
+To cut down on some extra fat, you can pass `--no-install-recommends` when
+installing these packages via `apt` to shed some unnecessary dependencies.
+
+Next, set aside memory for your VMs by configuring hugepages in your kernel
+(add `nr_hugepages=X` to the kernel command line, or
+`echo X > /proc/sys/vm/nr_hugepages` to apply a temporary setting).  By
+default, on x86(\_64), 1 hugepage = 2MB of RAM.  Then, configure the
+`vm.hugetlb_shm_group` so that it has the gid of `kvm` (check what that is
+with `cut -d: -f3 < <(getent group kvm)`).
+
+Next, define some Open-vSwitch bridges in your networking configuration and
+tie them to physical interfaces.  Here is an example `/etc/network/interfaces`
+configuration whcih takes a physical interface, `enp3s0`, and ties VLAN 102
+of that interface to a `br-util` bridge, while also adding a interface on that
+bridge to the hypervisor (`vif-os-util`):
+
+```
+# The secondary network interface
+allow-hotplug enp3s0
+iface enp3s0 inet manual
+        mtu 9000
+
+auto enp3s0.102
+
+# The utility network interface
+allow-ovs br-util
+iface br-util inet manual
+        ovs_type OVSBridge
+        ovs_ports enp3s0.102 vif-os-util
+        mtu 9000
+
+allow-br-util enp3s0.102
+iface enp3s0.102 inet manual
+        ovs_bridge br-util
+        ovs_type OVSPort
+        ovs_options tag=102
+
+allow-br-util vif-os-util
+iface vif-os-util inet static
+        ovs_bridge br-util
+        ovs_type OVSIntPort
+        ovs_options vlan_mode=access tag=102
+
+        address 10.10.2.1
+        netmask 255.255.255.0
+        network 10.10.2.0
+        mtu 9000
+```
+
+and run `systemctl restart networking` to reflect those changes.
+
+Next, define a storage pool in libvirt and mark it as autostart.  Setting up
+a local storage pool and configuring it to autostart can be done as follows:
+
+```
+sudo virsh pool-define-as default dir - - - - /var/lib/libvirt/images/
+sudo virsh pool-start default
+sudo virsh pool-autostart default
+```
+
+Finally, boot VMs as needed.  They will PXE attempt to PXE to an installation
+image.  The following example boots a VM named `salt` with the following
+properties:
+
+  * 1vCPU
+  * 512MB RAM
+  * 4GB root drive (sourced from the `default` storage pool)
+  * a port with MAC `52:54:00:48:42:35`
+  * ... attached to VLAN 102 on the `br-util` bridge
+
+```
+sudo ./virty.py create -c 1 -r 512 -s 4 -p default \
+        -v 102 -m 52:54:00:48:42:35 br-util salt
+```
+
 ## Bootstrapping the Salt Master
 
 Install Debian GNU/Linux 10 ("buster") on a host which is destined to become
