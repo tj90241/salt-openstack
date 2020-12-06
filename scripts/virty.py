@@ -9,7 +9,7 @@ import uuid
 import sys
 
 
-def get_guest_configuration(caps, arch='x86_64', machine_type='pc'):
+def get_guest_configuration(caps, arch, machine_types):
     """
     Searches for a possible guest configurations for a architecture/machine.
 
@@ -36,7 +36,10 @@ def get_guest_configuration(caps, arch='x86_64', machine_type='pc'):
 
         # Scan for desired machine type, extract machine features.
         for machine in arch.findall('machine'):
-            if machine.get('canonical') is None or machine.text != 'pc':
+            if machine.get('canonical') is None:
+                continue
+
+            if machine.text not in machine_types:
                 continue
 
             config.update({
@@ -51,15 +54,16 @@ def get_guest_configuration(caps, arch='x86_64', machine_type='pc'):
                     use_it = feature.get('default') == 'on'
                     config[feature.tag] = use_it
 
-            configs.append(config)
+            configs.append((machine.text, config))
 
     if len(configs) == 0:
         raise Exception('Did not find any possible guest configurations')
 
-    if len(configs) != 1:
-        raise Exception('Found multiple possible guest configurations')
+    # May have matched multiple machine types; pick the best one.
+    def machine_sorter(machine_tuple):
+        return machine_types.index(machine_tuple[0])
 
-    return configs[0]
+    return sorted(configs, key=machine_sorter)[0][1]
 
 
 def get_nic_vf_dbdft(nic):
@@ -87,7 +91,8 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
     """
     Defines a domain XML tree for a new guest.
     """
-    config = get_guest_configuration(caps, arch='x86_64', machine_type='pc')
+    config = get_guest_configuration(caps, arch='x86_64',
+                                     machine_types=['q35', 'pc'])
     domain = ET.Element('domain', attrib={'type': 'kvm'})
     tree = ET.ElementTree(element=domain)
 
@@ -122,8 +127,27 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
         if config.get(feature, False):
             ET.SubElement(features, feature)
 
-    # Guest CPU configuration.
-    ET.SubElement(domain, 'cpu', attrib={'mode': 'host-model'})
+    # Guest CPU configuration.  Passthrough the CPU, as the intent
+    # of this utility is to create optimized guests for *this* host.
+    cpu_mode = {
+        'mode': 'host-passthrough',
+        'match': 'exact',
+        'cache': {
+            'mode': 'passthrough',
+        }
+    }
+
+    cpu = ET.SubElement(domain, 'cpu', attrib=cpu_mode)
+
+    # Assume these are cores, as a possible TODO, add NUMA-bindings
+    # to the guests for those running these on multi-NUMA domain hosts.
+    topology = {
+        'sockets': '1',
+        'cores': str(vcpus),
+        'threads': '1',
+    }
+
+    ET.SubElement(cpu, 'topology', attrib=topology)
 
     # Guest clock configuration (assume Linux guests only).
     clock = ET.SubElement(domain, 'clock', attrib={'offset': 'utc'})
@@ -145,6 +169,14 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
     if volume_type is not None:
         disk_attribs['type'] = 'file'
 
+    scsi_controller_attribs = {
+        'model': 'virtio-scsi',
+        'type': 'scsi',
+    }
+
+    controller = ET.SubElement(devices, 'controller',
+                               attrib=scsi_controller_attribs)
+
     disk = ET.SubElement(devices, 'disk', attrib=disk_attribs)
     ET.SubElement(disk, 'target', attrib={'dev': 'sda', 'bus': 'scsi'})
     ET.SubElement(disk, 'driver', attrib={'name': 'qemu', 'type': 'raw',
@@ -157,6 +189,7 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
                                                             'name': disk_path})
 
         ET.SubElement(disk_source, 'host', attrib={'name': mon_host})
+
         ET.SubElement(disk_auth, 'secret', attrib={'type': 'ceph',
                                                    'uuid': secret_uuid})
 
@@ -289,7 +322,7 @@ def main(args):
             storage_pool_name, volume_type = args.storage_pool, None
 
         if volume_type == 'rbd':
-            if not isinstance(args.mon_host, tr):
+            if not isinstance(args.mon_host, str):
                 print('Mon host must be specified when using RBD volumes')
                 return 1
 
