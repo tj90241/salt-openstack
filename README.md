@@ -112,7 +112,7 @@ properties:
   * ... attached to VLAN 102 on the `br-util` bridge
 
 ```
-sudo ./virty.py create -c 1 -r 512 -s 4 -p default \
+sudo ./virty create -c 1 -r 512 -s 4 -p default \
         -v 102 -m 52:54:00:48:42:35 br-util salt
 ```
 

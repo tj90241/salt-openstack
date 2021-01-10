@@ -338,8 +338,10 @@ def main(args):
             return 1
 
         # Check for an existing volume, delete it as needed.
-        if args.name in storage_pool.listVolumes():
-            vol = storage_pool.storageVolLookupByName(args.name)
+        volume_name = args.name if volume_type else '{0}.raw'.format(args.name)
+
+        if volume_name in storage_pool.listVolumes():
+            vol = storage_pool.storageVolLookupByName(volume_name)
 
             if not args.keep_volume:
                 vol.delete()
@@ -349,7 +351,6 @@ def main(args):
                                      storage_pool_name, volume_type)
 
         xml_config = ET.tostring(new_storage.getroot(), method='xml').decode()
-        volume_name = args.name if volume_type else '{0}.raw'.format(args.name)
 
         if volume_name not in storage_pool.listVolumes():
             storage = storage_pool.createXML(xml_config, 0)
@@ -387,23 +388,23 @@ if __name__ == '__main__':
     create = subparsers.add_parser('create', help='Create a new guest')
 
     # Create a new guest
-    create.add_argument('-c', '--vcpus', metavar='C', dest='vcpus',
+    create.add_argument('-c', '--vcpus', metavar='CPU', dest='vcpus',
                         help='Number of VCPUs to assign',
                         action='store', type=int, default=1)
 
-    create.add_argument('-r', '--mem', metavar='R', dest='mem',
+    create.add_argument('-r', '--mem', metavar='RAM', dest='mem',
                         help='Amount of memory (in MiB) to assign',
                         action='store', type=int, default=512)
 
-    create.add_argument('-s', '--storage', metavar='S', dest='storage',
+    create.add_argument('-s', '--storage', metavar='GB', dest='storage',
                         help='Amount of storage (in GiB) to assign',
                         action='store', type=int, default=4)
 
-    create.add_argument('-p', '--pool', metavar='P', dest='storage_pool',
+    create.add_argument('-p', '--pool', metavar='POOL', dest='storage_pool',
                         help='Storage pool to allocate from', action='store',
                         type=str, default='default')
 
-    create.add_argument('-h', '--mon-host', dest='mon_host',
+    create.add_argument('-o', '--mon-host', dest='mon_host',
                         help='Mon host (if using an RBD volume pool)',
                         type=str, default=None)
 
@@ -415,11 +416,11 @@ if __name__ == '__main__':
                         help='Do not destroy existing volume if present',
                         action='store_true', default=False)
 
-    create.add_argument('-m', '--mac', metavar='M', dest='mac_address',
+    create.add_argument('-m', '--mac', metavar='MAC', dest='mac_address',
                         help='MAC address to assign to the NIC\'s VF',
                         action='store', type=str, default=None)
 
-    create.add_argument('-v', '--vlan', metavar='V', dest='vlan',
+    create.add_argument('-v', '--vlan', metavar='VLAN', dest='vlan',
                         help='VLAN tag for pkts [in,eg]ressing into/from VF',
                         action='store', type=int, default=None)
 
