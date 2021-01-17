@@ -1,2 +1,2 @@
 salt:
-  release: 3002
+  release: 3002.2

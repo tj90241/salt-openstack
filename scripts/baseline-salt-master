@@ -18,8 +18,8 @@ git clone https://github.com/tj90241/salt-openstack.git /srv
 /srv/scripts/generate-credentials
 
 # Provision the upstream Saltstack repository.
-curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/latest/SALTSTACK-GPG-KEY.pub" | apt-key add -
-echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/latest buster main" > /etc/apt/sources.list.d/saltstack.list
+curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.2/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.2 buster main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
 # Don't block startup of services on systemd-wait-time-sync.
@@ -44,26 +44,27 @@ apt-get install -y salt-master
 
 # Ensure we only accept a key from the local minion for now.
 # Poll until the local minion accepts to perform a key-exchange.
-ifdown -a
-ifup lo
+/usr/sbin/ifdown -a
+/usr/sbin/ifup lo
 salt-key -Dy
 systemctl restart salt-minion
 
 while [ 1 ]; do
-  salt-key -a salt -y
+  salt-key -a salt -y || /bin/true
   salt-key --no-color -l acc | grep "^${DEFAULT_MINION_NAME}\$" && break
 done
 
 # Wait for key acceptance, sync the world.
 while [ 1 ]; do
-  salt salt test.ping && break
+  salt-call test.ping && break
 done
 
 salt-run saltutil.sync_all
 salt-call saltutil.sync_all
 
 # No need to be lights-out anymore...
-ifup -a
+/usr/sbin/ifup -a
+/usr/sbin/ifup --allow hotplug -a
 
 # Baseline the master, poll till its up.
 salt-call state.apply salt.master
