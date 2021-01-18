@@ -15,6 +15,10 @@
 ehthumbs.db
 Thumbs.db
 
+# Custom assets
+/scripts/install-media.options
+/scripts/preseed/
+
 # Credentials/secrets
 /pillar/certbot/
 /pillar/devpi/hosts/

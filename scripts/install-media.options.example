@@ -1,0 +1,49 @@
+# -----------------------------------------------------------------------------
+#  Adjust these parameters for your installation.
+#  Create installation media with `create-install-media`.
+# -----------------------------------------------------------------------------
+INSTALL_UEFI=0
+INSTALL_CMDLINE_MBR='console=tty0 console=ttyS0,115200n8'
+
+# If a directory named "preseed" lives within the directory containing the
+# `create-install-media` script, it is copied to the installation drive.
+#
+# A script within the directory, `postinstall.sh`, is executed upon install
+# finishing, which can be used to install additional packages and further
+# setup the networking stack.
+#PRESEED_DATA_DIR="${DIR}/preseed"
+#PRESEED_LATE_COMMANDS='cp -rfv /media/preseed /target/.preseed; chmod +x /target/.preseed/postinstall.sh; in-target /bin/bash /.preseed/postinstall.sh; rm -rfv /target/.preseed'
+
+# These variables control the installation process.
+# If PRESEED_INTERFACE is "auto", it will choose one that has link.
+PRESEED_INTERFACE='auto'
+PRESEED_HOSTNAME='debian'
+PRESEED_DOMAIN='example.com'
+PRESEED_SUITE='stable'
+PRESEED_USER_FULLNAME='John Doe'
+PRESEED_USERNAME='jdoe'
+PRESEED_TIMEZONE='UTC'
+PRESEED_DISK='/dev/sda'
+PRESEED_KERNEL_OPTS='console=tty0 console=ttyS0,115200n8 usbcore.nousb'
+
+# To use a static IPv4 address rather than one learned via DHCP, set these.
+#PRESEED_IP4ADDRESS="192.168.1.42"
+#PRESEED_IP4NETMASK="255.255.255.0"
+#PRESEED_IP4GATEWAY="192.168.1.1"
+#PRESEED_IP4NAMESERVER="192.168.1.1"
+
+# To use a known password and to not display a randomly generated password,
+# either delete this block and set PRESEED_CRYPTED_PASSWORD accordingly or
+# export a value for PRESEED_PASSWORD before sourcing this script.
+if [ -z "${PRESEED_PASSWORD}" ]; then
+  PRESEED_PASSWORD="$( </dev/urandom tr -dc 'A-Za-z0-9!"#$%&'\''()*+,-./:;<=>?@[\]^_`{|}~' | head -c 16 )"
+
+  cat <<- EOF
+	################################################################################
+	# The system's username/password will be: "${PRESEED_USERNAME}" and "${PRESEED_PASSWORD}"
+	# It is recommended that you change this value after logging into the system.
+	################################################################################
+	EOF
+fi
+
+PRESEED_CRYPTED_PASSWORD="$( mkpasswd -R 100000 -m sha-512 ${PRESEED_PASSWORD})"
