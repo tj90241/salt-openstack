@@ -31,7 +31,7 @@ manage-grub-cmdline-linux:
 
 manage-grub:
   cmd.run:
-    - name: update-grub
+    - name: /usr/sbin/update-grub
     - onchanges:
       - file: manage-grub-acpi-script
       - file: manage-grub-timeout

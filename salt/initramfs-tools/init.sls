@@ -13,6 +13,6 @@ manage-initramfs-tools:
     - mode: 0644
 
   cmd.run:
-    - name: update-initramfs -uk all
+    - name: /usr/sbin/update-initramfs -uk all
     - onchanges:
       - file: manage-initramfs-tools
