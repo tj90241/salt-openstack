@@ -19,27 +19,62 @@ to author effective security policies (as all hosts live in the same subnet),
 you will be able to hit the ground running and avoid complex deployment issues
 until you are more familiar with the `salt-openstack` cluster topology.
 
-To begin, install [Debian GNU/Linux](https://www.debian.org/) as you normally
-would on a set of hosts to be used with `salt-openstack`.  Below are the roles
-of a `salt-openstack` cluster and suggested hostnames to use as a starting
-point:
+TODO: Provide tooling/documentation around development/test installs...
 
- * PyPI server: `devpi`
- * Salt Master: `salt`
+## Preparing Permanent Infrastructure 
 
-## Preparing Local VMs (Homelab)
+If you've decided to commit to installing `salt-openstack` for long-term use,
+it's a good idea to install it on dedicated hosts without the likes of
+`vagrant` or other tooling authored around transient development hosts.  That
+being said, you may use whatever tools you feel most comfortable with to deploy
+[Debian GNU/Linux](https://www.debian.org/) hosts on your infrastructure.
 
-Use whatever tools you feel comfortable with if you are planning to host
-your `salt-openstack` cloud on a virtualized environment on one or more
-physical servers.  If you wish, a local tool built around `libvirt` is
-included under the `scripts` directory.  Prerequisites for this solution
-are the following:
+If you wish, some (opinionated) tooling is provided to both prepare
+automated USB installation media, as well as to create PXE-booted VMs
+on an existing GNU/Linux host (for semi-virtualized installs).  This tooling is
+more applicable to homelabs, where full-scale provisioning/deployment tooling
+may not be available.
 
+That being said, both approaches below may require small amounts of
+modification to suit your exact needs, but provide good starting points for
+automating infrastructure without creating too many dependencies on other
+systems.
+
+To give you an idea of these options can pair together, the author himself
+uses the USB installation media option to prepare a DHCP/PXE server, and then
+provisions all other hosts with the PXE-boot option.
+
+### Option 1: USB Installation Media
+
+Prerequisites for the USB installation media solution are the following:
+
+  * `dosfstools`
+  * `grub-efi-amd64` (for UEFI boot media)
+  * `grub-pc` (for legacy boot media)
+  * `libstring-mkpasswd-perl`
+  * `parted`
+  * `wget`
+
+Copy the `install-media.options.example` in the `scripts` directory
+to `install-media.options` and edit it accordingly.  You may also want
+to `grep` for `^d-i partman-auto/expert_recipe_string$` in the
+`create-install-media` script itself, and edit the disk partitioning
+template to your liking (strictly necessary for EFI-based installs --
+add an EFI partition!)
+
+Next, run `./create-install-media <bdev>`.  After the script finishes,
+remove the media, and plop it into your infrastructure host.  Boot from
+it and you should have an Debian GNU/Linux install provisioned for you.
+
+### Option 2: PXE-boot VMs with `virty`
+
+Prerequisites for the PXE booted solution are the following:
+
+  * Pre-existing PXE infrastructure, capable of baselining new guests...
   * `libvirt-daemon-system`
   * `openvswitch-switch`
   * `python3-libvirt`
-  * `qemu-kvm`
-  * `sgabios`
+  * `qemu-system-x86`
 
 To cut down on some extra fat, you can pass `--no-install-recommends` when
 installing these packages via `apt` to shed some unnecessary dependencies.
@@ -47,15 +82,13 @@ installing these packages via `apt` to shed some unnecessary dependencies.
 Next, set aside memory for your VMs by configuring hugepages in your kernel
 (add `nr_hugepages=X` to the kernel command line, or
 `echo X > /proc/sys/vm/nr_hugepages` to apply a temporary setting).  By
-default, on x86(\_64), 1 hugepage = 2MB of RAM.  Then, configure the
-`vm.hugetlb_shm_group` so that it has the gid of `kvm` (check what that is
-with `cut -d: -f3 < <(getent group kvm)`).
+default, on x86(\_64), 1 hugepage = 2MB of RAM.
 
 Next, define some Open-vSwitch bridges in your networking configuration and
 tie them to physical interfaces.  Here is an example `/etc/network/interfaces`
-configuration whcih takes a physical interface, `enp3s0`, and ties VLAN 102
-of that interface to a `br-util` bridge, while also adding a interface on that
-bridge to the hypervisor (`vif-os-util`):
+configuration which takes a physical interface, `enp3s0`, and ties VLAN 102
+of that interface to a `br-lan` bridge, while also adding a interface on that
+bridge to the hypervisor (`vrf-util`) for routing and forwarding.
 
 ```
 # The secondary network interface
@@ -63,34 +96,24 @@ allow-hotplug enp3s0
 iface enp3s0 inet manual
         mtu 9000
 
-auto enp3s0.102
+# The Open vSwitch bridge
+allow-ovs br-lan
+iface br-lan inet manual
+	ovs_type OVSBridge
+	ovs_ports enp3s0 vrf-util
 
-# The utility network interface
-allow-ovs br-util
-iface br-util inet manual
-        ovs_type OVSBridge
-        ovs_ports enp3s0.102 vif-os-util
-        mtu 9000
+# The "util" network VRF
+allow-br-lan vrf-util
+iface vrf-util inet static
+	ovs_bridge br-lan
+	ovs_type OVSIntPort
+	ovs_options vlan_mode=access tag=102
 
-allow-br-util enp3s0.102
-iface enp3s0.102 inet manual
-        ovs_bridge br-util
-        ovs_type OVSPort
-        ovs_options tag=102
-
-allow-br-util vif-os-util
-iface vif-os-util inet static
-        ovs_bridge br-util
-        ovs_type OVSIntPort
-        ovs_options vlan_mode=access tag=102
-
-        address 10.10.2.1
-        netmask 255.255.255.0
-        network 10.10.2.0
-        mtu 9000
+	address 10.10.2.1/24
+	mtu 9000
 ```
 
-and run `systemctl restart networking` to reflect those changes.
+Run `systemctl restart networking` (or reboot) to reflect those changes.
 
 Next, define a storage pool in libvirt and mark it as autostart.  Setting up
 a local storage pool and configuring it to autostart can be done as follows:
@@ -101,9 +124,10 @@ sudo virsh pool-start default
 sudo virsh pool-autostart default
 ```
 
-Finally, boot VMs as needed.  They will PXE attempt to PXE to an installation
-image.  The following example boots a VM named `salt` with the following
-properties:
+Finally, configure your DNS/PXE infrastructure accordingly and boot VMs with
+`virty`, as below.  The VMs should attempt to PXE to an installation image on
+initial boot, and boot from the local storage thereafter.  The following
+example boots a VM named `salt` with the following properties:
 
   * 1vCPU
   * 512MB RAM
@@ -116,10 +140,14 @@ sudo ./virty create -c 1 -r 512 -s 4 -p default \
         -v 102 -m 52:54:00:48:42:35 br-util salt
 ```
 
+If you have PXE-boot infrastructure, this approach is quite nice as you can
+simply undefine the libvirt domain and rerun the `virty` command, above, to
+redeploy your infrastructure periodically.
+
 ## Bootstrapping the Salt Master
 
-Install Debian GNU/Linux 10 ("buster") on a host which is destined to become
-the Salt Master for your cloud.  While you may conjoin roles of hosts in your
+Install Debian GNU/Linux (stable) on a host which is destined to become the
+Salt Master for your cloud.  While you may conjoin roles of hosts in your
 cluster, it is recommended to use a separate host for this purpose, even if it
 is virtual.  The Salt Master must be able to communicate with every host which
 participates in your cloud infrastructure, so be sure to provision it in a
