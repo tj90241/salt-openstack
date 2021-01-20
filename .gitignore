@@ -21,6 +21,7 @@ Thumbs.db
 
 # Credentials/secrets
 /pillar/certbot/
+/pillar/chrony/hosts/
 /pillar/devpi/hosts/
 /pillar/devpi/root.sls
 /pillar/grub/hosts/

@@ -38,6 +38,7 @@ base:
   '{{ grains.id }}':
     - ignore_missing: True
     - certbot.{{ grains.id }}
+    - chrony.hosts.{{ grains.id }}
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
     - hover.{{ grains.id }}
