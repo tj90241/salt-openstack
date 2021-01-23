@@ -16,7 +16,7 @@ base:
 {# Essential daemons (time, entropy, SSL, etc.) #}
     - chrony
     - openssl
-{% if salt['file.is_chrdev']('/dev/hwrng') %}
+{% if salt['file.is_chrdev']('/dev/hwrng') and salt['cmd.run']('/bin/ls -A /sys/class/tpm') | trim | length > 0 %}
     - rng-tools
 {% elif 'rdrand' not in grains.get('cpu_flags', []) %}
     - haveged
@@ -25,6 +25,13 @@ base:
 {% endif %}
     - ssl
     - uuid-runtime
+
+{# Bare metal tools (sensory, monitoring, etc.) #}
+  'virtual:physical':
+    - match: grain
+    - lm-sensors
+    - nvme-cli
+    - smartmontools
 
 {# General states #}
     - apt
