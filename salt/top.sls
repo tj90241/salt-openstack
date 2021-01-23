@@ -18,7 +18,7 @@ base:
 {# Essential daemons (time, entropy, SSL, etc.) #}
     - chrony
     - openssl
-{% if salt['file.is_chrdev']('/dev/hwrng') and salt['cmd.run']('/bin/ls -A /sys/class/tpm') | trim | length > 0 %}
+{% if salt['file.is_chrdev']('/dev/hwrng') and salt['file.directory_exists']('/sys/class/tpm') and salt['cmd.run']('/bin/ls -A /sys/class/tpm') | trim | length > 0 %}
     - rng-tools
 {% elif 'rdrand' not in grains.get('cpu_flags', []) %}
     - haveged
