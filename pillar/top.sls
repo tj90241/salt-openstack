@@ -37,10 +37,10 @@ base:
   # minion-specific data and defaults
   '{{ grains.id }}':
     - ignore_missing: True
-    - certbot.{{ grains.id }}
+    - certbot.hosts.{{ grains.id }}
     - chrony.hosts.{{ grains.id }}
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
-    - hover.{{ grains.id }}
+    - hover.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}

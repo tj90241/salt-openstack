@@ -170,13 +170,13 @@ DNS tab, and create DNS records with any initial value, as shown below:
 
 ![Hover A record creation](/images/hover_create_a_record.png)
 
-Once complete, create a pillar record for your WAN-facing host under the `hover`
-pillar directory.  The name of the pillar file should be the name of the WAN-
-facing host/minion (e.g., `/srv/pillar/hover/myhost.sls`).  In the pillar
-file, use the template below to provide the domain(s) you wish to update, along
-with the credentials for the domain.  You may then specify A/AAAA records to
-maintain along with the interface on the minion which contains the publicly
-routable address that should be used to populate the A/AAAA records.
+Once complete, create a pillar record for your WAN-facing host under the
+`hover/hosts` pillar directory.  The name of the pillar file should be the name
+of the WAN-facing host/minion (e.g., `/srv/pillar/hover/hosts/myhost.sls`).
+In the pillar file, use the template below to provide the domain(s) you wish to
+update, along with the credentials for the domain.  You may then specify A/AAAA
+records to maintain along with the interface on the minion which contains the
+publicly routable address that should be used to populate the A/AAAA records.
 ```
 hover:
   example.com:
@@ -224,10 +224,12 @@ renew certificates, even when one does not have a publicly-routable IP address.
 This is done via DNS-based Let's Encrypt challenges.
 
 In order to leverage this automated functionality, create a pillar record for
-your Salt Master under the `certbot` pillar directory.  The name of the pillar
-file should be the name of the Salt Master's Minion (by default, `salt`), e.g.:
-`/srv/pillar/certbot/salt.sls`.  The key for each dictionary under `certs` is
-the minion/host for which a SSL certificate should be generated and deployed.
+your Salt Master under the `certbot/hosts` pillar directory.  The name of the
+pillar file should be the name of the Salt Master's Minion (by default, `salt`),
+e.g.: `/srv/pillar/certbot/hosts/salt.sls`.  The key for each dictionary under
+`certs` is the minion/host for which a SSL certificate should be generated and
+deployed.
+
 A template for the file is as follows:
 ```
 certbot:

@@ -20,12 +20,12 @@ Thumbs.db
 /scripts/preseed/
 
 # Credentials/secrets
-/pillar/certbot/
+/pillar/certbot/hosts/
 /pillar/chrony/hosts/
 /pillar/devpi/hosts/
 /pillar/devpi/root.sls
 /pillar/grub/hosts/
-/pillar/hover/
+/pillar/hover/hosts/
 /pillar/nginx/hosts/
 /pillar/openstack/devpi/user.sls
 /pillar/salt/hosts/
