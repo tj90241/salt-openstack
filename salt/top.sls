@@ -11,6 +11,8 @@ base:
   'roles:salt-master':
     - match: grain
     - certbot
+    - ssl
+    - nginx-light
 
   '*':
 {# Essential daemons (time, entropy, SSL, etc.) #}

@@ -4,6 +4,7 @@ manage-nginx-sites_d-directory:
     - user: root
     - group: root
     - mode: 0755
+    - makedirs: True
 
 manage-nginx-light:
   pkg.installed:
