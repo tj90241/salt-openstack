@@ -64,6 +64,7 @@ base:
     - salt
     - screen
     - sosreport
+    - sysctl
     - sysstat
     - tasksel
     - tmux

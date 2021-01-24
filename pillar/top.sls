@@ -10,6 +10,7 @@ base:
     - openssl
     - nginx
     - salt
+    - sysctl
 
   # role-specific data and defaults
   'roles:devpi-client':
@@ -44,3 +45,4 @@ base:
     - hover.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}
+    - sysctl.hosts.{{ grains.id }}

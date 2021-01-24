@@ -29,3 +29,4 @@ Thumbs.db
 /pillar/nginx/hosts/
 /pillar/openstack/devpi/user.sls
 /pillar/salt/hosts/
+/pillar/sysctl/hosts/
