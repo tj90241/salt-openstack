@@ -94,3 +94,4 @@ base:
   'roles:tftp-server':
     - match: grain
     - tftpd-hpa
+    - debian-installer
