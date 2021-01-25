@@ -27,6 +27,10 @@ base:
     - openstack.devpi.indexes
     - openstack.devpi.user
 
+  'roles:dhcp-server':
+    - match: grain
+    - isc-dhcp-server
+
   'roles:salt-master':
     - match: grain
     - salt.default.master
@@ -43,6 +47,7 @@ base:
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
     - hover.hosts.{{ grains.id }}
+    - isc-dhcp-server.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}
     - sysctl.hosts.{{ grains.id }}

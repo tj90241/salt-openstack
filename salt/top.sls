@@ -86,3 +86,7 @@ base:
     - devpi
     - devpi.server
     - devpi.users_indexes
+
+  'roles:dhcp-server':
+    - match: grain
+    - isc-dhcp-server

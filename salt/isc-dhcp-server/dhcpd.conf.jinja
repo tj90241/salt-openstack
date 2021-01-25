@@ -1,0 +1,78 @@
+{%- set isc_dhcp_server = pillar.get('isc-dhcp-server', {}) -%}
+# dhcpd.conf
+#
+server-name "{{ grains.fqdn }}";
+
+# option definitions common to all supported networks...
+{{ 'deny' if isc_dhcp_server['defaults']['deny_client_updates'] else 'allow' }} client-updates;
+{{ 'deny' if isc_dhcp_server['defaults']['deny_unknown_clients'] else 'allow' }} unknown-clients;
+{%- if 'domain_name_servers' in isc_dhcp_server['defaults'] %}
+option domain-name-servers {{ ', '.join(isc_dhcp_server['defaults']['domain_name_servers']) }};
+{%- endif %}
+{%- if 'mtu' in isc_dhcp_server['defaults'] %}
+option interface-mtu {{ isc_dhcp_server['defaults']['mtu'] | int }};
+{%- endif %}
+
+default-lease-time {{ isc_dhcp_server['defaults']['default_lease_time'] | int }};
+max-lease-time {{ isc_dhcp_server['defaults']['max_lease_time'] | int }};
+
+# The ddns-updates-style parameter controls whether or not the server will
+# attempt to do a DNS update when a lease is confirmed. We default to the
+# behavior of the version 2 packages ('none', since DHCP v2 didn't
+# have support for DDNS.)
+ddns-update-style none;
+
+# If this DHCP server is the official DHCP server for the local
+# network, the authoritative directive should be uncommented.
+{% if not isc_dhcp_server.get('authoritative', True) -%} # {%- endif -%}authoritative;
+
+# Use this to send dhcp log messages to a different log file (you also
+# have to hack syslog.conf to complete the redirection).
+#log-facility local7;
+{%- for subnet, options in isc_dhcp_server.get('subnets', {}).items() %}
+
+# The {{ subnet }} subnet
+subnet {{ options['network'] }} netmask {{ options['netmask'] }} {
+  option broadcast-address {{ options.get('broadcast', salt['network.convert_cidr'](salt['network.calc_net'](options['network'], options['netmask']))['broadcast']) }};
+{%- if options.get('mtu', None) not in [None, isc_dhcp_server['defaults'].get('mtu', None)] %}
+  option interface-mtu {{ options['mtu'] | int }};
+{%- endif %}
+{%- if 'domain_name' in options %}
+  option domain-name "{{ options['domain_name'] }}";
+{%- endif %}
+{%- if options.get('deny_client_updates', None) not in [None, isc_dhcp_server['defaults']['deny_client_updates']] %}
+  {{ 'deny' if options['deny_client_updates'] else 'allow' }} client-updates;
+{%- endif %}
+{%- if options.get('deny_unknown_clients', None) not in [None, isc_dhcp_server['defaults']['deny_unknown_clients']] %}
+  {{ 'deny' if options['deny_unknown_clients'] else 'allow' }} unknown-clients;
+{%- endif %}
+{% if 'routers' in options %}
+  option routers {{ ', '.join(options['routers']) }};
+{%- endif %}
+{%- if 'domain_name_servers' in options %}
+  option domain-name-servers {{ ', '.join(options['domain_name_servers']) }};
+{%- endif %}
+{%- if 'ntp_servers' in options %}
+  option ntp-servers {{ ', '.join(options['ntp_servers']) }};
+{%- endif %}
+{%- if 'tftp_server' in options %}
+  option tftp-server-name "{{ options['tftp_server'] }}";
+  next-server {{ options['tftp_server'] }};
+{%- endif %}
+}
+{%- endfor %}
+{%- for host, options in isc_dhcp_server.get('hosts', {}).items() %}
+
+# {{ host }}
+host {{ host }} {
+{%- if 'mac' in options %}
+  hardware ethernet {{ options['mac'] }};
+{%- endif %}
+{%- if 'address' in options %}
+  fixed-address {{ options['address'] }};
+{%- endif %}
+{%- if 'filename' in options %}
+  filename "{{ options['filename'] }}";
+{%- endif %}
+}
+{%- endfor %}
