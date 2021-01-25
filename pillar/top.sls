@@ -35,6 +35,10 @@ base:
     - match: grain
     - salt.default.master
 
+  'roles:tftp-server':
+    - match: grain
+    - tftpd-hpa
+
   'roles:timeserver':
     - match: grain
     - chrony.timeserver
@@ -51,3 +55,4 @@ base:
     - nginx.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}
     - sysctl.hosts.{{ grains.id }}
+    - tftpd-hpa.hosts.{{ grains.id }}

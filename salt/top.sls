@@ -90,3 +90,7 @@ base:
   'roles:dhcp-server':
     - match: grain
     - isc-dhcp-server
+
+  'roles:tftp-server':
+    - match: grain
+    - tftpd-hpa

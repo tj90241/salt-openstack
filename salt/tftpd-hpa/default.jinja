@@ -1,0 +1,7 @@
+{%- set tftpd_hpa = pillar.get('tftpd-hpa', {}) -%}
+# /etc/default/tftpd-hpa
+
+TFTP_USERNAME="tftp"
+TFTP_DIRECTORY="/srv/tftp"
+TFTP_ADDRESS="0.0.0.0:69"
+TFTP_OPTIONS="--secure -4 --blocksize {{ tftpd_hpa['blocksize'] | int }}{%- if 'port_range' in tftpd_hpa %} --port-range {{ tftpd_hpa['port_range'] }}{%- endif -%}"
