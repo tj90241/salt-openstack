@@ -22,6 +22,7 @@ Thumbs.db
 # Credentials/secrets
 /pillar/certbot/hosts/
 /pillar/chrony/hosts/
+/pillar/debian-installer/hosts/
 /pillar/devpi/hosts/
 /pillar/devpi/root.sls
 /pillar/grub/hosts/

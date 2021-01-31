@@ -37,6 +37,7 @@ base:
 
   'roles:tftp-server':
     - match: grain
+    - debian-installer
     - tftpd-hpa
 
   'roles:timeserver':
@@ -48,6 +49,7 @@ base:
     - ignore_missing: True
     - certbot.hosts.{{ grains.id }}
     - chrony.hosts.{{ grains.id }}
+    - debian-installer.hosts.{{ grains.id }}
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
     - hover.hosts.{{ grains.id }}

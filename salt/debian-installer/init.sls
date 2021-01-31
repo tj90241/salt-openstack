@@ -36,10 +36,11 @@ install-netboot-firmware:
       - file: install-netboot-initrd
       - file: install-netboot-firmware
 
-install-netboot-splash:
+{% for asset in ['splash.png', 'stdmenu.cfg'] %}
+install-netboot-{{ asset.split('.')[0] }}:
   file.managed:
-    - name: /srv/tftp/debian-installer/amd64/boot-screens/splash.png
-    - source: http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/splash.png
+    - name: /srv/tftp/debian-installer/amd64/boot-screens/{{ asset }}
+    - source: http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/{{ asset }}
     - skip_verify: True
     - keep_source: False
     - user: root
@@ -47,13 +48,76 @@ install-netboot-splash:
     - mode: 0644
     - dir_mode: 0755
     - makedirs: True
+{% endfor %}
 
-install-netboot-stdmenu:
-  file.managed:
+fixup-netboot-stdmenu-paths:
+  file.replace:
     - name: /srv/tftp/debian-installer/amd64/boot-screens/stdmenu.cfg
-    - source: http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/stdmenu.cfg
-    - skip_verify: True
-    - keep_source: False
+    - pattern: ' debian-installer/'
+    - repl: ' ::debian-installer/'
+    - backup: False
+
+manage-pxelinux-packages:
+  pkg.installed:
+    - pkgs:
+      - pxelinux
+      - syslinux-common
+      - syslinux-efi
+    - refresh: False
+    - version: latest
+
+  {# file.recurse does not yet support local paths... #}
+  {# https://www.github.com/saltstack/salt/issues/18563 #}
+  cmd.run:
+    - name: /bin/cp -r /usr/lib/syslinux/modules /srv/tftp/syslinux
+
+{% for syslinux_type in ['bios', 'efi32', 'efi64'] %}
+{% set image_paths = {
+  'bios': '/usr/lib/PXELINUX/pxelinux.0',
+  'efi32': '/usr/lib/SYSLINUX.EFI/efi32/syslinux.efi',
+  'efi64': '/usr/lib/SYSLINUX.EFI/efi64/syslinux.efi',
+} %}
+
+manage-{{ syslinux_type }}-boot-image:
+  file.managed:
+    - name: /srv/tftp/syslinux/{{ syslinux_type }}/{{ salt['file.basename'](image_paths[syslinux_type]) }}
+    - source: file:/{{ image_paths[syslinux_type] }}
     - user: root
     - group: root
     - mode: 0644
+
+manage-{{ syslinux_type }}-pxelinux-cfg-directory:
+  file.directory:
+    - name: /srv/tftp/syslinux/{{ syslinux_type }}/pxelinux.cfg
+    - user: root
+    - group: root
+    - mode: 0755
+    - force: True
+
+{% for mac, options in pillar.get('debian-installer', {}).get('macs', {}).items() %}
+manage-{{ syslinux_type }}-{{ mac.replace(':', '-') }}-pxelinux-cfg:
+  file.managed:
+    - name: /srv/tftp/syslinux/{{ syslinux_type }}/pxelinux.cfg/01-{{ mac.lower().replace(':', '-') }}
+    - source: salt://debian-installer/pxelinux.cfg.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+    - context:
+        domain: {{ options['domain'] }}
+        hostname: {{ options['hostname'] }}
+        preseed_url: {{ options['preseed_dir_url'] }}/{{ options['template'] }}.cfg
+        cmdline: {{ pillar['debian-installer']['templates'][options['template']].get('cmdline', 'quiet') }}
+        syslinux_type: {{ syslinux_type }}
+{% endfor %}
+
+{% if salt['file.directory_exists']('/srv/tftp/syslinux/' + syslinux_type + '/pxelinux.cfg') %}
+{% for file in salt['file.readdir']('/srv/tftp/syslinux/' + syslinux_type + '/pxelinux.cfg') %}
+{% if (file not in ['.', '..'] and file | length < 4) or (file | length > 3 and file[3:].replace('-', ':').lower() not in pillar.get('debian-installer', {}).get('macs', {}).keys() | map('lower')) %}
+manage-{{ syslinux_type }}-{{ file.replace(':', '-') }}-pxelinux-cfg:
+  file.absent:
+    - name: /srv/tftp/syslinux/{{ syslinux_type }}/pxelinux.cfg/{{ file }}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}

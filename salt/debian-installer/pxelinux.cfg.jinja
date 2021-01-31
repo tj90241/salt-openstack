@@ -1,0 +1,19 @@
+menu hshift 4
+menu width 70
+prompt 0
+timeout 5
+
+default ::syslinux/{{ syslinux_type }}/vesamenu.c32
+
+menu title Debian GNU/Linux installer menu ({{ syslinux_type.upper() }} mode)
+include ::debian-installer/amd64/boot-screens/stdmenu.cfg
+
+label automated
+menu label ^Automated install ({{ hostname }})
+	kernel ::debian-installer/amd64/linux
+	append initrd=::debian-installer/amd64/initrd.gz auto=true domain={{ domain }} hostname={{ hostname }} lowmem/low=true preseed/url={{ preseed_url }} priority=critical --- {{ cmdline }}
+
+label manual
+menu label ^Manual install
+	kernel ::debian-installer/amd64/linux
+	append initrd=::debian-installer/amd64/initrd.gz --- {{ cmdline }}
