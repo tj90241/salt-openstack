@@ -19,3 +19,19 @@ manage-tftpd-hpa:
     - watch:
       - pkg: tftpd-hpa
       - file: manage-tftpd-hpa
+
+{# Do not start the TFTP server until time is synchronized. #}
+manage-tftpd-hpa-override:
+  file.managed:
+    - name: /etc/systemd/system/tftpd-hpa.service.d/override.conf
+    - source: salt://tftpd-hpa/override.conf
+    - user: root
+    - group: root
+    - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-tftpd-hpa-override
