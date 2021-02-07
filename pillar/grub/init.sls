@@ -1,4 +1,5 @@
 grub:
+  ipv6_disable: 0
   timeout: 1
 
   cmdline_linux:

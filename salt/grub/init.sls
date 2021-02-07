@@ -1,4 +1,5 @@
 {%- set grub = pillar.get('grub', {}) -%}
+{%- set cmdline_linux_default = grub.get('cmdline_linux_default', ['quiet']) + ([] if grub.get('ipv6_disable', False) in [False, 0] else ['ipv6.disable=1']) -%}
 
 manage-grub-acpi-script:
   file.managed:
@@ -18,7 +19,7 @@ manage-grub-timeout:
 manage-grub-cmdline-linux-default:
   file.line:
     - name: /etc/default/grub
-    - content: GRUB_CMDLINE_LINUX_DEFAULT="{{ ' '.join(grub.get('cmdline_linux_default', ['quiet'])) }}"
+    - content: GRUB_CMDLINE_LINUX_DEFAULT="{{ ' '.join(cmdline_linux_default) }}"
     - match: ^GRUB_CMDLINE_LINUX_DEFAULT=
     - mode: replace
 

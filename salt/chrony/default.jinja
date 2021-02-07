@@ -3,4 +3,4 @@
 # the chrony daemon without editing the init script or service file.
 
 # Options to pass to chrony.
-DAEMON_OPTS="-F -1"
+DAEMON_OPTS="{{ '-4 ' if pillar.get('grub', {}).get('ipv6_disable', False) not in [0, False] else '' }}-F -1"

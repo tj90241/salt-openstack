@@ -6,7 +6,8 @@ manage-chrony:
 
   file.managed:
     - name: /etc/default/chrony
-    - source: salt://chrony/default
+    - source: salt://chrony/default.jinja
+    - template: jinja
     - user: root
     - group: root
     - mode: 0644
