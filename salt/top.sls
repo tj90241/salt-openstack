@@ -43,6 +43,7 @@ base:
     - dosfstools
     - dnsutils
     - ethtool
+    - exim4
     - gnupg2
     - grub
     - hover
