@@ -15,6 +15,9 @@
 ehthumbs.db
 Thumbs.db
 
+# Custom preseed templates
+/salt/debian-installer/templates/
+
 # Custom assets
 /scripts/install-media.options
 /scripts/preseed/

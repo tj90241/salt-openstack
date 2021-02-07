@@ -16,4 +16,5 @@
 #    whitebox-9000:
 #      cmdline: console=tty0 console=ttyS1,115200n81 quiet
 #      filename: whitebox-9000.conf.jinja
+#      interface: eno1
 

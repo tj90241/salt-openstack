@@ -20,6 +20,19 @@ install-netboot-initrd:
     - group: root
     - mode: 0644
 
+install-netboot-packages:
+  file.directory:
+    - name: /srv/tftp/debian-installer/amd64/packages
+    - user: root
+    - group: root
+    - mode: 0755
+    - force: True
+    - clean: True
+
+  cmd.run:
+    - name: "for file in `curl -s http://ftp.debian.org/debian/dists/stable/main/debian-installer/binary-amd64/Packages.gz | zcat | sed -ne 's/^Filename: //p' | grep -E 'rdate-|libbsd0-'`; do curl -s \"http://ftp.debian.org/debian/${file}\" -o /srv/tftp/debian-installer/amd64/packages/`basename \"${file}\"`; done; find packages | cpio -oR root:root -H newc | gzip -9 > packages.gz"
+    - cwd: /srv/tftp/debian-installer/amd64
+
 install-netboot-firmware:
   file.managed:
     - name: /srv/tftp/debian-installer/firmware.cpio.gz
@@ -31,9 +44,10 @@ install-netboot-firmware:
     - mode: 0644
 
   cmd.run:
-    - name: cat /srv/tftp/debian-installer/amd64/initrd.gz.orig /srv/tftp/debian-installer/firmware.cpio.gz > /srv/tftp/debian-installer/amd64/initrd.gz
+    - name: cat /srv/tftp/debian-installer/amd64/initrd.gz.orig /srv/tftp/debian-installer/firmware.cpio.gz /srv/tftp/debian-installer/amd64/packages.gz > /srv/tftp/debian-installer/amd64/initrd.gz
     - onchanges:
       - file: install-netboot-initrd
+      - file: install-netboot-packages
       - file: install-netboot-firmware
 
 {% for asset in ['splash.png', 'stdmenu.cfg'] %}
@@ -108,6 +122,7 @@ manage-{{ syslinux_type }}-{{ mac.replace(':', '-') }}-pxelinux-cfg:
         hostname: {{ options['hostname'] }}
         preseed_url: {{ options['preseed_dir_url'] }}/{{ options['template'] }}.cfg
         cmdline: {{ pillar['debian-installer']['templates'][options['template']].get('cmdline', 'quiet') }}
+        interface: {{ pillar['debian-installer']['templates'][options['template']]['interface'] }}
         syslinux_type: {{ syslinux_type }}
 {% endfor %}
 
@@ -120,4 +135,26 @@ manage-{{ syslinux_type }}-{{ file.replace(':', '-') }}-pxelinux-cfg:
 {% endif %}
 {% endfor %}
 {% endif %}
+{% endfor %}
+
+manage-preseed-template-directory:
+  file.directory:
+    - name: /srv/tftp/preseed
+    - user: root
+    - group: root
+    - mode: 0755
+    - force: True
+
+{% for template, options in pillar.get('debian-installer', {}).get('templates', {}).items() %}
+manage-{{ template }}-preseed-template:
+  file.managed:
+    - name: /srv/tftp/preseed/{{ template }}.cfg
+    - source: salt://debian-installer/templates/{{ options['filename'] }}
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+    - context:
+        cmdline: {{ options['cmdline'] }}
+        interface: {{ options['interface'] }}
 {% endfor %}
