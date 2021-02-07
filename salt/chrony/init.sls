@@ -23,6 +23,14 @@ manage-chrony:
       - file: manage-chrony-configuration
       - file: manage-chrony-keys
 
+{% if pillar.get('chrony', {}).get('driftfile', '/var/lib/chrony/chrony.drift') != '/var/lib/chrony/chrony.drift' %}
+manage-chrony-driftfile:
+  file.absent:
+    - name: /var/lib/chrony/chrony.drift
+    - require:
+      - service: manage-chrony
+{% endif %}
+
 manage-chrony-configuration:
   file.recurse:
     - name: /etc/chrony
