@@ -37,10 +37,12 @@ base:
 
 {# General states #}
     - apt
+    - arping
     - cloud-init
     - curl
     - dosfstools
     - dnsutils
+    - ethtool
     - gnupg2
     - grub
     - hover
@@ -67,6 +69,7 @@ base:
     - sysctl
     - sysstat
     - tasksel
+    - tcpdump
     - tmux
     - traceroute
     - twine
