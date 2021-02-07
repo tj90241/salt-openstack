@@ -67,7 +67,7 @@ manage-chronyd-override:
   module.run:
     - service.systemctl_reload:
     - onchanges:
-      - file: /etc/systemd/system/chrony.service.d/override.conf
+      - file: manage-chronyd-override
 
 # chronyd is in play, so no need for ntp(d) or systemd-timesyncd.
 manage-ntpd:
