@@ -31,3 +31,19 @@ manage-dhcpd-conf:
     - mode: 0644
     - dir_mode: 0755
     - makedirs: True
+
+{# Do not start the DHCP server until time is synchronized. #}
+manage-isc-dhcp-server-override:
+  file.managed:
+    - name: /etc/systemd/system/isc-dhcp-server.service.d/override.conf
+    - source: salt://isc-dhcp-server/override.conf
+    - user: root
+    - group: root
+    - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-isc-dhcp-server-override
