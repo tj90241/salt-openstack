@@ -1,0 +1,19 @@
+[Unit]
+Description=Volatile Salt Minion Cache File System (/var/cache/salt/minion)
+Documentation=man:hier(7)
+Documentation=https://www.freedesktop.org/wiki/Software/systemd/APIFileSystems
+ConditionPathIsSymbolicLink=!/var/cache/salt/minion
+DefaultDependencies=no
+Conflicts=umount.target
+RequiredBy=salt-minion.service local-fs.target umount.target
+Before=salt-minion.service
+After=var.mount
+
+[Mount]
+What=tmpfs
+Where=/var/cache/salt/minion
+Type=tmpfs
+Options=nosuid,nodev,noexec,mode=0755,size=16777216
+
+[Install]
+WantedBy=local-fs.target

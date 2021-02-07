@@ -22,6 +22,11 @@ api:
   thread_pool: {{ api.get('thread_pool', 100) }}
 
 master:
+  # Whether or not to put the master's job cache in tmpfs (not supported
+  # upstream, but perhaps useful for hosts running on eMMC or other sensitive
+  # storage).
+  tmpfs_job_cache: {{ minion.get('tmpfs_minion_cache', False) }}
+
   # Salt runs a lightweight file server written in zeromq to deliver files to
   # minions. This file server is built into the master daemon and does not
   # require a dedicated port.
@@ -51,6 +56,10 @@ master:
   reactor_worker_hwm: {{ master.get('reactor_worker_hwm', 10000) }}
 
 minion:
+  # Whether or not to put the minion's cache in tmpfs (not supported upstream,
+  # but perhaps useful for hosts running on eMMC or other sensitive storage).
+  tmpfs_cache: {{ minion.get('tmpfs_minion_cache', False) }}
+
   # Disable specific modules. This allows the admin to limit the level of
   # access the master has to the minion.  The default here is the empty list,
   # below is an example of how this needs to be formatted in the config file

@@ -1,0 +1,19 @@
+[Unit]
+Description=Volatile Salt Master Job Cache File System (/var/cache/salt/master/jobs)
+Documentation=man:hier(7)
+Documentation=https://www.freedesktop.org/wiki/Software/systemd/APIFileSystems
+ConditionPathIsSymbolicLink=!/var/cache/salt/minion
+DefaultDependencies=no
+Conflicts=umount.target
+RequiredBy=salt-master.service local-fs.target umount.target
+Before=salt-master.service
+After=var.mount
+
+[Mount]
+What=tmpfs
+Where=/var/cache/salt/master/jobs
+Type=tmpfs
+Options=nosuid,nodev,noexec,mode=0755,size=16777216
+
+[Install]
+WantedBy=local-fs.target

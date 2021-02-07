@@ -1,3 +1,30 @@
+{%- import_yaml 'salt/defaults.yaml' as salt_defaults -%}
+
+{% if salt_defaults.get('minion', {}).get('tmpfs_cache', False) %}
+manage-salt-minion-cache:
+  file.managed:
+    - name: /etc/systemd/system/var-cache-salt-minion.mount
+    - source: salt://salt/minion/var-cache-salt-minion.mount
+    - user: root
+    - group: root
+    - mode: 0644
+    - require_in:
+      - pkg: manage-salt-minion
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-salt-minion-cache
+
+  cmd.run:
+    - name: "mv -v /var/cache/salt/minion /var/cache/salt/minion.old; mkdir -pv /var/cache/salt/minion; systemctl start var-cache-salt-minion.mount; find /var/cache/salt/minion.old -maxdepth 1 -mindepth 1 -exec mv -vt /var/cache/salt/minion {} + ; rmdir -v /var/cache/salt/minion.old"
+    - unless:
+      - grep 'tmpfs /var/cache/salt/minion tmpfs' /proc/mounts
+
+  service.enabled:
+    - name: var-cache-salt-minion.mount
+{% endif %}
+
 manage-salt-minion:
   pkg.installed:
     - name: salt-minion

@@ -6,11 +6,11 @@ include:
   - .sync
   - .api
 
-{% if salt_defaults.get('tmpfs_job_cache', False) %}
+{% if salt_defaults.get('master', {}).get('tmpfs_job_cache', False) %}
 manage-salt-master-job-cache:
   file.managed:
     - name: /etc/systemd/system/var-cache-salt-master-jobs.mount
-    - source: salt://salt/master/salt-master-jobs-tmpfs.mount
+    - source: salt://salt/master/var-cache-salt-master-jobs.mount
     - user: root
     - group: root
     - mode: 0644
