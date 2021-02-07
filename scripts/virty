@@ -72,22 +72,28 @@ def get_nic_vf_dbdft(nic):
     of that virtual NIC (i.e., this returns a 4-tuple).
     """
     try:
-        dev = os.readlink('/sys/class/net/{}/device'.format(nic))
+        dev = os.readlink('/sys/class/net/{0}/device'.format(nic))
         dbd = os.path.basename(dev).split(':')
         df = dbd[2].split('.')
 
         dbdf = list(map(lambda x: int(x, 16), [dbd[0], dbd[1], df[0], df[1]]))
         return dbdf + ['sr-iov']
 
-    # Failed to find an SR-IOV NIC; assume named OVS bridge.
+    # Failed to find an SR-IOV NIC; assume named (OVS) bridge.
     except FileNotFoundError:
-        return None, None, None, None, 'bridge'
+        if not os.path.exists('/sys/class/net/{0}'.format(nic)):
+            msg = 'Unknown SR-IOV NIC or bridge: {0}'.format(nic)
+            raise Exception(msg)
+
+        bridgeif_path = '/sys/class/net/{0}/brif'.format(nic)
+        bridge = 'bridge' if os.path.exists(bridgeif_path) else 'ovs-bridge'
+        return None, None, None, None, bridge
 
 
 def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
                   iftype, name, vcpus, ram_mb, pool_name, volume_type,
-                  secret_uuid, nic, mac=None, vlan=None, bootdev='hd,network',
-                  rng_path='/dev/urandom'):
+                  secret_uuid, vnic_queues, nic, mac=None, vlan=None,
+                  bootdev='hd,network', rng_path='/dev/urandom'):
     """
     Defines a domain XML tree for a new guest.
     """
@@ -232,11 +238,17 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
 
     else:
         interface = ET.SubElement(devices, 'interface',
-                                  attrib={'type': iftype})
+                                  attrib={'type': 'bridge'})
 
         source_attrib = {'bridge': nic}
         ET.SubElement(interface, 'source', attrib=source_attrib)
-        ET.SubElement(interface, 'virtualport', attrib={'type': 'openvswitch'})
+
+        if iftype == 'ovs-bridge':
+            bridge_attribs = {'type': 'openvswitch'}
+            ET.SubElement(interface, 'virtualport', attrib=bridge_attribs)
+
+        driver_attrib = {'name': 'vhost', 'queues': str(vnic_queues)}
+        ET.SubElement(interface, 'driver', attrib=driver_attrib)
 
         # Assign MAC and VLAN to interface (if requested).
         if mac is not None:
@@ -365,7 +377,7 @@ def main(args):
         new_domain = define_domain(conn, caps, domain, bus, device, function,
                                    iftype, args.name, args.vcpus, args.mem,
                                    storage_pool_name, volume_type,
-                                   args.secret_uuid, args.nic,
+                                   args.secret_uuid, args.queues, args.nic,
                                    mac=args.mac_address,
                                    vlan=args.vlan)
 
@@ -424,7 +436,11 @@ if __name__ == '__main__':
                         help='VLAN tag for pkts [in,eg]ressing into/from VF',
                         action='store', type=int, default=None)
 
-    create.add_argument('nic', type=str, help='NIC to assign to the guest')
+    create.add_argument('-q', '--queues', metavar='QUEUES', dest='queues',
+                        help='Number of queues to assign to guest vNIC',
+                        action='store', type=int, default=1)
+
+    create.add_argument('nic', type=str, help='NIC or vBridge to attach')
     create.add_argument('name', type=str, help='Name of the new domain')
 
     args = parser.parse_args()
