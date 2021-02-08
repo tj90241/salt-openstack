@@ -15,7 +15,8 @@ base:
     - nginx-light
 
   '*':
-{# Essential daemons (time, entropy, SSL, etc.) #}
+{# Essential configuration and daemons (time, entropy, SSL, etc.) #}
+    - hosts
     - chrony
     - openssl
 {% if salt['file.is_chrdev']('/dev/hwrng') and salt['file.directory_exists']('/sys/class/tpm') and salt['cmd.run']('/bin/ls -A /sys/class/tpm') | trim | length > 0 %}

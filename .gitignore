@@ -29,6 +29,7 @@ Thumbs.db
 /pillar/devpi/hosts/
 /pillar/devpi/root.sls
 /pillar/grub/hosts/
+/pillar/hosts/private.sls
 /pillar/hover/hosts/
 /pillar/isc-dhcp-server/hosts/
 /pillar/nginx/hosts/
