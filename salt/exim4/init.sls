@@ -33,7 +33,7 @@ manage-update-exim4.conf:
 
   cmd.run:
     - name: /usr/sbin/update-exim4.conf -v
-    - watch:
+    - onchanges:
       - file: manage-update-exim4.conf
 
 # Do not start exim4 until the network/nameserver are up.
