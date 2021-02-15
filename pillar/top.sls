@@ -53,7 +53,6 @@ base:
     - debian-installer.hosts.{{ grains.id }}
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
-    - hosts.private
     - hover.hosts.{{ grains.id }}
     - isc-dhcp-server.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
