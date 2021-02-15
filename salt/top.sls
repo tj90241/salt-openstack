@@ -12,7 +12,9 @@ base:
     - match: grain
     - certbot
     - ssl
+    - openssl
     - nginx-light
+    - twine
 
   '*':
 {# Essential configuration and daemons (time, entropy, SSL, etc.) #}
@@ -28,13 +30,6 @@ base:
 {% endif %}
     - ssl
     - uuid-runtime
-
-{# Bare metal tools (sensory, monitoring, etc.) #}
-  'virtual:physical':
-    - match: grain
-    - lm-sensors
-    - nvme-cli
-    - smartmontools
 
 {# General states #}
     - apt
@@ -74,10 +69,16 @@ base:
     - tcpdump
     - tmux
     - traceroute
-    - twine
     - unzip
     - vim
     - zip
+
+{# Bare metal tools (sensory, monitoring, etc.) #}
+  'virtual:physical':
+    - match: grain
+    - lm-sensors
+    - nvme-cli
+    - smartmontools
 
 {# Role-specific states #}
   'roles:devpi-client':
