@@ -37,6 +37,17 @@ master:
   # reliably ensured. A base environment is required to house the top file.
   file_roots: {{ master.get('file_roots', {'base': ['/srv/salt']}) }}
 
+  # When using multiple environments, each with their own top file, the
+  # default behaviour is an unordered merge. To prevent top files from
+  # being merged together and instead to only use the top file from the
+  # requested environment, set this value to 'same'.
+  top_file_merging_strategy: {{ master.get('top_file_merging_strategy', 'merge') }}
+
+  # To specify the order in which environments are merged, set the ordering
+  # in the env_order option. Given a conflict, the last matching value will
+  # win.
+  env_order: {{ master.get('env_order', ['base']) }}
+
   # Salt Pillars allow for the building of global data that can be made selectively
   # available to different minions based on minion grain filtering. The Salt
   # Pillar is laid out in the same fashion as the file server, with environments,
