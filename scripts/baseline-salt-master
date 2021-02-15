@@ -14,8 +14,15 @@ apt-get install -y curl git gnupg2
 
 # Clone the upstream repository locally, setup symlinks, generate credentials.
 rm -rfv /srv
-git clone https://github.com/tj90241/salt-openstack.git /srv
-/srv/scripts/generate-credentials
+
+if [ ! -z "${SALT_OPENSTACK_REPO}" ]; then
+	mkdir /srv
+	ln -sfv "${SALT_OPENSTACK_REPO}/pillar" /srv/pillar
+	ln -sfv "${SALT_OPENSTACK_REPO}/salt" /srv/salt
+else
+	git clone https://github.com/tj90241/salt-openstack.git /srv
+	/srv/scripts/generate-credentials
+fi
 
 # Provision the upstream Saltstack repository.
 curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.2/SALTSTACK-GPG-KEY.pub" | apt-key add -

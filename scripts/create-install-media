@@ -570,9 +570,10 @@ else
   echo "#d-i preseed/late_command string apt-install zsh; in-target chsh -s /bin/zsh" >> "${tmp_dir}/preseed.cfg"
 fi
 
-# Copy the options, baseline-salt-[master,minion], and virty scripts in.
+# Copy the options, baseline-salt-[master,minion], virty scripts, and repository in.
 mkdir -pv "${tmp_dir}/preseed"
 cp -v "${DIR}/baseline-salt-master" "${DIR}/baseline-salt-minion" "${DIR}/install-media.options" "${DIR}/virty" "${tmp_dir}/preseed"
+tar -czf "${tmp_dir}/preseed/salt-openstack.tgz" "${DIR}/../../salt-openstack"
 
 # Unmount, eject, and hard sync (just to be sure).
 umount "${tmp_dir}"

@@ -158,3 +158,9 @@ manage-{{ template }}-preseed-template:
         cmdline: {{ options['cmdline'] }}
         interface: {{ options['interface'] }}
 {% endfor %}
+
+{# If salt-openstack.tgz was dropped as part of deployment, delete it now. #}
+{# It might contain secrets, and we're now feeding off the salt master. #}
+manage-preseed-salt-openstack-repository:
+  file.absent:
+    - name: /srv/tftp/salt-openstack.tgz
