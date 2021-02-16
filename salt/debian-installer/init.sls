@@ -80,10 +80,16 @@ manage-pxelinux-packages:
     - refresh: False
     - version: latest
 
+  file.directory:
+    - name: /srv/tftp/syslinux
+    - user: root
+    - group: root
+    - mode: 0755
+
   {# file.recurse does not yet support local paths... #}
   {# https://www.github.com/saltstack/salt/issues/18563 #}
   cmd.run:
-    - name: /bin/cp -r /usr/lib/syslinux/modules /srv/tftp/syslinux
+    - name: /bin/cp -r /usr/lib/syslinux/modules/* /srv/tftp/syslinux
 
 {% for syslinux_type in ['bios', 'efi32', 'efi64'] %}
 {% set image_paths = {
