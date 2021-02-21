@@ -20,6 +20,7 @@ Thumbs.db
 
 # Custom assets
 /scripts/install-media.options
+/scripts/install-media.options.*
 /scripts/preseed/
 
 # Credentials/secrets

@@ -2,8 +2,8 @@
 #  Adjust these parameters for your installation.
 #  Create installation media with `create-install-media`.
 # -----------------------------------------------------------------------------
-INSTALL_UEFI=0
-INSTALL_CMDLINE_MBR='console=tty0 console=ttyS0,115200n8'
+INSTALL_UEFI=1
+INSTALL_CMDLINE_UEFI=''
 
 # If a directory named "preseed" lives within the directory containing the
 # `create-install-media` script, it is copied to the installation drive.
@@ -23,7 +23,7 @@ PRESEED_SUITE='stable'
 PRESEED_USER_FULLNAME='John Doe'
 PRESEED_USERNAME='jdoe'
 PRESEED_TIMEZONE='UTC'
-PRESEED_DISK='/dev/sda'
+PRESEED_DISK='/dev/sdb'
 PRESEED_KERNEL_OPTS='console=tty0 console=ttyS0,115200n8 usbcore.nousb'
 
 # To use a static IPv4 address rather than one learned via DHCP, set these.
