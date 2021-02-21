@@ -5,7 +5,7 @@
 #  launching an OpenStack instance, or uploaded to and run on a baremetal node.
 # -----------------------------------------------------------------------------
 DEBIAN_MAJOR_VERSION=`awk -F '.' '{print $1}' /etc/debian_version`
-DEFAULT_MINION_NAME=$( hostname -s )
+DEFAULT_MINION_NAME=${DEFAULT_MINION_NAME:="$( hostname -s )"}
 
 # Upgrade the base system, install curl, git, and gnupg2 (for apt-key).
 export DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical
