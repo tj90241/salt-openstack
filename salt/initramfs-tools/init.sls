@@ -14,5 +14,7 @@ manage-initramfs-tools:
 
   cmd.run:
     - name: /usr/sbin/update-initramfs -uk all
+    - env:
+        PATH: /usr/sbin:/usr/bin:/sbin:/bin
     - onchanges:
       - file: manage-initramfs-tools

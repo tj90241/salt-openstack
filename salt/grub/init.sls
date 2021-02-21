@@ -33,8 +33,14 @@ manage-grub-cmdline-linux:
 manage-grub:
   cmd.run:
     - name: /usr/sbin/update-grub
+    - env:
+        PATH: /usr/sbin:/usr/bin:/sbin:/bin
     - onchanges:
       - file: manage-grub-acpi-script
       - file: manage-grub-timeout
       - file: manage-grub-cmdline-linux-default
       - file: manage-grub-cmdline-linux
+
+manage-debian-installer-modprobe:
+  file.absent:
+    - name: /etc/modprobe.d/local.conf
