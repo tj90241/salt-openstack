@@ -63,6 +63,9 @@ subnet {{ options['network'] }} netmask {{ options['netmask'] }} {
 {%- if options.get('deny_unknown_clients', None) not in [None, isc_dhcp_server['defaults']['deny_unknown_clients']] %}
   {{ 'deny' if options['deny_unknown_clients'] else 'allow' }} unknown-clients;
 {%- endif %}
+{%- if 'start' in options.get('range', {}) and 'end' in options.get('range', {}) %}
+  range {{ options['range']['start'] }} {{ options['range']['end'] }};
+{%- endif %}
 {% if 'routers' in options %}
   option routers {{ ', '.join(options['routers']) }};
 {%- endif %}
