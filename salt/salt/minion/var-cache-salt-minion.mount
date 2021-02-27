@@ -13,7 +13,7 @@ After=var.mount
 What=tmpfs
 Where=/var/cache/salt/minion
 Type=tmpfs
-Options=nosuid,nodev,noexec,mode=0755,size=16777216
+Options=nosuid,nodev,noexec,mode=0755,size=67108864
 
 [Install]
 WantedBy=local-fs.target

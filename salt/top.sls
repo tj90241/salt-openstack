@@ -8,16 +8,35 @@ base:
     - match: grain
     - hugepages1G
 
+{# Critical/bootstrap role-specific states #}
   'roles:salt-master':
     - match: grain
     - certbot
+    - consul.ca
     - ssl
     - openssl
     - nginx-light
     - twine
 
+  'roles:dhcp-server':
+    - match: grain
+    - isc-dhcp-server
+
+  'roles:tftp-server':
+    - match: grain
+    - tftpd-hpa
+    - debian-installer
+
+  'roles:consul-server':
+    - match: grain
+    - hosts
+    - ssl
+    - openssl
+    - nginx-light
+    - consul
+
   '*':
-{# Essential configuration and daemons (time, entropy, SSL, etc.) #}
+{# Essential configuration and daemons (time, entropy, SSL, service mesh, etc.) #}
     - hosts
     - chrony
     - openssl
@@ -29,6 +48,7 @@ base:
     - rng-tools5
 {% endif %}
     - ssl
+    - consul
     - uuid-runtime
 
 {# General states #}
@@ -92,12 +112,3 @@ base:
     - devpi
     - devpi.server
     - devpi.users_indexes
-
-  'roles:dhcp-server':
-    - match: grain
-    - isc-dhcp-server
-
-  'roles:tftp-server':
-    - match: grain
-    - tftpd-hpa
-    - debian-installer

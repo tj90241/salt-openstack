@@ -1,0 +1,7 @@
+server = true
+bootstrap_expect = {{ pillar['consul']['site']['server_fqdns'] | length }}
+
+ui_config {
+  enabled = true
+  content_path = "/consul"
+}

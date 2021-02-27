@@ -4,6 +4,9 @@ base:
     - apt
     - certbot
     - chrony
+    - consul
+    - consul.key
+    - consul.site
     - grub
     - hosts
     - hover

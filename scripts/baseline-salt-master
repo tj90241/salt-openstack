@@ -10,7 +10,7 @@ DEFAULT_MINION_NAME=${DEFAULT_MINION_NAME:="$( hostname -s )"}
 # Upgrade the base system, install curl, git, and gnupg2 (for apt-key).
 export DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical
 apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" 
-apt-get install -y curl git gnupg2
+apt-get install -y curl git gnupg2 lsb-release python3-yaml unzip
 
 # Clone the upstream repository locally, setup symlinks, generate credentials.
 rm -rfv /srv
@@ -21,12 +21,27 @@ if [ ! -z "${SALT_OPENSTACK_REPO}" ]; then
 	ln -sfv "${SALT_OPENSTACK_REPO}/salt" /srv/salt
 else
 	git clone https://github.com/tj90241/salt-openstack.git /srv
+fi
+
+# Download Consul, extract it into /usr/local/bin.
+CONSUL_URL=`/usr/bin/env python3 -c "import yaml ; print(yaml.safe_load(open('/srv/pillar/consul/init.sls', 'r'))['consul']['package']['$( uname -m )']['source'])"`
+
+CONSUL_TMP=`mktemp -d`
+curl -s "${CONSUL_URL}" -o "${CONSUL_TMP}/$(basename ${CONSUL_URL})"
+unzip -o "${CONSUL_TMP}/$(basename ${CONSUL_URL})" consul -d /usr/local/bin
+rm -rfv "${CONSUL_TMP}"
+
+exit 0
+
+# Generate credentials if an existing repo was not provided.
+if [ -z "${SALT_OPENSTACK_REPO}" ]; then
 	/srv/scripts/generate-credentials
 fi
 
 # Provision the upstream Saltstack repository.
-curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.2/SALTSTACK-GPG-KEY.pub" | apt-key add -
-echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.2 buster main" > /etc/apt/sources.list.d/saltstack.list
+SALT_VERSION=`/usr/bin/env python3 -c "import yaml ; print(yaml.safe_load(open('/srv/pillar/salt/init.sls', 'r'))['salt']['release'])"`
+curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION}/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION} $( lsb_release -sc ) main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
 # Don't block startup of services on systemd-wait-time-sync.
@@ -91,6 +106,7 @@ done
 # Run a highstate.
 salt-call certbot
 salt-call certbot.renew
+salt-call consul.ca
 salt-call state.highstate
 
 # Reboot into a clean state.

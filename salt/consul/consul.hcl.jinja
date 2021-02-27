@@ -1,0 +1,53 @@
+{%- set server_fqdns = pillar['consul']['site']['server_fqdns'].keys() -%}
+{%- set server_fqdns = server_fqdns | difference(grains.fqdn) -%}
+{%- set role = 'server' if 'consul-server' in grains.get('roles', []) else 'client' -%}
+datacenter = "{{ pillar['consul']['site']['datacenter'] }}"
+
+enable_debug = false
+log_level = "INFO"
+
+bind_addr = "{{ grains['ip4_interfaces'][grains['mgmt_interface']][0] }}"
+retry_join = ["{{ '", "'.join(server_fqdns) }}"]
+
+encrypt = "{{ pillar['consul']['key'] }}"
+ca_file = "/etc/consul.d/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem"
+cert_file = "/etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem"
+key_file = "/etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}-key.pem"
+domain = "{{ pillar['consul']['site']['domain'] }}"
+verify_incoming = true
+verify_outgoing = true
+verify_server_hostname = true
+
+addresses {
+  dns = "127.0.0.1 127.0.1.1",
+  https = "127.0.0.1 127.0.1.1",
+  grpc = "127.0.0.1 127.0.1.1"
+}
+
+ports {
+  dns = 8600,
+  http = -1,
+  https = 8501,
+  grpc = 8502
+}
+
+data_dir = "/var/lib/consul"
+
+# Suppress fingerprinting, remote access, etc.
+disable_anonymous_signature = true
+disable_remote_exec = true
+disable_update_check = true
+
+# Enable brief caching of DNS records
+dns_config {
+  allow_stale = true
+  node_ttl = "1s"
+  service_ttl {
+    "*" = "1s"
+  }
+}
+
+# Tighten raft timing parameters to detect failures quickly
+performance {
+  raft_multiplier = 1
+}
