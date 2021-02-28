@@ -1,6 +1,5 @@
 {%- set server_fqdns = pillar['consul']['site']['server_fqdns'].keys() -%}
 {%- set server_fqdns = server_fqdns | difference(grains.fqdn) -%}
-{%- set role = 'server' if 'consul-server' in grains.get('roles', []) else 'client' -%}
 datacenter = "{{ pillar['consul']['site']['datacenter'] }}"
 
 enable_debug = false
@@ -11,12 +10,18 @@ retry_join = ["{{ '", "'.join(server_fqdns) }}"]
 
 encrypt = "{{ pillar['consul']['key'] }}"
 ca_file = "/etc/consul.d/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem"
-cert_file = "/etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem"
-key_file = "/etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}-key.pem"
+{%- if 'consul-server' in grains.get('roles', []) %}
+cert_file = "/etc/consul.d/server-{{ pillar['consul']['site']['domain'] }}.pem"
+key_file = "/etc/consul.d/server-{{ pillar['consul']['site']['domain'] }}-key.pem"
+{%- endif %}
 domain = "{{ pillar['consul']['site']['domain'] }}"
-verify_incoming = true
+verify_incoming = {{ 'true' if 'consul-server' in grains.get('roles', []) else 'false' }}
 verify_outgoing = true
 verify_server_hostname = true
+
+auto_encrypt {
+  {{ 'allow_' if 'consul-server' in grains.get('roles', []) else '' }}tls = true
+}
 
 addresses {
   dns = "127.0.0.1 127.0.1.1",

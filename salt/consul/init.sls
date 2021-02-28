@@ -58,17 +58,16 @@ manage-consul-user:
     - shell: /bin/false
     - system: True
 
-{% if 'consul-server' in grains.get('roles', []) %}
-manage-consul-server-configuration:
+manage-consul-configuration:
   file.managed:
-    - name: /etc/consul.d/server.hcl
-    - source: salt://consul/server.hcl.jinja
+    - name: /etc/consul.d/consul.hcl
+    - source: salt://consul/consul.hcl.jinja
     - template: jinja
-    - user: consul
+    - user: root
     - group: consul
     - mode: 0640
-    - watch_in:
-      - service: manage-consul
+    - dir_mode: 0755
+    - makedirs: True
 
 manage-consul-server-cacert:
   file.managed:
@@ -78,6 +77,18 @@ manage-consul-server-cacert:
     - user: root
     - group: consul
     - mode: 0644
+    - watch_in:
+      - service: manage-consul
+
+{% if 'consul-server' in grains.get('roles', []) %}
+manage-consul-server-configuration:
+  file.managed:
+    - name: /etc/consul.d/server.hcl
+    - source: salt://consul/server.hcl.jinja
+    - template: jinja
+    - user: root
+    - group: consul
+    - mode: 0640
     - watch_in:
       - service: manage-consul
 
@@ -103,17 +114,6 @@ manage-consul-server-key:
     - watch_in:
       - service: manage-consul
 {% endif %}
-
-manage-consul-configuration:
-  file.managed:
-    - name: /etc/consul.d/consul.hcl
-    - source: salt://consul/consul.hcl.jinja
-    - template: jinja
-    - user: consul
-    - group: consul
-    - mode: 0640
-    - dir_mode: 0755
-    - makedirs: True
 
 manage-consul:
   file.managed:
