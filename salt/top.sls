@@ -54,6 +54,7 @@ base:
 {# General states #}
     - apt
     - arping
+    - bash-completion
     - cloud-init
     - curl
     - dosfstools
