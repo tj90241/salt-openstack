@@ -20,7 +20,14 @@ update_process_names=0
 account_guest_in_cpu_meter=0
 color_scheme=0
 delay=15
+{%- if grains.num_cpus <= 4 %}
 left_meters=AllCPUs Memory
 left_meter_modes=1 1
 right_meters=Tasks LoadAverage Swap
 right_meter_modes=2 2 2
+{%- else %}
+left_meters=LeftCPUs2 Memory
+left_meter_modes=1 1
+right_meters=RightCPUs2 Tasks LoadAverage Swap
+right_meter_modes=1 2 2 2
+{%- endif %}

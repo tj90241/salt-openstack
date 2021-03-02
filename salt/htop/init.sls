@@ -6,7 +6,8 @@ manage-htop:
 
   file.managed:
     - name: /etc/htoprc
-    - source: salt://htop/htoprc
+    - source: salt://htop/htoprc.jinja
+    - template: jinja
     - user: root
     - group: root
     - mode: 0644
