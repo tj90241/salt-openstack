@@ -77,6 +77,7 @@ base:
     - manpages-dev
     - motd
     - net-tools
+    - numactl
     - parted
     - procps
     - psmisc
