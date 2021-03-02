@@ -98,6 +98,9 @@ base:
 {# Bare metal tools (sensory, monitoring, etc.) #}
   'virtual:physical':
     - match: grain
+{% if salt['file.directory_exists']('/sys/class/ipmi') and salt['cmd.run']('/bin/ls -A /sys/class/ipmi') | trim | length > 0 %}
+    - ipmitool
+{% endif %}
     - lm-sensors
     - nvme-cli
     - smartmontools
@@ -114,3 +117,6 @@ base:
     - devpi
     - devpi.server
     - devpi.users_indexes
+
+  'roles:jumphost':
+    - ipmitool
