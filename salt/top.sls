@@ -37,6 +37,7 @@ base:
 
   '*':
 {# Essential configuration and daemons (time, entropy, SSL, service mesh, etc.) #}
+    - gai
     - hosts
     - chrony
     - openssl
