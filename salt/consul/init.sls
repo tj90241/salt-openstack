@@ -6,7 +6,6 @@
 {% endif %}
 
 {% if version.get('Version', '') | lower != pillar['consul']['package']['version'] %}
-{% set service_bounce_action = 'restart' %}
 install-consul-package:
   archive.extracted:
     - name: /tmp/consul-{{ pillar['consul']['package']['version'] }}/contents
@@ -31,8 +30,6 @@ install-consul-package:
 cleanup-consul-package:
   file.absent:
     - name: /tmp/consul-{{ pillar['consul']['package']['version'] }}
-{% else %}
-{% set service_bounce_action = 'reload' %}
 {% endif %}
 
 manage-consul-autocompletion:
@@ -69,18 +66,8 @@ manage-consul-configuration:
     - dir_mode: 0755
     - makedirs: True
 
-manage-consul-server-cacert:
-  file.managed:
-    - name: /etc/consul.d/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem
-    - contents_pillar: 'consul:cacert.pem'
-    - contents_newline: False
-    - user: root
-    - group: consul
-    - mode: 0644
-    - watch_in:
-      - service: manage-consul
-
 {% if 'consul-server' in grains.get('roles', []) %}
+{% set role = 'server' %}
 manage-consul-server-configuration:
   file.managed:
     - name: /etc/consul.d/server.hcl
@@ -92,9 +79,61 @@ manage-consul-server-configuration:
     - watch_in:
       - service: manage-consul
 
-manage-consul-server-cert:
+manage-consul-cli-profile:
   file.managed:
-    - name: /etc/consul.d/server-{{ pillar['consul']['site']['domain'] }}.pem
+    - name: /etc/profile.d/consul.sh
+    - source: salt://consul/profile.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+
+manage-consul-cli-cert:
+  file.managed:
+    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}.pem
+    - contents_pillar: 'consul:cli-cert.pem'
+    - contents_newline: False
+    - user: root
+    - group: consul
+    - mode: 0644
+
+manage-consul-cli-key:
+  file.managed:
+    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}-key.pem
+    - contents_pillar: 'consul:cli-key.pem'
+    - contents_newline: False
+    - user: root
+    - group: consul
+    - mode: 0640
+{% else %}
+{% set role = 'client' %}
+manage-consul-cli-profile:
+  file.absent:
+    - name: /etc/profile.d/consul.sh
+
+manage-consul-cli-cert:
+  file.absent:
+    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}.pem
+
+manage-consul-cli-key:
+  file.absent:
+    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}-key.pem
+{% endif %}
+
+manage-consul-server-cacert:
+  file.managed:
+    - name: /etc/consul.d/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem
+    - contents_pillar: 'consul:cacert.pem'
+    - contents_newline: False
+    - user: root
+    - group: consul
+    - mode: 0644
+    - watch_in:
+      - service: manage-consul
+
+manage-consul-{{ role }}-cert:
+  file.managed:
+    - name: /etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem
     - contents_pillar: 'consul:cert.pem'
     - contents_newline: False
     - user: root
@@ -103,9 +142,9 @@ manage-consul-server-cert:
     - watch_in:
       - service: manage-consul
 
-manage-consul-server-key:
+manage-consul-{{ role }}-key:
   file.managed:
-    - name: /etc/consul.d/server-{{ pillar['consul']['site']['domain'] }}-key.pem
+    - name: /etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}-key.pem
     - contents_pillar: 'consul:key.pem'
     - contents_newline: False
     - user: root
@@ -113,7 +152,6 @@ manage-consul-server-key:
     - mode: 0640
     - watch_in:
       - service: manage-consul
-{% endif %}
 
 manage-consul:
   file.managed:
@@ -132,7 +170,7 @@ manage-consul:
   service.running:
     - name: consul
     - enable: True
-    - {{ service_bounce_action }}: True
+    - restart: True
     - watch:
       - file: manage-consul
       - file: manage-consul-configuration

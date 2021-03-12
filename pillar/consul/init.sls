@@ -1,6 +1,6 @@
 consul:
   package:
-    version: '1.9.3'
+    version: '1.9.4'
     x86_64:
-      source: https://releases.hashicorp.com/consul/1.9.3/consul_1.9.3_linux_amd64.zip
-      hash: 2ec9203bf370ae332f6584f4decc2f25097ec9ef63852cd4ef58fdd27a313577
+      source: https://releases.hashicorp.com/consul/1.9.4/consul_1.9.4_linux_amd64.zip
+      hash: da3919197ef33c4205bb7df3cc5992ccaae01d46753a72fe029778d7f52fb610

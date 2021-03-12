@@ -1,0 +1,6 @@
+{%- set domain = pillar['consul']['site']['domain'] -%}
+export CONSUL_CACERT=/etc/consul.d/{{ domain }}-agent-ca.pem
+export CONSUL_CLIENT_CERT=/etc/consul.d/cli-{{ domain }}.pem
+export CONSUL_CLIENT_KEY=/etc/consul.d/cli-{{ domain }}-key.pem
+export CONSUL_HTTP_ADDR=127.0.0.1:8501
+export CONSUL_HTTP_SSL=true
