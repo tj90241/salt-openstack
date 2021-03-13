@@ -10,6 +10,7 @@ base:
     - grub
     - hosts
     - hover
+    - ifupdown
     - initramfs-tools
     - openssl
     - nginx
@@ -57,6 +58,7 @@ base:
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
     - hover.hosts.{{ grains.id }}
+    - ifupdown.hosts.{{ grains.id }}
     - isc-dhcp-server.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}

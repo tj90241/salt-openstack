@@ -67,6 +67,7 @@ base:
     - hover
     - htop
     - iftop
+    - ifupdown
     - initramfs-tools
     - iotop
     - jq

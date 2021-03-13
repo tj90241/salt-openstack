@@ -1,0 +1,17 @@
+{%- set mgmt_interface = salt['network.interface'](grains.mgmt_interface)[0] -%}
+{%- set mgmt_cidr = salt['network.calc_net'](mgmt_interface.address, mgmt_interface.netmask) -%}
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug {{ grains.mgmt_interface }}
+iface {{ grains.mgmt_interface }} inet static
+	address {{ mgmt_interface.address }}/{{ mgmt_cidr.split('/')[-1] }}
+	gateway {{ grains.ip4_gw }}
+	mtu {{ salt['file.read']('/sys/class/net/{0}/mtu'.format(grains.mgmt_interface)) }}
