@@ -1,3 +1,4 @@
+{%- set consul_domain = pillar['consul']['site']['domain'] -%}
 {%- set mgmt_interface = salt['network.interface'](grains.mgmt_interface)[0] -%}
 {%- set mgmt_cidr = salt['network.calc_net'](mgmt_interface.address, mgmt_interface.netmask) -%}
 # This file describes the network interfaces available on your system
@@ -14,4 +15,8 @@ allow-hotplug {{ grains.mgmt_interface }}
 iface {{ grains.mgmt_interface }} inet static
 	address {{ mgmt_interface.address }}/{{ mgmt_cidr.split('/')[-1] }}
 	gateway {{ grains.ip4_gw }}
-	mtu {{ salt['file.read']('/sys/class/net/{0}/mtu'.format(grains.mgmt_interface)) }}
+	mtu {{ salt['file.read']('/sys/class/net/{0}/mtu'.format(grains.mgmt_interface)).strip() }}
+
+	dns-nameserver 127.0.0.1
+	dns-nameserver {{ grains.ip4_gw }}
+	dns-search node.{{ consul_domain }} service.{{ consul_domain }} {{ grains.domain }}

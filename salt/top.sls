@@ -27,20 +27,11 @@ base:
     - tftpd-hpa
     - debian-installer
 
-  'roles:consul-server':
-    - match: grain
-    - hosts
-    - ssl
-    - openssl
-    - nginx-light
-    - consul
-
   '*':
-{# Essential configuration and daemons (time, entropy, SSL, service mesh, etc.) #}
+{# Essential configuration and daemons (DNS, time, entropy, SSL,  etc.) #}
     - gai
     - hosts
     - chrony
-    - openssl
 {% if salt['file.is_chrdev']('/dev/hwrng') and salt['file.directory_exists']('/sys/class/tpm') and salt['cmd.run']('/bin/ls -A /sys/class/tpm') | trim | length > 0 %}
     - rng-tools
 {% elif 'rdrand' not in grains.get('cpu_flags', []) %}
@@ -48,8 +39,11 @@ base:
 {% else %}
     - rng-tools5
 {% endif %}
+    - openssl
     - ssl
     - consul
+    - dnsmasq
+    - ifupdown
     - uuid-runtime
 
 {# General states #}
@@ -67,7 +61,6 @@ base:
     - hover
     - htop
     - iftop
-    - ifupdown
     - initramfs-tools
     - iotop
     - jq

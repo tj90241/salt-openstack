@@ -12,4 +12,24 @@ manage-ifupdown:
     - user: root
     - group: root
     - mode: 0644
+
+manage-resolvconf:
+  pkg.installed:
+    - name: resolvconf
+    - refresh: False
+    - version: latest
+
+  file.managed:
+    - name: /etc/default/resolvconf
+    - source: salt://resolvconf/default
+    - user: root
+    - group: root
+    - mode: 0644
+
+manage-interfaces:
+  cmd.run:
+    - name: "ifdown -a; ifup -a; ifup --allow hotplug -a"
+    - onchanges:
+      - file: manage-ifupdown
+      - file: manage-resolvconf
 {% endif %}
