@@ -19,4 +19,4 @@ iface {{ grains.mgmt_interface }} inet static
 
 	dns-nameserver 127.0.0.1
 	dns-nameserver {{ grains.ip4_gw }}
-	dns-search node.{{ consul_domain }} service.{{ consul_domain }} {{ grains.domain }}
+	dns-search node.{{ consul_domain }} service.{{ consul_domain }}
