@@ -57,6 +57,16 @@ master:
 
   ext_pillar: {{ master.get('ext_pillar', []) }}
 
+  # The pillar_source_merging_strategy option allows you to configure merging
+  # strategy between different sources. It accepts five values: none, recurse,
+  # aggregate, overwrite, or smart. None will not do any merging at all. Recurse
+  # will merge recursively mapping of data. Aggregate instructs aggregation of
+  # elements between sources that use the #!yamlex renderer. Overwrite will
+  # overwrite elements according the order in which they are processed. This is
+  # behavior of the 2014.1 branch and earlier. Smart guesses the best strategy
+  # based on the "renderer" setting and is the default value.
+  pillar_source_merging_strategy: {{ master.get('pillar_source_merging_strategy', 'smart') }}
+
   # Define a salt reactor. See https://docs.saltstack.com/en/latest/topics/reactor/
   reactor: {{ master.get('reactor', []) }}
 

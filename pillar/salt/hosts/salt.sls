@@ -12,3 +12,7 @@ salt:
 
     roles:
       - salt-master
+
+  master:
+    pillar_source_merging_strategy: recursive
+    top_file_merging_strategy: same
