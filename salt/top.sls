@@ -48,6 +48,7 @@ base:
     - uuid-runtime
 
 {# General states #}
+    - salt
     - apt
     - arping
     - bash-completion
@@ -78,7 +79,6 @@ base:
     - procps
     - psmisc
     - python2
-    - salt
     - screen
     - sosreport
     - sysctl
