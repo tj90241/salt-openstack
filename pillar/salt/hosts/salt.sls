@@ -14,5 +14,5 @@ salt:
       - salt-master
 
   master:
-    pillar_source_merging_strategy: recursive
+    pillar_source_merging_strategy: recurse
     top_file_merging_strategy: same
