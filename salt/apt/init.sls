@@ -22,6 +22,16 @@ apt-provide-https-support:
     - refresh: False
 {% endif %}
 
+apt-no-install-recommends:
+  file.managed:
+    - name: /etc/apt/preferences.d/99-no-install-recommends.conf
+    - contents: |
+        APT::Get::Install-Recommends "false";
+        APT::Get::Install-Suggests "false";
+    - user: root
+    - group: root
+    - mode: 0644
+
 apt-system-update:
   pkg.uptodate:
     - refresh: True
