@@ -15,6 +15,7 @@ base:
     - consul.ca
     - ssl
     - openssl
+    - patch
     - nginx-light
     - twine
 

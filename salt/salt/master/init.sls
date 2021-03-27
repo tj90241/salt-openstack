@@ -58,6 +58,13 @@ manage-salt-master:
     - watch: 
       - pkg: manage-salt-master
       - file: manage-salt-master
+      - file: manage-salt-master-deterministic-pillar-rendering-patch
+
+manage-salt-master-deterministic-pillar-rendering-patch:
+  file.patch:
+    - name: {{ grains.saltpath }}
+    - source: salt://salt/patches/determinstic-pillar-rendering.patch
+    - strip: 6
 
 {# Do not start the salt master until time is synchronized. #}
 manage-salt-master-override:

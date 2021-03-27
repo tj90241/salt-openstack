@@ -1,0 +1,15 @@
+--- /usr/lib/python3/dist-packages/salt/pillar/__init__.py	2021-03-15 15:49:10.000000000 +0000
++++ /usr/lib/python3/dist-packages/salt/pillar/__init__.py	2021-03-27 17:50:12.332804296 +0000
+@@ -630,9 +630,9 @@
+         """
+         Pull the file server environments out of the master options
+         """
+-        envs = {"base"}
+-        if "pillar_roots" in self.opts:
+-            envs.update(list(self.opts["pillar_roots"]))
++        envs = list(dict.fromkeys(self.opts["pillar_roots"]))
++        if "base" not in envs:
++            envs.append("base")
+         return envs
+ 
+     def get_tops(self):
