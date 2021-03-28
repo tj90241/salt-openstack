@@ -24,7 +24,7 @@ apt-provide-https-support:
 
 apt-no-install-recommends:
   file.managed:
-    - name: /etc/apt/preferences.d/99-no-install-recommends.conf
+    - name: /etc/apt/apt.conf.d/99no-install-recommends
     - contents: |
         APT::Get::Install-Recommends "false";
         APT::Get::Install-Suggests "false";
