@@ -7,6 +7,7 @@
 DEBIAN_MAJOR_VERSION=`awk -F '.' '{print $1}' /etc/debian_version`
 DEFAULT_MASTER_HOSTNAME=${DEFAULT_MASTER_HOSTNAME:="salt.$( hostname -d )"}
 DEFAULT_MINION_NAME=${DEFAULT_MINION_NAME:="$( hostname -s )"}
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # Upgrade the base system, install curl, and gnupg2 (for apt-key).
 export DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical
@@ -14,8 +15,9 @@ apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -
 apt-get install -y curl gnupg2
 
 # Provision the upstream Saltstack repository.
-curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.2/SALTSTACK-GPG-KEY.pub" | apt-key add -
-echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.2 buster main" > /etc/apt/sources.list.d/saltstack.list
+SALT_VERSION=`/usr/bin/env python3 -c "import yaml ; print(yaml.safe_load(open('/srv/pillar/salt/init.sls', 'r'))['salt']['release'])"`
+curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION}/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION} $( lsb_release -sc ) main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
 # Install and configure the minion.
