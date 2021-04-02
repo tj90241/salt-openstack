@@ -31,6 +31,7 @@ manage-consul-minion-{{ minion_name }}-cert:
         /usr/local/bin/consul tls cert create -cli -days 30 -ca /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem -key /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca-key.pem -dc {{ pillar['consul']['site']['datacenter'] }} -domain {{ pillar['consul']['site']['domain'] }} &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-cli-{{ pillar['consul']['site']['domain'] }}-0.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-cert.pem &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-cli-{{ pillar['consul']['site']['domain'] }}-0-key.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-key.pem &&
+        ln -sfv /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cacert.pem &&
         cd /tmp && rm -rfv "${SERVERCERTDIR}";
 {% endfor %}
 
@@ -51,18 +52,7 @@ manage-consul-minion-{{ minion_name }}-cert:
         /usr/local/bin/consul tls cert create -client -days 30 -ca /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem -key /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca-key.pem -dc {{ pillar['consul']['site']['datacenter'] }} -domain {{ pillar['consul']['site']['domain'] }} &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-client-{{ pillar['consul']['site']['domain'] }}-0.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cert.pem &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-client-{{ pillar['consul']['site']['domain'] }}-0-key.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/key.pem &&
+        ln -sfv /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cacert.pem &&
         cd /tmp && rm -rfv "${CLIENTCERTDIR}";
 {% endif %}
 {% endfor %}
-
-manage-consul-domain-nodegroup-cacert:
-  file.directory:
-    - name: /etc/salt/file_tree_pillar/nodegroups/consul-domain/consul
-    - user: root
-    - group: root
-    - mode: 0700
-    - makedirs: True
-
-  cmd.run:
-    - name: >
-        cp -v /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem /etc/salt/file_tree_pillar/nodegroups/consul-domain/consul/cacert.pem
