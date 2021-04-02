@@ -26,8 +26,8 @@ apt-no-install-recommends:
   file.managed:
     - name: /etc/apt/apt.conf.d/99no-install-recommends
     - contents: |
-        APT::Get::Install-Recommends "false";
-        APT::Get::Install-Suggests "false";
+        APT::Install-Recommends "0";
+        APT::Install-Suggests "0";
     - user: root
     - group: root
     - mode: 0644

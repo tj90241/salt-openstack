@@ -90,6 +90,7 @@ base:
     - unzip
     - vim
     - zip
+    - apt.autoremove
 
 {# Bare metal tools (sensory, monitoring, etc.) #}
   'virtual:physical':
