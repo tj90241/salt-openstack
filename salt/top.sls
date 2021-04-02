@@ -115,4 +115,5 @@ base:
     - devpi.users_indexes
 
   'roles:jumphost':
+    - haproxy
     - ipmitool
