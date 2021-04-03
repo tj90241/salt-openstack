@@ -1,0 +1,18 @@
+{%- set jenkins = pillar.get('jenkins', {}) -%}
+jenkins:
+  systemMessage: "Jenkins CI (configured by salt-openstack and JCasC)"
+  mode: NORMAL
+
+  numExecutors: {{ grains.num_cpus }}
+  scmCheckoutRetryCount: 2
+
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+unclassified:
+  location:
+{%- if 'admin_email' in jenkins %}
+    adminAddress: "{{ jenkins['admin_email'] }}"
+{%- endif %}
+    url: "{{ grains.fqdn if 'url' not in jenkins else jenkins['url'] }}"

@@ -36,6 +36,17 @@ base:
     - match: grain
     - isc-dhcp-server
 
+  'roles:jenkins-node':
+    - match: grain
+    - jenkins.credentials.node
+
+  'roles:jenkins-server':
+    - match: grain
+    - jenkins
+    - jenkins.controller
+    - jenkins.credentials.controller
+    - jenkins.credentials.node
+
   'roles:salt-master':
     - match: grain
     - salt.default.master

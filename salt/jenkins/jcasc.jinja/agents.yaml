@@ -1,0 +1,22 @@
+jenkins:
+  nodes:
+{%- for agent in pillar['jenkins']['agents'] %}
+{%- set labels = [] if not pillar['jenkins']['agents'] is mapping else pillar['jenkins']['agents'][agent].get('labels', []) %}
+    - permanent:
+        labelString: "{{ ' '.join(labels) }}"
+        mode: NORMAL
+        name: "{{ agent }}"
+        numExecutors: 2
+        remoteFS: "{{ pillar['jenkins']['remote_dir'] }}"
+        launcher:
+          ssh:
+            host: "{{ agent }}.node.{{ pillar['consul']['site']['domain'] }}"
+            port: 22
+            credentialsId: build-server-key
+            launchTimeoutSeconds: 60
+            maxNumRetries: 3
+            retryWaitTime: 30
+            sshHostKeyVerificationStrategy:
+              manuallyTrustedKeyVerificationStrategy:
+                requireInitialManualTrust: false
+{%- endfor %}

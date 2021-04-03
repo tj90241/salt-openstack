@@ -26,6 +26,7 @@ Thumbs.db
 # Credentials/secrets
 /pillar/consul/key.sls
 /pillar/devpi/root.sls
+/pillar/jenkins/credentials/
 /pillar/openstack/devpi/user.sls
 /pillar/salt/hosts/
 /private/

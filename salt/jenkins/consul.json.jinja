@@ -1,0 +1,26 @@
+{
+  "service": {
+    "id": "jenkins-{{ grains.id }}",
+    "name": "jenkins",
+    "tags": [],
+    "address": "{{ grains['ip4_interfaces'][grains['mgmt_interface']][0] }}",
+    "port": 8080,
+    "meta": {
+      "meta": "Jenkins CI"
+    },
+    "enable_tag_override": false,
+    "checks": [
+      {
+        "id": "JenkinsCI",
+        "name": "Jenkins CI Jetty Server",
+        "http": "https://{{ grains.fqdn }}:8080/jenkins/login",
+        "tls_skip_verify": false,
+        "method": "GET",
+        "header": {"User-Agent": ["Jenkins-Healthcheck"]},
+        "body": "",
+        "interval": "10s",
+        "timeout": "3s"
+      }
+    ]
+  }
+}

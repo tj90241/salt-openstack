@@ -115,6 +115,18 @@ base:
     - devpi.server
     - devpi.users_indexes
 
+  'roles:jenkins-node':
+    - match: grain
+    - default-jre
+    - jenkins.node
+
+  'roles:jenkins-server':
+    - match: grain
+    - default-jre
+    - git
+    - jenkins.server
+
   'roles:jumphost':
+    - match: grain
     - haproxy
     - ipmitool

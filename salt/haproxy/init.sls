@@ -45,7 +45,6 @@ manage-haproxy-ssl-cert:
         - ssl:fullchain.pem
         - ssl:privkey.pem
     - contents_newline: False
-    - template: jinja
     - user: root
     - group: haproxy
     - mode: 0640
