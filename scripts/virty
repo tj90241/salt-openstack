@@ -92,8 +92,9 @@ def get_nic_vf_dbdft(nic):
 
 
 def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
-                  iftype, name, vcpus, ram_mb, pool_name, volume_type,
-                  secret_uuid, vnic_queues, nic, mac=None, vlan=None,
+                  iftype, name, vcpus, affinity, emu_affinity, ram_mb,
+                  pool_name, volume_type, secret_uuid,
+                  vnic_queues, nic, mac=None, vlan=None,
                   bootdev='hd,network', rng_path='/dev/urandom'):
     """
     Defines a domain XML tree for a new guest.
@@ -109,7 +110,12 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
     metadata = ET.SubElement(domain, 'metadata')
 
     # Guest VCPUs configuration.
-    ET.SubElement(domain, 'vcpu').text = str(vcpus)
+    cpuset = {} if affinity is None else {'cpuset': affinity}
+    ET.SubElement(domain, 'vcpu', attrib=cpuset).text = str(vcpus)
+
+    if emu_affinity is not None:
+        cputune = ET.SubElement(domain, 'cputune')
+        ET.SubElement(cputune, 'emulatorpin', attrib={'cpuset': emu_affinity})
 
     # Guest memory configuration.
     ET.SubElement(domain, 'memory').text = str(int(ram_mb) * 1024)
@@ -393,11 +399,11 @@ def main(args):
         # Preseed should shut it down after installation is complete.
         domain, bus, device, function, iftype = get_nic_vf_dbdft(args.nic)
         new_domain = define_domain(conn, caps, domain, bus, device, function,
-                                   iftype, args.name, args.vcpus, args.mem,
+                                   iftype, args.name, args.vcpus,
+                                   args.affinity, args.emu_affinity, args.mem,
                                    storage_pool_name, volume_type,
                                    args.secret_uuid, args.queues, args.nic,
-                                   mac=args.mac_address,
-                                   vlan=args.vlan)
+                                   mac=args.mac_address, vlan=args.vlan)
 
         xml_config = ET.tostring(new_domain.getroot(), method='xml').decode()
         new_domain = conn.defineXML(xml_config)
@@ -421,6 +427,15 @@ if __name__ == '__main__':
     create.add_argument('-c', '--vcpus', metavar='CPU', dest='vcpus',
                         help='Number of VCPUs to assign',
                         action='store', type=int, default=1)
+
+    create.add_argument('-a', '--affinity', metavar='AFF', dest='affinity',
+                        help='Physical CPUs to run vCPUs on',
+                        action='store', type=str, default=None)
+
+    create.add_argument('-e', '--emulator-affinity',
+                        metavar='EAFF', dest='emu_affinity',
+                        help='Physical CPUs to run emulator threads on',
+                        action='store', type=str, default=None)
 
     create.add_argument('-r', '--mem', metavar='RAM', dest='mem',
                         help='Amount of memory (in MiB) to assign',
