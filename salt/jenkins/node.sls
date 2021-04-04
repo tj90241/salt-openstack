@@ -1,6 +1,7 @@
 include:
   - jenkins.requirements.ceph
   - jenkins.requirements.linux
+  - jenkins.requirements.mariadb
   - jenkins.requirements.openvswitch
 
 manage-jenkins-group:
