@@ -6,6 +6,7 @@ import argparse
 import os
 import libvirt
 import uuid
+import stat
 import sys
 
 
@@ -169,12 +170,7 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
     devices = ET.SubElement(domain, 'devices')
     ET.SubElement(devices, 'emulator').text = config['emulator']
 
-    # Add guest volume storage.
-    disk_attribs = {'device': 'disk'}
-
-    if volume_type is not None:
-        disk_attribs['type'] = 'file'
-
+    # Disk controller.
     scsi_controller_attribs = {
         'model': 'virtio-scsi',
         'type': 'scsi',
@@ -183,6 +179,14 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
     controller = ET.SubElement(devices, 'controller',
                                attrib=scsi_controller_attribs)
 
+    # Add guest volume storage.
+    disk_types = {
+        'block': 'block',
+        'file': 'file',
+        'rbd': 'network',
+    }
+
+    disk_attribs = {'device': 'disk', 'type': disk_types[volume_type]}
     disk = ET.SubElement(devices, 'disk', attrib=disk_attribs)
     ET.SubElement(disk, 'target', attrib={'dev': 'sda', 'bus': 'scsi'})
     ET.SubElement(disk, 'driver', attrib={'name': 'qemu', 'type': 'raw',
@@ -199,7 +203,10 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
         ET.SubElement(disk_auth, 'secret', attrib={'type': 'ceph',
                                                    'uuid': secret_uuid})
 
-    elif volume_type is None:
+    elif volume_type == 'block':
+        ET.SubElement(disk, 'source', attrib={'dev': pool_name})
+
+    else:
         storage_pool = conn.storagePoolLookupByName(pool_name)
         vol = storage_pool.storageVolLookupByName('{0}.raw'.format(name))
         ET.SubElement(disk, 'source', attrib={'file': vol.path()})
@@ -342,34 +349,45 @@ def main(args):
                 print('Secret UUID must be specified when using RBD volumes')
                 return 1
 
-        storage_pool = conn.storagePoolLookupByName(storage_pool_name)
-
-        if storage_pool is None:
-            error_message = 'Failed to find the "{0}" storage pool'
-            print(error_message.format(storage_pool_name))
-            return 1
-
-        # Check for an existing volume, delete it as needed.
-        volume_name = args.name if volume_type else '{0}.raw'.format(args.name)
-
-        if volume_name in storage_pool.listVolumes():
-            vol = storage_pool.storageVolLookupByName(volume_name)
-
-            if not args.keep_volume:
-                vol.delete()
-
-        # Provision new storage for the guest as needed.
-        new_storage = define_storage(args.name, args.storage,
-                                     storage_pool_name, volume_type)
-
-        xml_config = ET.tostring(new_storage.getroot(), method='xml').decode()
-
-        if volume_name not in storage_pool.listVolumes():
-            storage = storage_pool.createXML(xml_config, 0)
-
-            if storage is None:
-                print('Failed to allocate storage for "{0}"'.format(name))
+        elif volume_type == 'block':
+            if not stat.S_ISBLK(os.stat(storage_pool_name).st_mode):
+                print('Supplied block device path is not a block device')
                 return 1
+
+        else:
+            volume_type = 'file'
+
+        if volume_type != 'block':
+            storage_pool = conn.storagePoolLookupByName(storage_pool_name)
+
+            if storage_pool is None:
+                error_message = 'Failed to find the "{0}" storage pool'
+                print(error_message.format(storage_pool_name))
+                return 1
+
+            # Check for an existing volume, delete it as needed.
+            extension = '' if volume_type != 'file' else '.raw'
+            volume_name = '{0}{1}'.format(args.name, extension)
+
+            if volume_name in storage_pool.listVolumes():
+                vol = storage_pool.storageVolLookupByName(volume_name)
+
+                if not args.keep_volume:
+                    vol.delete()
+
+            # Provision new storage for the guest as needed.
+            new_storage = define_storage(args.name, args.storage,
+                                         storage_pool_name, volume_type)
+
+            storage_xml = new_storage.getroot()
+            xml_config = ET.tostring(storage_xml, method='xml').decode()
+
+            if volume_name not in storage_pool.listVolumes():
+                storage = storage_pool.createXML(xml_config, 0)
+
+                if storage is None:
+                    print('Failed to allocate storage for "{0}"'.format(name))
+                    return 1
 
         # Provision a new (transient) domain/guest.
         # Preseed should shut it down after installation is complete.
