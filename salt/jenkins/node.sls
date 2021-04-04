@@ -1,3 +1,8 @@
+include:
+  - jenkins.requirements.ceph
+  - jenkins.requirements.linux
+  - jenkins.requirements.openvswitch
+
 manage-jenkins-group:
   group.present:
     - name: {{ pillar['jenkins']['node']['user']['name'] }}

@@ -1,0 +1,22 @@
+manage-openvswitch-packages:
+  pkg.latest:
+    - pkgs:
+        - autoconf
+        - automake
+        - build-essential
+        - bzip2
+        - debhelper
+        - devscripts
+        - dh-autoreconf
+        - graphviz
+        - libssl-dev
+        - libtool
+        - openssl
+        - procps
+        - python3-all
+        - python3-sphinx
+        - python3-twisted
+        - python3-zope.interface
+        - libunbound-dev
+        - libunwind-dev
+    - refresh: False

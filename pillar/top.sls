@@ -38,6 +38,7 @@ base:
 
   'roles:jenkins-node':
     - match: grain
+    - jenkins
     - jenkins.credentials.node
 
   'roles:jenkins-server':
