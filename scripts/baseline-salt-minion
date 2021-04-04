@@ -15,9 +15,8 @@ apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -
 apt-get install -y curl gnupg2
 
 # Provision the upstream Saltstack repository.
-SALT_VERSION=`/usr/bin/env python3 -c "import yaml ; print(yaml.safe_load(open('/srv/pillar/salt/init.sls', 'r'))['salt']['release'])"`
-curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION}/SALTSTACK-GPG-KEY.pub" | apt-key add -
-echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION} $( lsb_release -sc ) main" > /etc/apt/sources.list.d/saltstack.list
+curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.6/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.6 buster main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
 # Install and configure the minion.
@@ -44,12 +43,15 @@ done
 
 salt-call saltutil.sync_all
 
-# Baseline the minion, poll till its up.
-salt-call state.apply salt.minion
-systemctl restart salt-minion
+# Baseline the minion, poll till its up.  We do two provisioning passes
+# because in case the minion has a roles with recursive definitions.
+for pass in first second; do
+  salt-call state.apply salt.minion
+  systemctl restart salt-minion
 
-while [ 1 ]; do
-  salt-call test.ping && break
+  while [ 1 ]; do
+    salt-call test.ping && break
+  done
 done
 
 # Run a highstate.

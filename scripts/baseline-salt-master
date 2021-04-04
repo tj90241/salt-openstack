@@ -97,12 +97,15 @@ while [ 1 ]; do
   salt-call test.ping && break
 done
 
-# Baseline the minion, poll till its up.
-salt-call state.apply salt.minion
-systemctl restart salt-minion
+# Baseline the minion, poll till its up.  We do two provisioning passes
+# because in case the minion has a roles with recursive definitions.
+for pass in first second; do
+  salt-call state.apply salt.minion
+  systemctl restart salt-minion
 
-while [ 1 ]; do
-  salt-call test.ping && break
+  while [ 1 ]; do
+    salt-call test.ping && break
+  done
 done
 
 # Run a highstate.
