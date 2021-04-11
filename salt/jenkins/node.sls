@@ -1,8 +1,16 @@
 include:
+{%- if 'jenkins-node-ceph' in grains.get('roles', []) %}
   - jenkins.requirements.ceph
+{%- endif %}
+{%- if 'jenkins-node-linux' in grains.get('roles', []) %}
   - jenkins.requirements.linux
+{%- endif %}
+{%- if 'jenkins-node-mariadb' in grains.get('roles', []) %}
   - jenkins.requirements.mariadb
+{%- endif %}
+{%- if 'jenkins-node-openvswitch' in grains.get('roles', []) %}
   - jenkins.requirements.openvswitch
+{%- endif %}
 
 manage-jenkins-group:
   group.present:
