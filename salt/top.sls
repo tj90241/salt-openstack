@@ -101,6 +101,7 @@ base:
     - lm-sensors
     - nvme-cli
     - smartmontools
+    - usbutils
 
 {# Role-specific states #}
   'roles:devpi-client':
