@@ -65,6 +65,7 @@ base:
     - iftop
     - initramfs-tools
     - iotop
+    - ipset
     - jq
     - kexec-tools
     - less
