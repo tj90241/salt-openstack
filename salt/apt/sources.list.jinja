@@ -2,10 +2,10 @@
 # {{ grains.os }} {{ grains.oscodename.lower() }}
 deb http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }} main contrib non-free
 deb-src http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }} main contrib non-free
-
+{% if grains.oscodename.lower() in ['testing', 'sid'] %}
 deb http://security.debian.org/debian-security {{ grains.oscodename.lower() }}/updates main
 deb-src http://security.debian.org/debian-security {{ grains.oscodename.lower() }}/updates main
-
+{% endif %}
 # {{ grains.oscodename.lower() }}-updates, previously known as 'volatile'
 deb http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }}-updates main
 deb-src http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }}-updates main

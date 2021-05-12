@@ -12,11 +12,19 @@
 
 {% set pyver_dir = 'apt' if python_version == 2 else 'py3' %}
 {% set osmajorrelease = grains.get('osmajorrelease', grains['osrelease_info'][0]) | string %}
+{% set oscodename = grains.oscodename | lower %}
+
+{# Support preliminary release testing. #}
+{% if osmajorrelease in ['testing', 'sid'] %}
+{% set osmajorrelease = '10' %}
+{% set oscodename = 'buster' %}
+{% endif %}
+
 {% set salt_release = salt_defaults.get('release', 'latest') | string %}
 {% set salt_release = 'latest' if salt_release.lower().strip() == 'latest' else 'archive/' + salt_release %}
 
 Debian:
-  pkgrepo: 'deb http://repo.saltstack.com/{{ pyver_dir }}/{{ grains.os | lower }}/{{ osmajorrelease }}/amd64/{{ salt_release }} {{ grains.oscodename | lower }} main'
+  pkgrepo: 'deb http://repo.saltstack.com/{{ pyver_dir }}/{{ grains.os | lower }}/{{ osmajorrelease }}/amd64/{{ salt_release }} {{ oscodename }} main'
   key_url: 'https://repo.saltstack.com/{{ pyver_dir }}/{{ grains.os | lower }}/{{ osmajorrelease }}/amd64/{{ salt_release }}/SALTSTACK-GPG-KEY.pub'
   install_transport_https: {{ install_transport_https }}
 
