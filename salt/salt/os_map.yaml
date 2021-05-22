@@ -15,7 +15,7 @@
 {% set oscodename = grains.oscodename | lower %}
 
 {# Support preliminary release testing. #}
-{% if osmajorrelease in ['testing', 'sid'] %}
+{% if osmajorrelease in ['11', 'testing', 'sid'] %}
 {% set osmajorrelease = '10' %}
 {% set oscodename = 'buster' %}
 {% endif %}

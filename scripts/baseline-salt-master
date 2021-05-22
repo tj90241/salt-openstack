@@ -41,7 +41,7 @@ fi
 
 # Provision the upstream Saltstack repository.
 SALT_VERSION=`/usr/bin/env python3 -c "import yaml ; print(yaml.safe_load(open('/srv/pillar/salt/init.sls', 'r'))['salt']['release'])"`
-curl -s "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION}/SALTSTACK-GPG-KEY.pub" | apt-key add -
+curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION}/SALTSTACK-GPG-KEY.pub" | apt-key add -
 echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION} $( lsb_release -sc ) main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
