@@ -57,6 +57,7 @@ base:
     - dosfstools
     - dnsutils
     - ethtool
+    - eject
     - exim4
     - gnupg2
     - grub
@@ -74,6 +75,7 @@ base:
     - manpages
     - manpages-dev
     - motd
+    - netcat
     - net-tools
     - numactl
     - parted
