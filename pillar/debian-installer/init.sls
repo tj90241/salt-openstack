@@ -1,4 +1,6 @@
 #debian-installer:
+#  release: bullseye
+#
 #  macs:
 #    'aa:bb:cc:dd:ee:ff':
 #      hostname: host1
