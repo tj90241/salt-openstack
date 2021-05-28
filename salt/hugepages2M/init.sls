@@ -15,9 +15,11 @@ manage-dev-hugepages2M-mount:
 
   module.run:
     - service.systemctl_reload:
-    - watch:
+    - onchanges:
       - file: manage-dev-hugepages2M-mount
 
+{% if salt['file.directory_exists']('/sys/kernel/mm/hugepages/hugepages-2048kB') %}
   service.running:
     - name: dev-hugepages2M.mount
     - enable: True
+{% endif %}
