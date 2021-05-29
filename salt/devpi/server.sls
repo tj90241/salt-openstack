@@ -1,6 +1,5 @@
 include:
   - devpi.client
-  - devpi.strictyaml
   - devpi.web
   - python3.appdirs
   - python3.argon2
@@ -12,6 +11,7 @@ include:
   - python3.pyramid
   - python3.py
   - python3.repoze-lru
+  - python3.strictyaml
   - python3.waitress
 
 {% set json_info = pillar['devpi']['packages']['devpi-json-info'] %}

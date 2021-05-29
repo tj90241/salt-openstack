@@ -1,4 +1,10 @@
 {% if 'dns-forwarder' not in grains.get('roles', []) %}
+manage-dns-root-data:
+  pkg.installed:
+    - name: dns-root-data
+    - refresh: False
+    - version: latest
+
 manage-dnsmasq:
   pkg.installed:
     - name: dnsmasq
@@ -18,6 +24,7 @@ manage-dnsmasq:
     - restart: True
     - watch:
       - pkg: dnsmasq
+      - pkg: dns-root-data
       - file: manage-dnsmasq
       - file: manage-dnsmasq-configuration
       - file: manage-dnsmasq-consul-configuration

@@ -64,6 +64,8 @@ base:
     - hover
     - htop
     - iftop
+    # Intentionally out of order, for initramfs-tools.
+    - lzma
     - initramfs-tools
     - iotop
     - ipset
@@ -92,6 +94,7 @@ base:
     - traceroute
     - unzip
     - vim
+    - xz-utils
     - zip
     - apt.autoremove
 
@@ -103,6 +106,7 @@ base:
 {% endif %}
     - lm-sensors
     - nvme-cli
+    - pciutils
     - smartmontools
     - usbutils
 

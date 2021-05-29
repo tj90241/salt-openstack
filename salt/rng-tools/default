@@ -14,7 +14,7 @@ HRNGDEVICE=/dev/hwrng
 #RNGDOPTIONS="--hrng=intelfwh --fill-watermark=90% --feed-interval=1"
 #RNGDOPTIONS="--hrng=viakernel --fill-watermark=90% --feed-interval=1"
 #RNGDOPTIONS="--hrng=viapadlock --fill-watermark=90% --feed-interval=1"
-# For TPM (also add tpm-rng to /etc/modules):
+# For TPM (also add tpm-rng to /etc/initramfs-tools/modules or /etc/modules):
 RNGDOPTIONS="--fill-watermark=90% --feed-interval=1"
 
 # If you need to configure which RNG to use, do it here:
