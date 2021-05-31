@@ -73,7 +73,10 @@ base:
     - hover.hosts.{{ grains.id }}
     - ifupdown.hosts.{{ grains.id }}
     - isc-dhcp-server.hosts.{{ grains.id }}
+    - libvirt.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}
     - sysctl.hosts.{{ grains.id }}
     - tftpd-hpa.hosts.{{ grains.id }}
+    - udev.hosts.{{ grains.id }}
+    - virty.hosts.{{ grains.id }}

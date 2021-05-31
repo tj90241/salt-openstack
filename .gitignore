@@ -18,6 +18,9 @@ Thumbs.db
 # Custom preseed templates
 /salt/debian-installer/templates/
 
+# Custom IPXE ROMs
+/salt/libvirt/ipxe-roms/
+
 # Custom assets
 /scripts/install-media.options
 /scripts/install-media.options.*

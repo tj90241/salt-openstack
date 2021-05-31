@@ -1,0 +1,16 @@
+[Unit]
+Description=Start {{ vm_name }} VM
+After=network-online.target openvswitch-switch.service
+Wants=network-online.target openvswitch-switch.service
+ConditionPathExists=!/var/lib/libvirt/images/{{ vm_name_filtered }}.raw
+
+[Service]
+Type=oneshot
+{%- if not vm_skip_pool_creation %}
+ExecStart=/bin/bash -c '/usr/bin/virsh pool-define-as {{ vm_storage_pool }} dir - - - - {{ vm_storage_pool_dir }} && /usr/bin/virsh pool-autostart {{ vm_storage_pool }} && /usr/bin/virsh pool-start {{ vm_storage_pool }} || /bin/true'
+{% endif %}
+ExecStart=/usr/local/sbin/virty create -c {{ vm_cores }} -r {{ vm_ram }} -s {{ vm_storage }} -p {{ vm_storage_pool }} {{ vm_bridge_or_nic }} -m {{ vm_mac }}{% if vm_nic_vlan != None %} -v {{ vm_nic_vlan }}{% endif %}{% if vm_nic_rom_bar != None %} -b {{ vm_nic_rom_bar }}{% endif %} {{ vm_name_filtered }}
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target

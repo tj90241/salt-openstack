@@ -92,6 +92,7 @@ base:
     - tcpdump
     - tmux
     - traceroute
+    - udev
     - unzip
     - vim
     - xz-utils
@@ -122,6 +123,11 @@ base:
     - devpi
     - devpi.server
     - devpi.users_indexes
+
+  'roles:hypervisor':
+    - match: grain
+    - libvirt
+    - virty
 
   'roles:jenkins-node':
     - match: grain
