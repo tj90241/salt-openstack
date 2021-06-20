@@ -8,6 +8,7 @@ manage-openvswitch-packages:
         - debhelper
         - devscripts
         - dh-autoreconf
+        - dh-python
         - graphviz
         - libssl-dev
         - libtool

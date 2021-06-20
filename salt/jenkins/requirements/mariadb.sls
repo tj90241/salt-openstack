@@ -10,7 +10,6 @@ manage-mariadb-packages:
         - devscripts
         - dh-apparmor
         - dh-exec
-        - dh-systemd
         - flex
         - gdb
         - libaio-dev
@@ -35,11 +34,10 @@ manage-mariadb-packages:
         - libpam0g-dev
         - libpcre2-dev
         - libpmem-dev
-        - libreadline-gplv2-dev
         - libsnappy-dev
         - libssl-dev
         - libsystemd-dev
-        #- liburing-dev
+        - liburing-dev
         - libxml2-dev
         - libzstd-dev
         - lsb-release

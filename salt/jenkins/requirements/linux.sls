@@ -1,15 +1,33 @@
 manage-linux-packages:
   pkg.latest:
     - pkgs:
+        - asciidoc
         - bc
+        - binutils-dev
         - bison
         - build-essential
         - cpio
         - devscripts
         - flex
         - kmod
+        - libbabeltrace-dev
+        - libcap-dev
+        - libdw-dev
         - libelf-dev
+        - libiberty-dev
         - libncurses-dev
+        - libnuma-dev
+        - libperl-dev
+        - libpython3-dev
+        - libslang2-dev
+        - libssl-dev
+        - libunwind-dev
+        - liblzma-dev
+        - libzstd-dev
+        - python3-dev
         - quilt
         - rsync
+        - systemtap-sdt-dev
+        - xmlto
+        - zlib1g-dev
     - refresh: False
