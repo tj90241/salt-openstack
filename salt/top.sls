@@ -112,6 +112,11 @@ base:
     - usbutils
 
 {# Role-specific states #}
+  'roles:apt-server':
+    - match: grain
+    - apt.gpg
+    - nginx-light
+
   'roles:devpi-client':
     - match: grain
     - devpi

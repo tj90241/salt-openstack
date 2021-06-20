@@ -18,6 +18,10 @@ base:
     - sysctl
 
   # role-specific data and defaults
+  'roles:apt-server':
+    - match: grain
+    - apt.gpg
+
   'roles:devpi-client':
     - match: grain
     - devpi
