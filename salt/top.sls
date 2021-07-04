@@ -114,8 +114,10 @@ base:
 {# Role-specific states #}
   'roles:apt-server':
     - match: grain
-    - apt.gpg
+    - expect
     - nginx-light
+    - reprepro.gpg
+    - reprepro
 
   'roles:devpi-client':
     - match: grain

@@ -1,0 +1,18 @@
+server {
+  listen 8080;
+  server_name {{ grains.fqdn }};
+
+  access_log /var/log/nginx/reprepro.log;
+  error_log /var/log/nginx/reprepro-error.log;
+
+  location / {
+    root /srv/repos/apt;
+    index index.html;
+    autoindex on;
+  }
+
+  location ~ /(.*)/(conf|db|incoming) {
+    deny all;
+    return 404;
+  }
+}

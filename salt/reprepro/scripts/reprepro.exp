@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 300
+
+log_user 0
+spawn salt-call --output text pillar.get apt:gpg:passphrase
+expect {
+	timeout {
+		send_error "\nFailed to get credentials from Salt pillar\n";
+		exit 1;
+	}
+
+	-re "(?n)local: (.+)\r\n$" {
+		set passphrase $expect_out(1,string)
+		exp_continue
+	}
+}
+
+log_user 1
+spawn reprepro {*}$argv
+expect {
+	timeout {
+		send_error "\nFailed to get passphrase prompt\n";
+		exit 1;
+	}
+
+	"Please enter passphrase*" {
+		send -- "$passphrase\r";
+		exp_continue
+	}
+}
+
+set returnvalues [wait]
+set exitcode [lindex $returnvalues 3]
+exit $exitcode

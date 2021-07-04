@@ -1,0 +1,5 @@
+verbose
+basedir /srv/repos/apt/salt-openstack
+ask-passphrase
+gnupghome /etc/reprepro
+noguessgpgtty
