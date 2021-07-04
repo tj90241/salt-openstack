@@ -68,6 +68,7 @@ base:
   # minion-specific data and defaults
   '{{ grains.id }}':
     - ignore_missing: True
+    - apt.server
     - certbot.hosts.{{ grains.id }}
     - chrony.hosts.{{ grains.id }}
     - debian-installer.hosts.{{ grains.id }}

@@ -1,6 +1,6 @@
 server {
   listen 8080;
-  server_name {{ grains.fqdn }};
+  server_name {{ grains.host }}.node.{{ pillar['consul']['site']['domain'] }};
 
   access_log /var/log/nginx/reprepro.log;
   error_log /var/log/nginx/reprepro-error.log;

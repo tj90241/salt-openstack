@@ -50,6 +50,7 @@ base:
 {# General states #}
     - salt
     - apt
+    - apt.server
     - arping
     - bash-completion
     - cloud-init
