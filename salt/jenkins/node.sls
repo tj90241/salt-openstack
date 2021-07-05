@@ -45,3 +45,22 @@ manage-jenkins-remote-directory:
     - user: {{ pillar['jenkins']['node']['user']['name'] }}
     - group: {{ pillar['jenkins']['node']['user']['name'] }}
     - mode: 0750
+
+{# Size up /tmp to a healthy portion of the build node's RAM, as GCC will #}
+{# dump lots of temporary files here that would otherwise burn up the disk. #}
+manage-jenkins-node-tmp:
+  file.managed:
+    - name: /etc/systemd/system/tmp.mount
+    - source: salt://jenkins/tmp.mount.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-jenkins-node-tmp
+
+  service.enabled:
+    - name: tmp.mount
