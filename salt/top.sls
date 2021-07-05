@@ -49,8 +49,10 @@ base:
 
 {# General states #}
     - salt
-    - apt
+{%- if 'apt-server' not in grains.get('roles', []) %}
     - apt.server
+{%- endif %}
+    - apt
     - arping
     - bash-completion
     - cloud-init
@@ -119,6 +121,7 @@ base:
     - nginx-light
     - reprepro.gpg
     - reprepro
+    - apt.server
 
   'roles:devpi-client':
     - match: grain
