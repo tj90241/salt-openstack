@@ -3,7 +3,7 @@ jenkins:
   systemMessage: "Jenkins CI (configured by salt-openstack and JCasC)"
   mode: NORMAL
 
-  numExecutors: {{ grains.num_cpus }}
+  numExecutors: 0
   scmCheckoutRetryCount: 2
 
   authorizationStrategy:

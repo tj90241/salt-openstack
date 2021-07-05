@@ -6,7 +6,7 @@ jenkins:
         labelString: "{{ ' '.join(labels) }}"
         mode: NORMAL
         name: "{{ agent }}"
-        numExecutors: 2
+        numExecutors: {{ grains.num_cpus // 2 }}
         remoteFS: "{{ pillar['jenkins']['remote_dir'] }}"
         launcher:
           ssh:
