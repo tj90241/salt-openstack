@@ -81,9 +81,9 @@ else
 fi
 
 # Install kernel/initrd.
-sudo wget http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux -O "${tmp_dir}/boot/vmlinuz"
-sudo wget http://ftp.debian.org/debian/dists/stable/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz -O "${tmp_dir}/boot/initrd.gz.orig"
-sudo wget http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/stable/current/firmware.cpio.gz -O "${tmp_dir}/boot/firmware.cpio.gz"
+sudo wget "http://ftp.debian.org/debian/dists/${PRESEED_SUITE}/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux" -O "${tmp_dir}/boot/vmlinuz"
+sudo wget "http://ftp.debian.org/debian/dists/${PRESEED_SUITE}/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz" -O "${tmp_dir}/boot/initrd.gz.orig"
+sudo wget "http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/${PRESEED_SUITE}/current/firmware.cpio.gz" -O "${tmp_dir}/boot/firmware.cpio.gz"
 cat "${tmp_dir}/boot/initrd.gz.orig" "${tmp_dir}/boot/firmware.cpio.gz" | sudo tee "${tmp_dir}/boot/initrd.gz" > /dev/null
 rm -fv "${tmp_dir}/boot/initrd.gz.orig" "${tmp_dir}/boot/firmware.cpio.gz"
 
@@ -580,10 +580,12 @@ if [ ! -z "${PRESEED_LATE_COMMANDS}" ]; then
 	d-i preseed/late_command string \\
 	        ${PRESEED_LATE_COMMANDS}
 	EOF
-
-  cp -rv "${PRESEED_DATA_DIR}" "${tmp_dir}/preseed"
 else
   echo "#d-i preseed/late_command string apt-install zsh; in-target chsh -s /bin/zsh" >> "${tmp_dir}/preseed.cfg"
+fi
+
+if [ ! -z "${PRESEED_DATA_DIR}" ]; then
+  cp -rv "${PRESEED_DATA_DIR}" "${tmp_dir}/preseed"
 fi
 
 # Copy the options, baseline-salt-[master,minion], virty scripts, and repository in.
