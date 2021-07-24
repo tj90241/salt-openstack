@@ -1,4 +1,8 @@
 consul:
+  cert:
+    ca_valid_days: 3650
+    cert_valid_days: 30
+
   package:
     version: '1.9.4'
     x86_64:
