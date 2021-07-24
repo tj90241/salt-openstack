@@ -14,10 +14,12 @@ manage-linux-packages:
         - libcap-dev
         - libdw-dev
         - libelf-dev
+        - libglib2.0-dev
         - libiberty-dev
         - libncurses-dev
         - libnuma-dev
         - libperl-dev
+        - libpopt-dev
         - libpython3-dev
         - libslang2-dev
         - libssl-dev
@@ -28,6 +30,7 @@ manage-linux-packages:
         - quilt
         - rsync
         - systemtap-sdt-dev
+        - uuid-dev
         - xmlto
         - zlib1g-dev
     - refresh: False
