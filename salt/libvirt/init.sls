@@ -1,4 +1,4 @@
-manage-libvirt:
+manage-libvirtd:
   pkg.latest:
     - pkgs:
       - ipxe-qemu
@@ -6,6 +6,46 @@ manage-libvirt:
       - python3-libvirt
       - qemu-system-x86
     - refresh: False
+
+  file.managed:
+    - name: /etc/default/libvirtd
+    - source: salt://libvirt/default.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+    - require:
+      - pkg: manage-libvirtd
+
+  service.running:
+    - name: libvirtd
+    - enable: True
+    - restart: True
+    - watch:
+      - pkg: manage-libvirtd
+      - file: manage-libvirtd
+      - file: manage-libvirt-configuration
+      - file: manage-qemu-configuration
+
+manage-libvirt-configuration:
+  file.recurse:
+    - name: /etc/libvirt
+    - source: salt://libvirt/libvirt.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - dir_mode: 0755
+    - file_mode: 0644
+    - exclude_pat: E@^(qemu(?!-.*\.conf))|(secrets)$
+
+manage-qemu-configuration:
+  file.managed:
+    - name: /etc/libvirt/qemu.conf
+    - source: salt://libvirt/libvirt.jinja/qemu.conf
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0600
 
 {% for rom in pillar.get('libvirt', {}).get('ipxe_roms', []) %}
 manage-ipxe-roms:
