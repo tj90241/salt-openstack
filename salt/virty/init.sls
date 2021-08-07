@@ -6,7 +6,7 @@ manage-virty:
     - group: root
     - mode: 0755
 
-{% for vm_name, vm_data in pillar.get('virty').get('vms', []).items() %}
+{% for vm_name, vm_data in pillar.get('virty', {}).get('vms', {}).items() %}
 {% set vm_name_filtered = vm_name.lower().replace(' ', '_') %}
 manage-virty-vm-{{ vm_name_filtered }}:
   file.managed:
