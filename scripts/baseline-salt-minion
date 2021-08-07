@@ -15,8 +15,8 @@ apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -
 apt-get install -y curl gnupg2
 
 # Provision the upstream Saltstack repository.
-curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.6/SALTSTACK-GPG-KEY.pub" | apt-key add -
-echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3002.6 buster main" > /etc/apt/sources.list.d/saltstack.list
+curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3003.1/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3003.1 buster main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
 # Install and configure the minion.
