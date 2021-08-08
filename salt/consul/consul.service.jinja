@@ -1,3 +1,4 @@
+{%- set domain = pillar['consul']['site']['domain'] -%}
 [Unit]
 Description="HashiCorp Consul - A service mesh solution"
 Documentation=https://www.consul.io/
@@ -9,6 +10,11 @@ ConditionFileNotEmpty=/etc/consul.d/consul.hcl
 Type=notify
 User=consul
 Group=consul
+Environment=CONSUL_CACERT=/etc/consul.d/{{ domain }}-agent-ca.pem
+Environment=CONSUL_CLIENT_CERT=/etc/consul.d/cli-{{ domain }}.pem
+Environment=CONSUL_CLIENT_KEY=/etc/consul.d/cli-{{ domain }}-key.pem
+Environment=CONSUL_HTTP_ADDR=127.0.0.1:8501
+Environment=CONSUL_HTTP_SSL=true
 ExecStartPre=/bin/mkdir -p /var/lib/consul
 ExecStartPre=/bin/chown consul:consul /var/lib/consul
 ExecStartPre=/bin/chmod 0750 /var/lib/consul

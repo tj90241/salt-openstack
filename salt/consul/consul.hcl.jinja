@@ -18,6 +18,8 @@ verify_incoming = true
 verify_outgoing = true
 verify_server_hostname = true
 
+protocol = 3
+
 addresses {
   dns = "127.0.0.1 127.0.1.1",
   https = "127.0.0.1 127.0.1.1{% if 'consul-server' in grains.get('roles', []) %} {{ '  '.join(grains['ip4_interfaces'][grains['mgmt_interface']]) }}{% endif %}",

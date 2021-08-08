@@ -78,46 +78,8 @@ manage-consul-server-configuration:
     - mode: 0640
     - watch_in:
       - service: manage-consul
-
-manage-consul-cli-profile:
-  file.managed:
-    - name: /etc/profile.d/consul.sh
-    - source: salt://consul/profile.jinja
-    - template: jinja
-    - user: root
-    - group: root
-    - mode: 0644
-
-manage-consul-cli-cert:
-  file.managed:
-    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}.pem
-    - contents_pillar: 'consul:cli-cert.pem'
-    - contents_newline: False
-    - user: root
-    - group: consul
-    - mode: 0644
-
-manage-consul-cli-key:
-  file.managed:
-    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}-key.pem
-    - contents_pillar: 'consul:cli-key.pem'
-    - contents_newline: False
-    - user: root
-    - group: consul
-    - mode: 0640
 {% else %}
 {% set role = 'client' %}
-manage-consul-cli-profile:
-  file.absent:
-    - name: /etc/profile.d/consul.sh
-
-manage-consul-cli-cert:
-  file.absent:
-    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}.pem
-
-manage-consul-cli-key:
-  file.absent:
-    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}-key.pem
 {% endif %}
 
 manage-consul-server-cacert:
@@ -153,6 +115,33 @@ manage-consul-{{ role }}-key:
     - watch_in:
       - service: manage-consul
 
+manage-consul-cli-profile:
+  file.managed:
+    - name: /etc/profile.d/consul.sh
+    - source: salt://consul/profile.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+
+manage-consul-cli-cert:
+  file.managed:
+    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}.pem
+    - contents_pillar: 'consul:cli-cert.pem'
+    - contents_newline: False
+    - user: root
+    - group: consul
+    - mode: 0644
+
+manage-consul-cli-key:
+  file.managed:
+    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}-key.pem
+    - contents_pillar: 'consul:cli-key.pem'
+    - contents_newline: False
+    - user: root
+    - group: consul
+    - mode: 0640
+
 manage-consul:
   file.managed:
     - name: /etc/systemd/system/consul.service
@@ -170,7 +159,11 @@ manage-consul:
   service.running:
     - name: consul
     - enable: True
+{% if version.get('Version', '') | lower != pillar['consul']['package']['version'] %}
     - restart: True
+{% else %}
+    - reload: True
+{% endif %}
     - watch:
       - file: manage-consul
       - file: manage-consul-configuration

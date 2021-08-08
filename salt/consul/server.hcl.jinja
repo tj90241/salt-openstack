@@ -1,5 +1,6 @@
 server = true
 bootstrap_expect = {{ pillar['consul']['site']['server_fqdns'] | length }}
+raft_protocol = 3
 
 ui_config {
   enabled = true
