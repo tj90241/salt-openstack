@@ -27,6 +27,7 @@ Thumbs.db
 /scripts/preseed/
 
 # Credentials/secrets
+/pillar/consul/bootstrap.sls
 /pillar/consul/key.sls
 /pillar/devpi/root.sls
 /pillar/jenkins/credentials/

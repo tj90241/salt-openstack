@@ -53,3 +53,15 @@ dns_config {
 performance {
   raft_multiplier = 1
 }
+
+# Default-deny ACLs
+acl = {
+  enabled = true
+  default_policy = "deny"
+  enable_token_persistence = true
+{%- if 'token' in pillar['consul'] %}
+  tokens {
+    default = "{{ pillar['consul']['token'].strip() }}"
+  }
+{%- endif %}
+}

@@ -53,7 +53,9 @@ base:
     - jenkins.credentials.node
 
   'roles:salt-master':
+    - ignore_missing: True
     - match: grain
+    - consul.bootstrap
     - salt.default.master
 
   'roles:tftp-server':

@@ -1,0 +1,20 @@
+{%- set rules = '
+
+node_prefix "" {
+  policy = "read"
+}
+
+node "' + host + '" {
+  policy = "write"
+}
+
+'-%}
+
+{# Policy description and export #}
+{%- set policy_dict = {
+  'Name': 'node-' + host,
+  'Description': 'Policy for "' + host + '"',
+  'Rules': rules.strip()
+}-%}
+
+{% set policy = policy_dict | json %}

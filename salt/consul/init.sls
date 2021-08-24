@@ -5,32 +5,8 @@
 {% set version = salt['cmd.run']('/usr/local/bin/consul version -format json') | load_json %}
 {% endif %}
 
-{% if version.get('Version', '') | lower != pillar['consul']['package']['version'] %}
-install-consul-package:
-  archive.extracted:
-    - name: /tmp/consul-{{ pillar['consul']['package']['version'] }}/contents
-    - source: {{ pillar['consul']['package'][grains.cpuarch]['source'] }}
-    - source_hash: {{ pillar['consul']['package'][grains.cpuarch]['hash'] }}
-    - skip_verify: False
-    - keep_source: False
-    - force: True
-    - overwrite: True
-    - clean_parent: True
-    - enforce_toplevel: False
-
-  file.managed:
-    - name: /usr/local/bin/consul
-    - source: /tmp/consul-{{ pillar['consul']['package']['version'] }}/contents/consul
-    - user: root
-    - group: root
-    - mode: 0755
-    - watch_in:
-      - service: manage-consul
-
-cleanup-consul-package:
-  file.absent:
-    - name: /tmp/consul-{{ pillar['consul']['package']['version'] }}
-{% endif %}
+include:
+  - consul.package
 
 manage-consul-autocompletion:
   file.managed:
@@ -159,11 +135,7 @@ manage-consul:
   service.running:
     - name: consul
     - enable: True
-{% if version.get('Version', '') | lower != pillar['consul']['package']['version'] %}
     - restart: True
-{% else %}
-    - reload: True
-{% endif %}
     - watch:
       - file: manage-consul
       - file: manage-consul-configuration
