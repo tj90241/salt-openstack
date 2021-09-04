@@ -4,10 +4,10 @@
   method='PUT', 
   decode=True,
   decode_type='json',
-  ca_bundle='/etc/consul.d/' + pillar['consul']['site']['domain'] + '-agent-ca.pem',
+  ca_bundle='/etc/consul/' + pillar['consul']['site']['domain'] + '-agent-ca.pem',
   cert=[
-    '/etc/consul.d/client-' + pillar['consul']['site']['domain'] + '.pem',
-    '/etc/consul.d/client-' + pillar['consul']['site']['domain'] + '-key.pem',
+    '/etc/consul/client-' + pillar['consul']['site']['domain'] + '.pem',
+    '/etc/consul/client-' + pillar['consul']['site']['domain'] + '-key.pem',
   ]
 ) -%}
 

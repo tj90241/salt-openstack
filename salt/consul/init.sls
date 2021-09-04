@@ -31,6 +31,13 @@ manage-consul-user:
     - shell: /bin/false
     - system: True
 
+manage-consul-artifacts-directory:
+  file.directory:
+    - name: /etc/consul
+    - user: root
+    - group: consul
+    - mode: 0750
+
 manage-consul-configuration:
   file.managed:
     - name: /etc/consul.d/consul.hcl
@@ -60,7 +67,7 @@ manage-consul-server-configuration:
 
 manage-consul-server-cacert:
   file.managed:
-    - name: /etc/consul.d/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem
+    - name: /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem
     - contents_pillar: 'consul:cacert.pem'
     - contents_newline: False
     - user: root
@@ -71,7 +78,7 @@ manage-consul-server-cacert:
 
 manage-consul-{{ role }}-cert:
   file.managed:
-    - name: /etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem
+    - name: /etc/consul/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem
     - contents_pillar: 'consul:cert.pem'
     - contents_newline: False
     - user: root
@@ -82,7 +89,7 @@ manage-consul-{{ role }}-cert:
 
 manage-consul-{{ role }}-key:
   file.managed:
-    - name: /etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}-key.pem
+    - name: /etc/consul/{{ role }}-{{ pillar['consul']['site']['domain'] }}-key.pem
     - contents_pillar: 'consul:key.pem'
     - contents_newline: False
     - user: root
@@ -102,7 +109,7 @@ manage-consul-cli-profile:
 
 manage-consul-cli-cert:
   file.managed:
-    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}.pem
+    - name: /etc/consul/cli-{{ pillar['consul']['site']['domain'] }}.pem
     - contents_pillar: 'consul:cli-cert.pem'
     - contents_newline: False
     - user: root
@@ -111,7 +118,7 @@ manage-consul-cli-cert:
 
 manage-consul-cli-key:
   file.managed:
-    - name: /etc/consul.d/cli-{{ pillar['consul']['site']['domain'] }}-key.pem
+    - name: /etc/consul/cli-{{ pillar['consul']['site']['domain'] }}-key.pem
     - contents_pillar: 'consul:cli-key.pem'
     - contents_newline: False
     - user: root

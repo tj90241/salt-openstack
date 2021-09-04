@@ -4,10 +4,10 @@
   decode=True,
   decode_type='json',
   header_dict={"X-Consul-Token": pillar['consul']['acl']['bootstrap_token']},
-  ca_bundle='/etc/consul.d/' + pillar['consul']['site']['domain'] + '-agent-ca.pem',
+  ca_bundle='/etc/consul/' + pillar['consul']['site']['domain'] + '-agent-ca.pem',
   cert=[
-    '/etc/consul.d/client-' + pillar['consul']['site']['domain'] + '.pem',
-    '/etc/consul.d/client-' + pillar['consul']['site']['domain'] + '-key.pem',
+    '/etc/consul/client-' + pillar['consul']['site']['domain'] + '.pem',
+    '/etc/consul/client-' + pillar['consul']['site']['domain'] + '-key.pem',
   ]
 ) -%}
 
@@ -25,10 +25,10 @@ create-consul-node-{{ host }}-policy:
       - decode_type: json
       - header_dict:
           X-Consul-Token: "{{ pillar['consul']['acl']['bootstrap_token'] }}"
-      - ca_bundle: "/etc/consul.d/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem"
+      - ca_bundle: "/etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem"
       - cert:
-        - "/etc/consul.d/client-{{ pillar['consul']['site']['domain'] }}.pem"
-        - "/etc/consul.d/client-{{ pillar['consul']['site']['domain'] }}-key.pem"
+        - "/etc/consul/client-{{ pillar['consul']['site']['domain'] }}.pem"
+        - "/etc/consul/client-{{ pillar['consul']['site']['domain'] }}-key.pem"
       - data: '{{ policy }}'
 {% endif %}
 {% endfor %}

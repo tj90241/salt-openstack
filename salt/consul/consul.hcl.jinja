@@ -10,9 +10,9 @@ retry_join = ["{{ '", "'.join(server_fqdns) }}"]
 
 {%- set role = 'server' if 'consul-server' in grains.get('roles', []) else 'client' %}
 encrypt = "{{ pillar['consul']['key'] }}"
-ca_file = "/etc/consul.d/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem"
-cert_file = "/etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem"
-key_file = "/etc/consul.d/{{ role }}-{{ pillar['consul']['site']['domain'] }}-key.pem"
+ca_file = "/etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem"
+cert_file = "/etc/consul/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem"
+key_file = "/etc/consul/{{ role }}-{{ pillar['consul']['site']['domain'] }}-key.pem"
 domain = "{{ pillar['consul']['site']['domain'] }}"
 verify_incoming = true
 verify_outgoing = true
