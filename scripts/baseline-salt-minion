@@ -31,11 +31,6 @@ EOF
 apt-get install -y salt-minion
 systemctl start salt-minion
 
-# Don't block startup of services on systemd-wait-time-sync.
-# It may not be provisioned yet.
-mkdir -p /run/systemd/timesync
-touch /run/systemd/timesync/synchronized > /dev/null 2>&1
-
 # Wait for key acceptance, sync the world.
 while [ 1 ]; do
   salt-call test.ping && break

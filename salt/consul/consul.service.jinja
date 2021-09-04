@@ -2,8 +2,8 @@
 [Unit]
 Description="HashiCorp Consul - A service mesh solution"
 Documentation=https://www.consul.io/
-Requires=network-online.target systemd-time-wait-sync.service
-After=network-online.target systemd-time-wait-sync.service
+Wants=time-sync.target
+After=time-sync.target
 ConditionFileNotEmpty=/etc/consul.d/consul.hcl
 
 [Service]

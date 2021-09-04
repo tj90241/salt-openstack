@@ -45,11 +45,6 @@ curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/ar
 echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/${SALT_VERSION} $( lsb_release -sc ) main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
-# Don't block startup of services on systemd-wait-time-sync.
-# It may not be provisioned yet.
-mkdir -p /run/systemd/timesync
-touch /run/systemd/timesync/synchronized > /dev/null 2>&1
-
 # Install and configure the local minion.
 apt-get install -y salt-minion
 echo "${DEFAULT_MINION_NAME}" > /etc/salt/minion_id

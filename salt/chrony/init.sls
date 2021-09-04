@@ -77,43 +77,26 @@ manage-ntpd:
   file.absent:
     - name: /etc/ntp.conf
 
-# systemd is buggy if you refuse to assimilate; how unsurprising...
-# For details, see: https://github.com/systemd/systemd/issues/14061
 manage-systemd-timesyncd:
   service.dead:
     - name: systemd-timesyncd
     - enable: False
 
-manage-systemd-time-wait-sync:
-  service.running:
-    - name: systemd-time-wait-sync
-    - enable: True
-
-# To workaround the above bug, drop a chronyc-time-wait-sync script and service.
-manage-chronyd-time-wait-sync:
+# Provide time-sync.target functionality for chrony.
+manage-chrony-wait:
   file.managed:
-    - name: /usr/local/sbin/chrony-time-wait-sync
-    - source: salt://chrony/systemd/chrony-time-wait-sync
+    - name: /etc/systemd/system/chrony-wait.service
+    - source: salt://chrony/chrony-wait.service
     - user: root
     - group: root
     - mode: 0755
 
-workaround-systemd-time-wait-sync-bug:
-  file.managed:
-    - name: /etc/systemd/system/systemd-time-wait-sync.service.d/override.conf
-    - source: salt://chrony/systemd/override.conf
-    - user: root
-    - group: root
-    - mode: 0644
-    - dir_mode: 0755
-    - makedirs: True
-
   module.run:
     - service.systemctl_reload:
     - onchanges:
-      - file: workaround-systemd-time-wait-sync-bug
+      - file: manage-chrony-wait
 
   service.running:
-    - name: systemd-time-wait-sync
+    - name: chrony-wait
     - enable: True
     - restart: True

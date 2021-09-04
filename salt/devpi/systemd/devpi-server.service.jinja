@@ -1,7 +1,7 @@
 [Unit]
 Description=PyPI Server (devpi)
-Requires=systemd-time-wait-sync.service
-After=systemdd-time-wait-sync.service
+Wants=time-sync.target
+After=time-sync.target
 
 [Service]
 Restart=on-success
