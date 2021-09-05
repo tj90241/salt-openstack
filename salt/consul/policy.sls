@@ -13,9 +13,15 @@
 
 {%- set policy_list = policy_query['dict'] | map(attribute='Name') | list %}
 
-{% for host in salt['minion.list']()['minions'] %}
+{% for minion_name in salt['minion.list']()['minions'] %}
+{% set host = grains.host if minion_name == grains.id else minion_name %}
+
 {% if 'node-' + host not in policy_list %}
+{% if minion_name in pillar['consul']['site']['server_fqdns'].values() | list %}
+{% from "consul/policies/consul-server.jinja" import policy with context %}
+{% else %}
 {% from "consul/policies/default.jinja" import policy with context %}
+{% endif %}
 create-consul-node-{{ host }}-policy:
   module.run:
     - http.query:

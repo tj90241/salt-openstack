@@ -11,11 +11,12 @@
   ]
 ) -%}
 
-{% for host in salt['minion.list']()['minions'] %}
+{% for minion_name in salt['minion.list']()['minions'] %}
+{% set host = grains.host if minion_name == grains.id else minion_name %}
 {% set token = token_query['dict'] | selectattr('Description', '==', 'node-' + host) | map(attribute='SecretID') | first %}
 manage-consul-node-{{ host }}-token-pillar:
   file.managed:
-    - name: /etc/salt/file_tree_pillar/hosts/{{ host }}/consul/token
+    - name: /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/token
     - contents: {{ token.strip() }}
     - user: root
     - group: root

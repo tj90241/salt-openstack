@@ -2,4 +2,5 @@
 # vim:list:listchars=tab\:>-:
 
 bootstrap-consul:
-	salt-run state.orch orch.bootstrap-consul
+	@echo "Bootstrapping the Consul cluster..."
+	@salt-run state.orch orch.bootstrap-consul

@@ -5,7 +5,7 @@ agent "' + host + '" {
 }
 
 agent_prefix "" {
-  policy = "deny"
+  policy = "read"
 }
 
 node "' + host + '" {
@@ -17,6 +17,10 @@ node_prefix "" {
 }
 
 service "consul" {
+  policy = "write"
+}
+
+service_prefix "" {
   policy = "read"
 }
 

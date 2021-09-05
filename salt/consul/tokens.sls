@@ -13,7 +13,9 @@
 
 {%- set token_list = token_query['dict'] | map(attribute='Description') | list %}
 
-{% for host in salt['minion.list']()['minions'] %}
+{% for minion_name in salt['minion.list']()['minions'] %}
+{% set host = grains.host if minion_name == grains.id else minion_name %}
+
 {% if 'node-' + host not in token_list %}
 {% set token_data = {
   'Description': 'node-' + host,
