@@ -17,7 +17,6 @@ base:
     - openssl
     - patch
     - nginx-light
-    - twine
 
   'roles:dhcp-server':
     - match: grain
