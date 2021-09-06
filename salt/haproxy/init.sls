@@ -40,11 +40,48 @@ manage-haproxy-configuration:
 
 manage-haproxy-ssl-cert:
   file.managed:
-    - name: /etc/haproxy/{{ grains.id }}.pem
+    - name: /etc/haproxy/{{ grains.host }}.pem
     - contents_pillar:
-        - ssl:fullchain.pem
-        - ssl:privkey.pem
+      - ssl:fullchain.pem
+      - ssl:privkey.pem
     - contents_newline: False
     - user: root
     - group: haproxy
     - mode: 0640
+
+{% if 'consul' in pillar.get('haproxy', {}).get('backends', {}).keys() | list %}
+manage-haproxy-consul-backend:
+  file.managed:
+    - name: /etc/haproxy/haproxy.d/consul.cfg
+    - source: salt://haproxy/backends/consul.cfg.jinja
+    - template: jinja
+    - user: root
+    - group: haproxy
+    - mode: 0644
+    - watch_in:
+      - service: manage-haproxy
+
+manage-haproxy-consul-cafile:
+  file.managed:
+    - name: /etc/haproxy/{{ pillar['consul']['site']['domain'] }}-ca.pem
+    - contents_pillar:
+      - consul:cacert.pem
+    - user: root
+    - group: haproxy
+    - mode: 0640
+    - watch_in:
+      - service: manage-haproxy
+
+manage-haproxy-consul-cert:
+  file.managed:
+    - name: /etc/haproxy/{{ pillar['consul']['site']['domain'] }}-crt.pem
+    - contents_pillar:
+      - consul:cli-cert.pem
+      - consul:cli-key.pem
+    - contents_newline: False
+    - user: root
+    - group: haproxy
+    - mode: 0640
+    - watch_in:
+      - service: manage-haproxy
+{% endif %}

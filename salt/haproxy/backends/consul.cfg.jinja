@@ -1,0 +1,15 @@
+listen consul
+	mode http
+{%- for bind_addr in pillar['haproxy']['backends']['consul'] %}
+	bind {{ bind_addr }} ssl crt /etc/haproxy/{{ grains.host }}.pem alpn h2,http/1.1
+{%- endfor %}
+
+	acl url_consul path_beg /consul/
+	use_backend consul_ui if url_consul
+
+	http-request redirect prefix https://{{ grains.fqdn }} code 301 if !{ ssl_fc }
+	server {{ grains.host }} {{ grains.fqdn }}:8501 ssl verify required ca-file /etc/haproxy/{{ pillar['consul']['site']['domain'] }}-ca.pem crt /etc/haproxy/{{ pillar['consul']['site']['domain'] }}-crt.pem
+
+backend consul_ui
+	balance leastconn
+	server-template consul 3 consul.service.{{ pillar['consul']['site']['domain'] }}:8501 ssl verify required ca-file /etc/haproxy/{{ pillar['consul']['site']['domain'] }}-ca.pem crt /etc/haproxy/{{ pillar['consul']['site']['domain'] }}-crt.pem
