@@ -305,12 +305,12 @@ def define_storage(name, storage, pool_name, volume_type):
     """
     Defines a storage XML tree for a new guest.
     """
+    volume_name = name if volume_type != 'file' else '{0}.raw'.format(name)
     volume_attribs = {} if volume_type is None else {'type': volume_type}
     volume = ET.Element('volume', attrib=volume_attribs)
     tree = ET.ElementTree(element=volume)
 
-    raw_name = '{0}.raw'.format(name)
-    ET.SubElement(volume, 'name').text = name if volume_type else raw_name
+    ET.SubElement(volume, 'name').text = volume_name
     ET.SubElement(volume, 'key').text = '{0}/{1}'.format(pool_name, name)
     ET.SubElement(volume, 'source')
 
@@ -397,6 +397,7 @@ def main(args):
         # Provision a new (transient) domain/guest.
         # Preseed should shut it down after installation is complete.
         domain, bus, device, function, iftype = get_nic_vf_dbdft(args.nic)
+        rom_bar = None
 
         if iftype == 'sr-iov':
             if not os.path.exists(args.rom_bar):
