@@ -1,4 +1,4 @@
-{%- for log in (['api', 'api_access', 'api_error', 'master', 'minion', 'key'] if 'salt-master' in grains.get('roles', []) else ['minion']) %}
+{%- for log in (['api', 'api_access', 'api_error', 'master', 'minion', 'key'] if 'salt-masters' in pillar.get('nodegroups', []) else ['minion']) %}
 /var/log/salt/{{ log }} {
 	daily
 	missingok

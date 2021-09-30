@@ -8,9 +8,9 @@ apt-manage-sources.list:
 
 apt-package-database-update:
   module.wait:
-    - name: pkg.refresh_db
+    - pkg.refresh_db:
     - watch:
-      - file: /etc/apt/sources.list
+      - file: apt-manage-sources.list
 
 {# As of apt 1.5.0+, HTTPS support has been moved into the apt package. #}
 {% set apt_version = salt['pkg.version']('apt').split('.') %}

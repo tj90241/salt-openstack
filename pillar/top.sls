@@ -52,9 +52,9 @@ base:
     - jenkins.credentials.controller
     - jenkins.credentials.node
 
-  'roles:salt-master':
+  'salt-masters':
     - ignore_missing: True
-    - match: grain
+    - match: nodegroup
     - consul.bootstrap
     - salt.default.master
 

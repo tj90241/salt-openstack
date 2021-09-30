@@ -24,8 +24,6 @@ install-consul-package:
     - user: root
     - group: root
     - mode: 0755
-    - watch_in:
-      - service: manage-consul
 
 cleanup-consul-package:
   file.absent:

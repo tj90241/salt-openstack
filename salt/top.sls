@@ -9,8 +9,8 @@ base:
     - hugepages1G
 
 {# Critical/bootstrap role-specific states #}
-  'roles:salt-master':
-    - match: grain
+  salt-masters:
+    - match: nodegroup
     - certbot
     - consul.ca
     - ssl

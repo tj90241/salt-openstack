@@ -1,3 +1,3 @@
 [Unit]
-Requires=time-sync.target{% if 'salt-master' in grains.get('roles', []) %} salt-master.service{% endif %}
-After=time-sync.target{% if 'salt-master' in grains.get('roles', []) %} salt-master.service{% endif %}
+Requires=time-sync.target{% if 'salt-masters' in pillar.get('nodegroups', []) %} salt-master.service{% endif %}
+After=time-sync.target{% if 'salt-masters' in pillar.get('nodegroups', []) %} salt-master.service{% endif %}

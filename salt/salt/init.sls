@@ -2,7 +2,7 @@ include:
   - .logrotate
   - .pkgrepo
   - .packages
-{% if 'salt-master' in grains.get('roles', []) %}
+{% if 'salt-masters' in pillar.get('nodegroups', []) %}
   - .master
 {% endif %}
   - .minion

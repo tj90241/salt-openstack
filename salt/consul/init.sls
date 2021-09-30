@@ -49,7 +49,7 @@ manage-consul-configuration:
     - dir_mode: 0755
     - makedirs: True
 
-{% if 'consul-server' in grains.get('roles', []) %}
+{% if grains.id in pillar['consul']['site']['server_fqdns'].values() %}
 {% set role = 'server' %}
 manage-consul-server-configuration:
   file.managed:

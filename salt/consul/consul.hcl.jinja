@@ -8,7 +8,7 @@ log_level = "INFO"
 bind_addr = "{{ grains['ip4_interfaces'][grains['mgmt_interface']][0] }}"
 retry_join = ["{{ '", "'.join(server_fqdns) }}"]
 
-{%- set role = 'server' if 'consul-server' in grains.get('roles', []) else 'client' %}
+{%- set role = 'server' if grains.id in pillar['consul']['site']['server_fqdns'].values() else 'client' %}
 encrypt = "{{ pillar['consul']['key'] }}"
 ca_file = "/etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem"
 cert_file = "/etc/consul/{{ role }}-{{ pillar['consul']['site']['domain'] }}.pem"
@@ -22,7 +22,7 @@ protocol = 3
 
 addresses {
   dns = "127.0.0.1 127.0.1.1",
-  https = "127.0.0.1 127.0.1.1{% if 'consul-server' in grains.get('roles', []) %} {{ '  '.join(grains['ip4_interfaces'][grains['mgmt_interface']]) }}{% endif %}",
+  https = "127.0.0.1 127.0.1.1{% if role == 'server' %} {{ '  '.join(grains['ip4_interfaces'][grains['mgmt_interface']]) }}{% endif %}",
   grpc = "127.0.0.1 127.0.1.1"
 }
 

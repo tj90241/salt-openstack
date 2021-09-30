@@ -1,2 +1,5 @@
 salt:
-  release: 3003.1
+  grains:
+    mgmt_interface: eth0
+
+  release: 3003.3

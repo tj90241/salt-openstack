@@ -16,3 +16,6 @@ salt:
           root_dir: /etc/salt/file_tree_pillar
           follow_dir_links: True
           keep_newline: True
+
+      - nodegroups:
+          pillar_name: nodegroups

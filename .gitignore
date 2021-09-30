@@ -15,6 +15,9 @@
 ehthumbs.db
 Thumbs.db
 
+# Vagrant generated files
+/.vagrant
+
 # Custom preseed templates
 /salt/debian-installer/templates/
 
@@ -27,6 +30,7 @@ Thumbs.db
 /scripts/preseed/
 
 # Credentials/secrets
+/pillar/apt/gpg.sls
 /pillar/consul/bootstrap.sls
 /pillar/consul/key.sls
 /pillar/devpi/root.sls
