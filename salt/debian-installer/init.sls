@@ -1,7 +1,7 @@
 install-netboot-kernel:
   file.managed:
     - name: /srv/tftp/debian-installer/amd64/linux
-    - source: http://ftp.debian.org/debian/dists/bullseye/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
+    - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
     - skip_verify: True
     - keep_source: False
     - user: root
@@ -13,7 +13,7 @@ install-netboot-kernel:
 install-netboot-initrd:
   file.managed:
     - name: /srv/tftp/debian-installer/amd64/initrd.gz.orig
-    - source: http://ftp.debian.org/debian/dists/bullseye/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
+    - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
     - skip_verify: True
     - keep_source: False
     - user: root
@@ -30,13 +30,13 @@ install-netboot-packages:
     - clean: True
 
   cmd.run:
-    - name: "for file in `curl -s http://ftp.debian.org/debian/dists/bullseye/main/debian-installer/binary-amd64/Packages.gz | zcat | sed -ne 's/^Filename: //p' | grep -E 'rdate-|libbsd0-'`; do curl -s \"http://ftp.debian.org/debian/${file}\" -o /srv/tftp/debian-installer/amd64/packages/`basename \"${file}\"`; done; find packages | cpio -oR root:root -H newc | gzip -9 > packages.gz"
+    - name: "for file in `curl -s http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/debian-installer/binary-amd64/Packages.gz | zcat | sed -ne 's/^Filename: //p' | grep -E 'rdate-|libbsd0-|libmd0-'`; do curl -s \"http://ftp.debian.org/debian/${file}\" -o /srv/tftp/debian-installer/amd64/packages/`basename \"${file}\"`; done; find packages | cpio -oR root:root -H newc | gzip -9 > packages.gz"
     - cwd: /srv/tftp/debian-installer/amd64
 
 install-netboot-firmware:
   file.managed:
     - name: /srv/tftp/debian-installer/firmware.cpio.gz
-    - source: http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/bullseye/current/firmware.cpio.gz
+    - source: http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/{{ pillar['debian-installer']['release'] }}/current/firmware.cpio.gz
     - skip_verify: True
     - keep_source: False
     - user: root
@@ -54,7 +54,7 @@ install-netboot-firmware:
 install-netboot-{{ asset.split('.')[0] }}:
   file.managed:
     - name: /srv/tftp/debian-installer/amd64/boot-screens/{{ asset }}
-    - source: http://ftp.debian.org/debian/dists/bullseye/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/{{ asset }}
+    - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/{{ asset }}
     - skip_verify: True
     - keep_source: False
     - user: root

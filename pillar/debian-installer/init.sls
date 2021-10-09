@@ -1,5 +1,5 @@
-#debian-installer:
-#  release: bullseye
+debian-installer:
+  release: bullseye
 #
 #  macs:
 #    'aa:bb:cc:dd:ee:ff':
