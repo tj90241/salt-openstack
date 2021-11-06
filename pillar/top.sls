@@ -21,6 +21,8 @@ base:
   'roles:apt-server':
     - match: grain
     - apt.gpg
+    - jenkins
+    - jenkins.credentials.apt-node
 
   'roles:devpi-client':
     - match: grain

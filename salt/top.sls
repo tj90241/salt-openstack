@@ -117,6 +117,7 @@ base:
   'roles:apt-server':
     - match: grain
     - expect
+    - jenkins.apt-node
     - nginx-light
     - reprepro.gpg
     - reprepro

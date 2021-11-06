@@ -1,5 +1,5 @@
 verbose
-basedir /srv/repos/apt/salt-openstack
+basedir /var/lib/reprepro/repos/salt-openstack
 ask-passphrase
 gnupghome /etc/reprepro
 noguessgpgtty

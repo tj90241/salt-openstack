@@ -1,4 +1,4 @@
-{%- set salt_openstack_server = pillar.get('apt', {}).get('salt_openstack_server', None) -%}
+{%- set salt_openstack_server = pillar.get('apt', {}).get('salt_openstack_server', 'apt' + '.node.' + pillar['consul']['site']['domain'] + ':8080') -%}
 
 {%- if salt_openstack_server is not in ['', None] %}
 manage-salt-openstack-apt-server:

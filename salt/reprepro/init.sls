@@ -16,9 +16,18 @@ manage-reprepro-expect:
     - group: root
     - mode: 0755
 
+manage-reprepro-expect-sudoers:
+  file.managed:
+    - name: /etc/sudoers.d/reprepro
+    - source: salt://reprepro/sudoers.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0640
+
 manage-reprepro-distributions:
   file.managed:
-    - name: /srv/repos/apt/salt-openstack/conf/distributions
+    - name: /var/lib/reprepro/repos/salt-openstack/conf/distributions
     - source: salt://reprepro/distributions.jinja
     - template: jinja
     - user: root
@@ -31,7 +40,7 @@ manage-reprepro-distributions:
 
 manage-reprepro-options:
   file.managed:
-    - name: /srv/repos/apt/salt-openstack/conf/options
+    - name: /var/lib/reprepro/repos/salt-openstack/conf/options
     - source: salt://reprepro/options
     - user: root
     - group: root
@@ -39,7 +48,7 @@ manage-reprepro-options:
 
 manage-reprepro-pubkey:
   cmd.run:
-    - name: gpg --batch --yes --armor --output /srv/repos/apt/Release.gpg --export-options export-minimal --export {{ signing_pubkey_id }}
+    - name: gpg --batch --yes --armor --output /var/lib/reprepro/repos/Release.gpg --export-options export-minimal --export {{ signing_pubkey_id }}
     - env:
       - GNUPGHOME: /etc/reprepro
 
@@ -58,3 +67,12 @@ manage-reprepro-site:
     - restart: True
     - watch:
       - file: manage-reprepro-site
+
+manage-jenkins-publish:
+  file.managed:
+    - name: /usr/local/bin/jenkins-publish.sh
+    - source: salt://reprepro/scripts/jenkins-publish.sh.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0755

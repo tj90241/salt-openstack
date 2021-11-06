@@ -6,7 +6,7 @@ server {
   error_log /var/log/nginx/reprepro-error.log;
 
   location / {
-    root /srv/repos/apt;
+    root /var/lib/reprepro/repos;
     index index.html;
     autoindex on;
   }

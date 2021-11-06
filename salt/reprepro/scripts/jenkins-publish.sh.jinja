@@ -1,0 +1,11 @@
+#!/bin/bash
+
+IFS=$'\n'
+mapfile -t list
+
+cd /var/lib/reprepro/repos/salt-openstack
+sudo /usr/local/bin/reprepro.exp includedeb {{ grains.oscodename }} ${list[*]}
+
+if [ $? -eq 0 ]; then
+	rm -fv ${list[*]}
+fi

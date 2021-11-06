@@ -10,6 +10,10 @@ jenkins:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
 
+  crumbIssuer:
+    standard:
+       excludeClientIPFromCrumb: true
+
 unclassified:
   location:
 {%- if 'admin_email' in jenkins %}
