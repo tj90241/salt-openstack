@@ -15,9 +15,9 @@
 {% set oscodename = grains.oscodename | lower %}
 
 {# Support preliminary release testing. #}
-{% if osmajorrelease in ['11', 'testing', 'sid'] %}
-{% set osmajorrelease = '10' %}
-{% set oscodename = 'buster' %}
+{% if osmajorrelease in ['testing', 'sid'] %}
+{% set osmajorrelease = '11' %}
+{% set oscodename = 'bullseye' %}
 {% endif %}
 
 {% set salt_release = salt_defaults.get('release', 'latest') | string %}

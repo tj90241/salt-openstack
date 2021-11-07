@@ -9,12 +9,6 @@ DEBIAN_RELEASE_NAME=`lsb_release -sc`
 DEFAULT_MINION_NAME=${DEFAULT_MINION_NAME:="$( hostname -s )"}
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
-# Until SaltStack supports bullseye...
-if [ "${DEBIAN_MAJOR_VERSION}"="11" ]; then
-	DEBIAN_MAJOR_VERSION="10"
-	DEBIAN_RELEASE_NAME="buster"
-fi
-
 # Upgrade the base system, install curl, git, and gnupg2 (for apt-key).
 export DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical
 apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" 

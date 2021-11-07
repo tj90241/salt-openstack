@@ -16,20 +16,14 @@ else
 	DEFAULT_MASTER_HOSTNAME=${DEFAULT_MASTER_HOSTNAME:="salt.$( hostname -d )"}
 fi
 
-# Until SaltStack supports bullseye...
-if [ "${DEBIAN_MAJOR_VERSION}"="11" ]; then
-	DEBIAN_MAJOR_VERSION="10"
-	DEBIAN_RELEASE_NAME="buster"
-fi
-
 # Upgrade the base system, install curl, and gnupg2 (for apt-key).
 export DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical
 apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" 
 apt-get install -y curl gnupg2
 
 # Provision the upstream Saltstack repository.
-curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3003.3/SALTSTACK-GPG-KEY.pub" | apt-key add -
-echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3003.3 ${DEBIAN_RELEASE_NAME} main" > /etc/apt/sources.list.d/saltstack.list
+curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3004/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3004 ${DEBIAN_RELEASE_NAME} main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
 # Install and configure the minion.
