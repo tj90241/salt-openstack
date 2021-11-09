@@ -70,6 +70,7 @@ base:
     - lzma
     - initramfs-tools
     - iotop
+    - iperf
     - ipset
     - jq
     - kexec-tools
