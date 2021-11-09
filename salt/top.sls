@@ -105,7 +105,7 @@ base:
 {# Bare metal tools (sensory, monitoring, etc.) #}
   'virtual:physical':
     - match: grain
-{% if salt['file.directory_exists']('/sys/class/ipmi') and salt['cmd.run']('/bin/ls -A /sys/class/ipmi') | trim | length > 0 %}
+{% if salt['file.directory_exists']('/sys/class/ipmi') and salt['file.readdir']('/sys/class/ipmi') | difference(['.', '..']) | length > 0 %}
     - ipmitool
 {% endif %}
     - lm-sensors
@@ -113,6 +113,15 @@ base:
     - pciutils
     - smartmontools
     - usbutils
+{% if salt['file.directory_exists']('/sys/class/net') %}
+{% for netdev in salt['file.readdir']('/sys/class/net') | difference(['.', '..']) %}
+{% set wireless_check = salt['file.join'](netdev, 'wireless') %}
+{% if salt['file.directory_exists'](salt['file.join']('/sys/class/net', wireless_check)) %}
+    - hostapd
+    - iw
+{% endif %}
+{% endfor %}
+{% endif %}
 
 {# Role-specific states #}
   'roles:apt-server':
