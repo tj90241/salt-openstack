@@ -1,7 +1,6 @@
 resolve-consul-requirements:
   salt.state:
-    - tgt: 'N@salt-masters or N@consul-servers'
-    - tgt_type: compound
+    - tgt: '*'
     - sls:
       - gai
       - hosts

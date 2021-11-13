@@ -595,7 +595,7 @@ fi
 
 # Copy the options, baseline-salt-[master,minion], virty scripts, and repository in.
 mkdir -pv "${tmp_dir}/preseed"
-cp -v "${DIR}/baseline-salt-master" "${DIR}/baseline-salt-minion" "${DIR}/install-media.options" "${DIR}/../salt/virty/virty" "${tmp_dir}/preseed"
+cp -v "${DIR}/../salt/debian-installer/baseline-salt-master" "${DIR}/../salt/debian-installer/baseline-salt-minion" "${DIR}/install-media.options" "${DIR}/../salt/virty/virty" "${tmp_dir}/preseed"
 tar -czf "${tmp_dir}/preseed/salt-openstack.tgz" "${DIR}/../../salt-openstack"
 
 # Unmount, eject, and hard sync (just to be sure).

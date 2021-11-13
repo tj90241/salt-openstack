@@ -23,6 +23,7 @@ if [ ! -z "${SALT_OPENSTACK_REPO}" ]; then
 	ln -sfv "${SALT_OPENSTACK_REPO}/pillar" /srv/pillar
 	ln -sfv "${SALT_OPENSTACK_REPO}/salt" /srv/salt
 	ln -sfv "${SALT_OPENSTACK_REPO}/scripts" /srv/scripts
+	rm -fv "${SALT_OPENSTACK_REPO}/pillar/consul/bootstrap.sls"
 else
 	git clone https://github.com/tj90241/salt-openstack.git /srv
 fi

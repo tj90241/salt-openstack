@@ -165,6 +165,24 @@ manage-{{ template }}-preseed-template:
         interface: {{ options['interface'] }}
 {% endfor %}
 
+{% for role in ['master', 'minion'] %}
+manage-bootstrap-salt-{{ role }}-script:
+  file.managed:
+    - name: /srv/tftp/preseed/baseline-salt-{{ role }}
+    - source: salt://debian-installer/baseline-salt-{{ role }}
+    - user: root
+    - group: root
+    - mode: 0755
+{% endfor %}
+
+mange-virty-script:
+  file.managed:
+    - name: /srv/tftp/preseed/virty
+    - source: salt://virty/virty
+    - user: root
+    - group: root
+    - mode: 0755
+
 {# If salt-openstack.tgz was dropped as part of deployment, delete it now. #}
 {# It might contain secrets, and we're now feeding off the salt master. #}
 manage-preseed-salt-openstack-repository:
