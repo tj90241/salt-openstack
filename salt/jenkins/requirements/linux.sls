@@ -19,6 +19,7 @@ manage-linux-packages:
         - libiberty-dev
         - libncurses-dev
         - libnuma-dev
+        - libpci-dev
         - libperl-dev
         - libpopt-dev
         - libpython3-dev
