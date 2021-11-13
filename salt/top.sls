@@ -15,7 +15,6 @@ base:
     - consul.ca
     - ssl
     - openssl
-    - patch
     - nginx-light
 
   'roles:dhcp-server':
@@ -84,6 +83,7 @@ base:
     - net-tools
     - numactl
     - parted
+    - patch
     - procps
     - psmisc
     - python2
