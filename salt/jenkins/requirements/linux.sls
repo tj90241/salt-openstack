@@ -6,6 +6,7 @@ manage-linux-packages:
         - binutils-dev
         - bison
         - build-essential
+        - clang
         - cpio
         - devscripts
         - flex
@@ -26,6 +27,7 @@ manage-linux-packages:
         - libunwind-dev
         - liblzma-dev
         - libzstd-dev
+        - llvm
         - python3-dev
         - quilt
         - rsync
