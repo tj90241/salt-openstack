@@ -4,15 +4,16 @@
 #  the salt-openstack automation.   It can be specified as userdata script when
 #  launching an OpenStack instance, or uploaded to and run on a baremetal node.
 # -----------------------------------------------------------------------------
-DEBIAN_MAJOR_VERSION=`awk -F '.' '{print $1}' /etc/debian_version`
-DEBIAN_RELEASE_NAME=`lsb_release -sc`
-DEFAULT_MINION_NAME=${DEFAULT_MINION_NAME:="$( hostname -s )"}
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
 
 # Upgrade the base system, install curl, git, and gnupg2 (for apt-key).
 export DEBIAN_FRONTEND=noninteractive DEBIAN_PRIORITY=critical
 apt-get update && apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" 
 apt-get install --no-install-recommends -y curl git gnupg2 jq lsb-release make openssh-client patch python3-yaml unzip
+
+DEBIAN_MAJOR_VERSION=`awk -F '.' '{print $1}' /etc/debian_version`
+DEBIAN_RELEASE_NAME=`lsb_release -sc`
+DEFAULT_MINION_NAME=${DEFAULT_MINION_NAME:="$( hostname -s )"}
 
 # Clone the upstream repository locally, setup symlinks, generate credentials.
 rm -rfv /srv
