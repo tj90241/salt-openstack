@@ -14,7 +14,7 @@ if [ "${#}" -ne 1 ] || [ -z "${INSTALL_USB}" ] || [ ! -b "${INSTALL_USB}" ]; the
 fi
 
 get_partition_dev() {
-  if [ ! -b "${1}"1 ]; then
+  if [ ! -b "${1}1" ]; then
     echo "${1}p1"
   else
     echo "${1}1"
@@ -342,7 +342,7 @@ cat <<- EOF >> "${tmp_dir}/preseed.cfg"
                       mountpoint{ / }                         \\
                       label{ root }                           \\
               .                                               \\
-              4096 4096 100% ext4                             \\
+              4096 4096 4096 ext4                             \\
                       \$primary{ }                             \\
                       method{ format } format{ }              \\
                       use_filesystem{ } filesystem{ ext4 }    \\
@@ -350,6 +350,10 @@ cat <<- EOF >> "${tmp_dir}/preseed.cfg"
                       options/relatime{ relatime }            \\
                       mountpoint{ /var }                      \\
                       label{ var }                            \\
+              .                                               \\
+              4096 4096 100% ext4                             \\
+                      \$primary{ }                             \\
+                      label{ freespace }                       \\
               .
 
 # The full recipe format is documented in the file partman-auto-recipe.txt
@@ -432,7 +436,8 @@ d-i partman/mount_style select uuid
 
 # The kernel image (meta) package to be installed; "none" can be used if no
 # kernel is to be installed.
-d-i base-installer/kernel/image string linux-image-amd64
+d-i base-installer/kernel/skip-install boolean true
+d-i base-installer/kernel/image string none
 
 ### Apt setup
 # You can choose to install non-free and contrib software.
