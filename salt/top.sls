@@ -60,6 +60,7 @@ base:
     - ethtool
     - eject
     - exim4
+    - file
     - gnupg2
     - grub
     - hover
