@@ -39,17 +39,22 @@ defaults
 	errorfile 502 /etc/haproxy/errors/502.http
 	errorfile 503 /etc/haproxy/errors/503.http
 	errorfile 504 /etc/haproxy/errors/504.http
+{% for frontend, configuration in pillar.get('haproxy', {}).get('frontends', {}).items() %}
 
-frontend www
+frontend {{ frontend }}
+{%- if configuration['mode'] == 'http' %}
 	mode http
-	bind 127.0.1.1:80
-	bind 127.0.1.1:443 ssl crt /etc/haproxy/{{ grains.id }}.pem alpn h2,http/1.1
-	bind {{ grains.ip4_interfaces[grains.mgmt_interface][0] }}:80
-	bind {{ grains.ip4_interfaces[grains.mgmt_interface][0] }}:443 ssl crt /etc/haproxy/{{ grains.id }}.pem alpn h2,http/1.1
-{%- for extra_bind_addr in pillar.get('haproxy', {}).get('extra_bind_addrs', []) %}
-	bind {{ extra_bind_addr }}:80
-	bind {{ extra_bind_addr }}:443 ssl crt /etc/haproxy/{{ grains.id }}.pem alpn h2,http/1.1
-{%- endfor %}
-
 	http-request redirect prefix https://{{ grains.fqdn }} code 301 if !{ ssl_fc }
 	http-response set-header Strict-Transport-Security max-age=63072000
+{% for bind_addr in configuration['bind_addrs'] %}
+	bind {{ bind_addr }}:80
+	bind {{ bind_addr }}:443 ssl crt /etc/haproxy/{{ grains.id }}.pem alpn h2,http/1.1
+{%- endfor %}
+{% for acl, acl_condition in configuration.get('acls', {}).items() %}
+	acl {{ acl }} {{ acl_condition }}
+{%- endfor %}
+{% for mapping in configuration.get('use_backend', []) %}
+	use_backend {{ mapping['backend'] }} {{ mapping['condition'] }}
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
