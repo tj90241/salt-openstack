@@ -90,6 +90,7 @@ base:
     - python2
     - screen
     - sosreport
+    - strace
     - sysctl
     - sysstat
     - tasksel
