@@ -10,7 +10,8 @@ install-consul-package:
   archive.extracted:
     - name: /tmp/consul-{{ pillar['consul']['package']['version'] }}/contents
     - source: {{ pillar['consul']['package'][grains.cpuarch]['source'] }}
-    - source_hash: {{ pillar['consul']['package'][grains.cpuarch]['hash'] }}
+    - source_hash: {{ pillar['consul']['package']['hashes'] }}
+    - source_hash_name: '{{ salt['file.basename'](pillar['consul']['package'][grains.cpuarch]['source']) }}'
     - skip_verify: False
     - keep_source: False
     - force: True
@@ -24,6 +25,8 @@ install-consul-package:
     - user: root
     - group: root
     - mode: 0755
+    - requires:
+      - file: install-consul-package
 
 cleanup-consul-package:
   file.absent:
