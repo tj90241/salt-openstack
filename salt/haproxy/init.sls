@@ -85,3 +85,19 @@ manage-haproxy-consul-cert:
     - watch_in:
       - service: manage-haproxy
 {% endif %}
+
+{# Do not start haproxy until time is synchronized, Consul/OVS is up. #}
+manage-haproxy-override:
+  file.managed:
+    - name: /etc/systemd/system/haproxy.service.d/override.conf
+    - source: salt://haproxy/override.conf
+    - user: root
+    - group: root
+    - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-haproxy-override

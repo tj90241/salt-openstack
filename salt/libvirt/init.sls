@@ -57,3 +57,19 @@ manage-ipxe-roms:
     - mode: 0644
     - makedirs: True
 {% endfor %}
+
+{# Do not start libvirtd until time is synchronized and OVS is up. #}
+manage-libvirtd-override:
+  file.managed:
+    - name: /etc/systemd/system/libvirtd.service.d/override.conf
+    - source: salt://libvirt/override.conf
+    - user: root
+    - group: root
+    - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-libvirtd-override

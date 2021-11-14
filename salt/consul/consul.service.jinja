@@ -2,8 +2,8 @@
 [Unit]
 Description="HashiCorp Consul - A service mesh solution"
 Documentation=https://www.consul.io/
-Wants=time-sync.target
-After=time-sync.target
+Wants=openvswitch-switch.service time-sync.target
+After=openvswitch-switch.service time-sync.target
 ConditionFileNotEmpty=/etc/consul.d/consul.hcl
 
 [Service]
