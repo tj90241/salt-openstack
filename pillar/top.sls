@@ -79,6 +79,7 @@ base:
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
     - haproxy.hosts.{{ grains.id }}
+    - hostapd.hosts.{{ grains.id }}
     - hover.hosts.{{ grains.id }}
     - ifupdown.hosts.{{ grains.id }}
     - isc-dhcp-server.hosts.{{ grains.id }}
