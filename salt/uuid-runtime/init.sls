@@ -5,6 +5,11 @@ manage-uuid-runtime:
     - version: latest
 
   service.running:
+    - name: uuidd.socket
+    - enable: True
+
+manage-uuid-service:
+  service.running:
     - name: uuidd.service
     - enable: True
 
@@ -21,4 +26,4 @@ manage-uuid-runtime:
   module.run:
     - service.systemctl_reload:
     - onchanges:
-      - file: manage-uuid-runtime
+      - file: manage-uuid-service
