@@ -32,7 +32,9 @@ apt-no-install-recommends:
     - group: root
     - mode: 0644
 
+{% if pillar['apt']['autoupdate'] %}
 apt-system-update:
   pkg.uptodate:
     - refresh: True
     - dist_upgrade: True
+{% endif %}
