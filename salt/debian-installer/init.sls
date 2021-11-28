@@ -2,7 +2,7 @@ install-netboot-kernel:
   file.managed:
     - name: /srv/tftp/debian-installer/amd64/linux
     - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/linux
-    - source_hash: http://ftp.debian.org/debian/dists/bullseye/main/installer-amd64/current/images/SHA256SUMS
+    - source_hash: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/SHA256SUMS
     - source_hash_name: './netboot/debian-installer/amd64/linux'
     - keep_source: False
     - user: root
@@ -15,7 +15,7 @@ install-netboot-initrd:
   file.managed:
     - name: /srv/tftp/debian-installer/amd64/initrd.gz.orig
     - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/initrd.gz
-    - source_hash: http://ftp.debian.org/debian/dists/bullseye/main/installer-amd64/current/images/SHA256SUMS
+    - source_hash: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/SHA256SUMS
     - source_hash_name: './netboot/debian-installer/amd64/initrd.gz'
     - keep_source: False
     - user: root
@@ -39,7 +39,7 @@ install-netboot-firmware:
   file.managed:
     - name: /srv/tftp/debian-installer/firmware.cpio.gz
     - source: http://cdimage.debian.org/cdimage/unofficial/non-free/firmware/{{ pillar['debian-installer']['release'] }}/current/firmware.cpio.gz
-    - source_hash: https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/bullseye/current/SHA512SUMS
+    - source_hash: https://cdimage.debian.org/cdimage/unofficial/non-free/firmware/{{ pillar['debian-installer']['release'] }}/current/SHA512SUMS
     - source_hash_name: 'firmware.cpio.gz'
     - keep_source: False
     - user: root
@@ -53,19 +53,40 @@ install-netboot-firmware:
       - file: install-netboot-packages
       - file: install-netboot-firmware
 
-{% for asset in ['splash.png', 'stdmenu.cfg'] %}
-install-netboot-{{ asset.split('.')[0] }}:
+install-netboot-splash-png:
   file.managed:
-    - name: /srv/tftp/debian-installer/amd64/boot-screens/{{ asset }}
-    - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/{{ asset }}
-    - skip_verify: True
+    - name: /srv/tftp/debian-installer/amd64/boot-screens/splash.png
+    - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/splash.png
+    - source_hash: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/SHA256SUMS
+    - source_hash_name: './netboot/debian-installer/amd64/boot-screens/splash.png'
     - keep_source: False
     - user: root
     - group: root
     - mode: 0644
     - dir_mode: 0755
     - makedirs: True
-{% endfor %}
+
+install-netboot-stdmenu-cfg:
+  file.managed:
+    - name: /srv/tftp/debian-installer/amd64/boot-screens/.stdmenu.cfg
+    - source: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/netboot/debian-installer/amd64/boot-screens/stdmenu.cfg
+    - source_hash: http://ftp.debian.org/debian/dists/{{ pillar['debian-installer']['release'] }}/main/installer-amd64/current/images/SHA256SUMS
+    - source_hash_name: './netboot/debian-installer/amd64/boot-screens/stdmenu.cfg'
+    - keep_source: False
+    - user: root
+    - group: root
+    - mode: 0644
+
+copy-netboot-stdmenu-cfg:
+  file.copy:
+    - name: /srv/tftp/debian-installer/amd64/boot-screens/stdmenu.cfg
+    - source: /srv/tftp/debian-installer/amd64/boot-screens/.stdmenu.cfg
+    - force: True
+    - user: root
+    - group: root
+    - mode: 0644
+    - onchanges:
+      - file: install-netboot-stdmenu-cfg
 
 fixup-netboot-stdmenu-paths:
   file.replace:
