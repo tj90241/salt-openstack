@@ -89,7 +89,7 @@ manage-chrony-wait:
     - source: salt://chrony/chrony-wait.service
     - user: root
     - group: root
-    - mode: 0755
+    - mode: 0644
 
   module.run:
     - service.systemctl_reload:
