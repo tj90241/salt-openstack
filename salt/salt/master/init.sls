@@ -80,7 +80,7 @@ manage-file-tree-pillar:
     - name: /etc/salt/file_tree_pillar/hosts
     - user: root
     - group: root
-    - dir_mode: 0700
+    - dir_mode: 0750
     - makedirs: True
     - follow_symlinks: False
     - watch_in:
@@ -91,7 +91,8 @@ manage-file-tree-pillar-perms:
     - name: /etc/salt/file_tree_pillar
     - user: root
     - group: root
-    - dir_mode: 0700
+    - file_mode: 0640
+    - dir_mode: 0750
     - follow_symlinks: False
     - recurse:
       - user
