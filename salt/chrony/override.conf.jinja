@@ -4,5 +4,5 @@ ExecStartPre=/bin/chown _chrony:_chrony /var/log/chrony
 ExecStartPre=/bin/chmod 0755 /var/log/chrony
 
 [Unit]
-Requires=network.target{% if 'nameserver' in pillar.get('roles', []) %} bind9.service{% endif %}
-After=network.target{% if 'nameserver' in pillar.get('roles', []) %} bind9.service{% endif %}
+Requires=network.target
+After=network.target
