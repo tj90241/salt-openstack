@@ -8,6 +8,10 @@ base:
     - match: grain
     - hugepages1G
 
+  'cpu_flags:rdt_a':
+    - match: grain
+    - resctrl
+
 {# Critical/bootstrap role-specific states #}
   salt-masters:
     - match: nodegroup

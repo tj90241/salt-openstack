@@ -1,0 +1,17 @@
+[Unit]
+Description=Intel Resource Director Technology (RDT) sysfs Directory
+Documentation=man:hier(7)
+Documentation=https://www.freedesktop.org/wiki/Software/systemd/APIFileSystems
+ConditionPathIsSymbolicLink=!/sys/fs/resctrl
+DefaultDependencies=no
+Conflicts=umount.target
+Before=local-fs.target umount.target
+
+[Mount]
+What=resctrl
+Where=/sys/fs/resctrl
+Type=resctrl
+Options=
+
+[Install]
+WantedBy=local-fs.target
