@@ -1864,7 +1864,7 @@ ieee80211w=2
 # Note: All the stations connecting to the BSS will also need to support the
 # selected cipher. The default AES-128-CMAC is the only option that is commonly
 # available in deployed devices.
-group_mgmt_cipher=BIP-GMAC-256
+group_mgmt_cipher={{ 'AES-128-CMAC' if primary_network.get('reduced_security', False) else 'BIP-GMAC-256' }}
 
 # Beacon Protection (management frame protection for Beacon frames)
 # This depends on management frame protection being enabled (ieee80211w != 0)
@@ -1904,7 +1904,7 @@ beacon_prot=1
 #     some extend since it allows misbehavior to go through. As such, this
 #     should be enabled only if interoperability with misbehaving STAs is
 #     needed.
-ocv=1
+ocv={{ 0 if primary_network.get('reduced_security', False) else 1 }}
 
 # disable_pmksa_caching: Disable PMKSA caching
 # This parameter can be used to disable caching of PMKSA created through EAP
@@ -1980,7 +1980,7 @@ ocv=1
 # purposes due limited security (see RFC 8247). Groups that are not as strong as
 # group 19 (ECC, NIST P-256) are unlikely to be useful for production use cases
 # since all implementations are required to support group 19.
-sae_groups=21
+sae_groups={{ 19 if primary_network.get('reduced_security', False) else 21 }}
 
 # Require MFP for all associations using SAE
 # This parameter can be used to enforce negotiation of MFP for all associations
@@ -3099,9 +3099,9 @@ wpa_passphrase={{ network['passphrase'] }}
 wpa_key_mgmt=SAE
 rsn_pairwise=CCMP
 ieee80211w=2
-group_mgmt_cipher=BIP-GMAC-256
+group_mgmt_cipher={{ 'AES-128-CMAC' if network.get('reduced_security', False) else 'BIP-GMAC-256' }}
 beacon_prot=1
-sae_groups=21
-ocv=1
+sae_groups={{ 19 if network.get('reduced_security', False) else 21 }}
+ocv={{ 0 if network.get('reduced_security', False) else 1 }}
 transition_disable=0x01
 {%- endfor %}
