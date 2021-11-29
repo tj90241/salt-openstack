@@ -12,7 +12,6 @@ base:
   salt-masters:
     - match: nodegroup
     - certbot
-    - consul.ca
     - ssl
     - openssl
     - nginx-light
