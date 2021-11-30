@@ -161,8 +161,8 @@ base:
     - git
     - jenkins.node
 
-  'roles:jenkins-server':
-    - match: grain
+  jenkins-servers:
+    - match: nodegroup
     - default-jre
     - git
     - jenkins.server

@@ -47,8 +47,8 @@ base:
     - jenkins
     - jenkins.credentials.node
 
-  'roles:jenkins-server':
-    - match: grain
+  jenkins-servers:
+    - match: nodegroup
     - jenkins
     - jenkins.controller
     - jenkins.credentials.controller
