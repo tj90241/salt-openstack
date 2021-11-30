@@ -167,7 +167,7 @@ base:
     - git
     - jenkins.server
 
-  'roles:jumphost':
-    - match: grain
+  'jumphosts':
+    - match: nodegroup
     - haproxy
     - ipmitool
