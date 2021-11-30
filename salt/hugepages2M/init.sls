@@ -1,10 +1,3 @@
-manage-dev-hugepages2M-dir:
-  file.directory:
-    - name: /dev/hugepages2M
-    - user: root
-    - group: root
-    - mode: 0755
-
 manage-dev-hugepages2M-mount:
   file.managed:
     - name: /etc/systemd/system/dev-hugepages2M.mount
@@ -19,6 +12,13 @@ manage-dev-hugepages2M-mount:
       - file: manage-dev-hugepages2M-mount
 
 {% if salt['file.directory_exists']('/sys/kernel/mm/hugepages/hugepages-2048kB') %}
+manage-dev-hugepages2M-dir:
+  file.directory:
+    - name: /dev/hugepages2M
+    - user: root
+    - group: root
+    - mode: 0755
+
   service.running:
     - name: dev-hugepages2M.mount
     - enable: True
