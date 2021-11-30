@@ -50,7 +50,6 @@ apt-get update
 # Install and configure the local minion.
 apt-get install -y salt-minion
 echo "${DEFAULT_MINION_NAME}" > /etc/salt/minion_id
-#echo 'grains: {roles: [salt-master]}' > /etc/salt/minion.d/grains.conf
 echo 'master: 127.0.0.1' > /etc/salt/minion.d/master.conf
 cat <<- EOF > /etc/salt/minion.d/superseded.conf 
 use_superseded:

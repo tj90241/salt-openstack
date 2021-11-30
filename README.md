@@ -197,7 +197,7 @@ hover:
 ```
 
 To initially sync your A/AAAA records and setup a periodic job which maintains
-them, simply run `salt -G roles:salt-master state.apply hover` on your Salt
+them, simply run `salt -N salt-masters state.apply hover` on your Salt
 Master host.  This will immediately provision the DNS records, and create a
 scheduled Salt task that pushes your router's IP address(es) every 1 minute
 past the hour.
@@ -275,7 +275,7 @@ would want to create a TXT record for `_acme-challenge.myhost`, as shown below:
 ![Hover TXT record creation](/images/hover_create_txt_record.png)
 
 Once TXT records are created, simply run the following on your Salt Master:
-`salt -G roles:salt-master state.apply certbot.renew; salt \* state.apply ssl`.
+`salt -N salt-masters state.apply certbot.renew; salt \* state.apply ssl`.
 This will renew certificates and push them out to cloud infrastructure members
 as necessary.  It will also schedule a task which checks if SSL certificates
 need to be renewed twice daily.  Once/when renewed, certificates will be
