@@ -1,4 +1,4 @@
-{% if 'dns-forwarder' not in grains.get('roles', []) %}
+{% if 'dns-forwarders' not in pillar.get('nodegroups', []) %}
 manage-dns-root-data:
   pkg.installed:
     - name: dns-root-data
