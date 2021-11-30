@@ -50,7 +50,7 @@ base:
 
 {# General states #}
     - salt
-{%- if 'apt-server' not in grains.get('roles', []) %}
+{%- if 'apt-servers' not in pillar.get('nodegroups', []) %}
     - apt.server
 {%- endif %}
     - apt
@@ -129,8 +129,8 @@ base:
 {% endif %}
 
 {# Role-specific states #}
-  'roles:apt-server':
-    - match: grain
+  apt-servers:
+    - match: nodegroup
     - expect
     - jenkins.apt-node
     - nginx-light

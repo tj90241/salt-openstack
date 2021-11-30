@@ -18,8 +18,8 @@ base:
     - sysctl
 
   # role-specific data and defaults
-  'roles:apt-server':
-    - match: grain
+  apt-servers:
+    - match: nodegroup
     - apt.gpg
     - jenkins
     - jenkins.credentials.apt-node
