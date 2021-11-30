@@ -24,13 +24,13 @@ base:
     - jenkins
     - jenkins.credentials.apt-node
 
-  'roles:devpi-client':
-    - match: grain
+  devpi-clients:
+    - match: nodegroup
     - devpi
     - devpi.packages
 
-  'roles:devpi-server':
-    - match: grain
+  devpi-servers:
+    - match: nodegroup
     - devpi
     - devpi.packages
     - devpi.server

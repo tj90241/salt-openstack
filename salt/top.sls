@@ -138,13 +138,13 @@ base:
     - reprepro
     - apt.server
 
-  'roles:devpi-client':
-    - match: grain
+  devpi-clients:
+    - match: nodegroup
     - devpi
     - devpi.client
 
-  'roles:devpi-server':
-    - match: grain
+  devpi-servers:
+    - match: nodegroup
     - nginx-light
     - devpi
     - devpi.server
