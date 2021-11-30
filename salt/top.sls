@@ -155,8 +155,8 @@ base:
     - libvirt
     - virty
 
-  'roles:jenkins-node':
-    - match: grain
+  jenkins-nodes:
+    - match: nodegroup
     - default-jre
     - git
     - jenkins.node

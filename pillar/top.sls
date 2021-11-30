@@ -42,8 +42,8 @@ base:
     - match: nodegroup
     - isc-dhcp-server
 
-  'roles:jenkins-node':
-    - match: grain
+  jenkins-nodes:
+    - match: nodegroup
     - jenkins
     - jenkins.credentials.node
 

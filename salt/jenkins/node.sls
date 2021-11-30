@@ -1,14 +1,14 @@
 include:
-{%- if 'jenkins-node-ceph' in grains.get('roles', []) %}
+{%- if 'jenkins-nodes-ceph' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.ceph
 {%- endif %}
-{%- if 'jenkins-node-linux' in grains.get('roles', []) %}
+{%- if 'jenkins-nodes-linux' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.linux
 {%- endif %}
-{%- if 'jenkins-node-mariadb' in grains.get('roles', []) %}
+{%- if 'jenkins-nodes-mariadb' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.mariadb
 {%- endif %}
-{%- if 'jenkins-node-openvswitch' in grains.get('roles', []) %}
+{%- if 'jenkins-nodes-openvswitch' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.openvswitch
 {%- endif %}
 
