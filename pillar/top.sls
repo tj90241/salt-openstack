@@ -59,14 +59,15 @@ base:
     - match: nodegroup
     - consul.bootstrap
     - salt.default.master
+    - roles
 
   'roles:tftp-server':
     - match: grain
     - debian-installer
     - tftpd-hpa
 
-  'roles:timeserver':
-    - match: grain
+  'timeservers':
+    - match: nodegroup
     - chrony.timeserver
 
   # minion-specific data and defaults
