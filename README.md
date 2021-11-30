@@ -157,19 +157,6 @@ Once complete, upload `scripts/baseline-salt-master` to the host and execute
 the script as `root`. The script will setup the Salt infrastructure and clone
 this repository into `/srv`.
 
-## Distribution of Secrets (important!)
-
-In `salt-openstack`, nodes self-identify their roles via their `grains.conf`.
-By default (see the `pillar/top.sls`), we distribute secrets to nodes on a
-role-level basis.
-
-In this way, a compromised node could steal secrets for roles outside of its
-intended scope by registering itself for all roles, and then dumping the
-contents of its pillar.  To workaround this security issue, you may choose to
-administrate your deployment's pillar in a more-pointed manner such that
-secrets are deployed based on the `minion_id` (which ties back to `salt-key`
-and is not spoofable).
-
 ## Setting up Dynamic DNS (optional)
 
 A plugin for Hover (a domain registrar) is provided if you wish to make use
