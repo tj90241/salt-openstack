@@ -24,8 +24,8 @@ base:
     - match: grain
     - isc-dhcp-server
 
-  'roles:tftp-server':
-    - match: grain
+  tftp-servers:
+    - match: nodegroup
     - tftpd-hpa
     - debian-installer
 
@@ -167,7 +167,7 @@ base:
     - git
     - jenkins.server
 
-  'jumphosts':
+  jumphosts:
     - match: nodegroup
     - haproxy
     - ipmitool

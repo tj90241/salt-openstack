@@ -61,12 +61,12 @@ base:
     - salt.default.master
     - roles
 
-  'roles:tftp-server':
-    - match: grain
+  tftp-server:
+    - match: nodegroup
     - debian-installer
     - tftpd-hpa
 
-  'timeservers':
+  timeservers:
     - match: nodegroup
     - chrony.timeserver
 
