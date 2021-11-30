@@ -150,8 +150,8 @@ base:
     - devpi.server
     - devpi.users_indexes
 
-  'roles:hypervisor':
-    - match: grain
+  hypervisor:
+    - match: nodegroup
     - libvirt
     - virty
 
