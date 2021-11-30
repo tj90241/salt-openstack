@@ -20,8 +20,8 @@ base:
     - openssl
     - nginx-light
 
-  'roles:dhcp-server':
-    - match: grain
+  dhcp-servers:
+    - match: nodegroup
     - isc-dhcp-server
 
   tftp-servers:
@@ -150,7 +150,7 @@ base:
     - devpi.server
     - devpi.users_indexes
 
-  hypervisor:
+  hypervisors:
     - match: nodegroup
     - libvirt
     - virty

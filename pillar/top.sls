@@ -38,8 +38,8 @@ base:
     - openstack.devpi.indexes
     - openstack.devpi.user
 
-  'roles:dhcp-server':
-    - match: grain
+  dhcp-servers:
+    - match: nodegroup
     - isc-dhcp-server
 
   'roles:jenkins-node':
@@ -61,7 +61,7 @@ base:
     - salt.default.master
     - roles
 
-  tftp-server:
+  tftp-servers:
     - match: nodegroup
     - debian-installer
     - tftpd-hpa
