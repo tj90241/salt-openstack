@@ -5,7 +5,7 @@ datacenter = "{{ pillar['consul']['site']['datacenter'] }}"
 enable_debug = false
 log_level = "INFO"
 
-bind_addr = "{{ grains['ip4_interfaces'][grains['mgmt_interface']][0] }}"
+bind_addr = "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' else grains['mgmt_interface']][0] }}"
 retry_join = ["{{ '", "'.join(server_fqdns) }}"]
 
 {%- set role = 'server' if grains.id in pillar['consul']['site']['server_fqdns'].values() else 'client' %}
@@ -22,7 +22,7 @@ protocol = 3
 
 addresses {
   dns = "127.0.0.1 127.0.1.1",
-  https = "127.0.0.1 127.0.1.1{% if role == 'server' %} {{ '  '.join(grains['ip4_interfaces'][grains['mgmt_interface']]) }}{% endif %}",
+  https = "127.0.0.1 127.0.1.1{% if role == 'server' %} {{ ' '.join(grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' else grains['mgmt_interface']]) }}{% endif %}",
   grpc = "127.0.0.1 127.0.1.1"
 }
 

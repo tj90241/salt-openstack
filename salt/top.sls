@@ -44,6 +44,9 @@ base:
     - openssl
     - ssl
     - consul
+{% if grains.get('virtual', 'virtual') == 'physical' %}
+    - openvswitch
+{% endif %}
     - dnsmasq
     - ifupdown
     - uuid-runtime

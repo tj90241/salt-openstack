@@ -1,5 +1,5 @@
 {%- set consul_domain = pillar['consul']['site']['domain'] -%}
-{%- set mgmt_interface = salt['network.interface'](grains.mgmt_interface)[0] -%}
+{%- set mgmt_interface = salt['network.interface']('vrf-mgmt' if 'vrf-mgmt' in grains.ip4_interfaces else grains.mgmt_interface)[0] -%}
 {%- set mgmt_cidr = salt['network.calc_net'](mgmt_interface.address, mgmt_interface.netmask) -%}
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
@@ -9,6 +9,38 @@ source /etc/network/interfaces.d/*
 # The loopback network interface
 auto lo
 iface lo inet loopback
+{%- if grains.get('virtual', 'virtual') == 'physical' %}
+
+# The Open vSwitch management bridge
+allow-ovs br-mgmt
+iface br-mgmt inet manual
+	ovs_type OVSBridge
+	ovs_ports {{ grains.mgmt_interface }} vrf-mgmt
+	ovs_extra set interface ${IFACE} mtu_request={{ salt['file.read']('/sys/class/net/{0}/mtu'.format(grains.mgmt_interface)).strip() }}
+
+# The Open vSwitch management network interface
+allow-br-mgmt {{ grains.mgmt_interface }}
+iface {{ grains.mgmt_interface }} inet manual
+	ovs_bridge br-mgmt
+	ovs_type OVSPort
+	ovs_options vlan_mode=trunk
+	ovs_extra set interface ${IFACE} mtu_request={{ salt['file.read']('/sys/class/net/{0}/mtu'.format(grains.mgmt_interface)).strip() }}
+
+# The Open vSwitch management network VRF
+allow-br-mgmt vrf-mgmt
+iface vrf-mgmt inet static
+	ovs_bridge br-mgmt
+	ovs_type OVSIntPort
+	ovs_options vlan_mode=access
+	ovs_extra set interface ${IFACE} mtu_request={{ salt['file.read']('/sys/class/net/{0}/mtu'.format(grains.mgmt_interface)).strip() }}
+
+	address {{ mgmt_interface.address }}/{{ mgmt_cidr.split('/')[-1] }}
+	gateway {{ grains.ip4_gw }}
+
+	dns-nameserver 127.0.0.1
+	dns-nameserver {{ grains.ip4_gw }}
+	dns-search node.{{ consul_domain }} service.{{ consul_domain }}
+{%- else %}
 
 # The primary network interface
 allow-hotplug {{ grains.mgmt_interface }}
@@ -20,3 +52,4 @@ iface {{ grains.mgmt_interface }} inet static
 	dns-nameserver 127.0.0.1
 	dns-nameserver {{ grains.ip4_gw }}
 	dns-search node.{{ consul_domain }} service.{{ consul_domain }}
+{%- endif %}
