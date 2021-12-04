@@ -113,14 +113,19 @@ base:
 {# Bare metal tools (sensory, monitoring, etc.) #}
   'virtual:physical':
     - match: grain
+{% if salt['smbios.get']('processor-manufacturer') == 'GenuineIntel' %}
+    - intel-microcode
+{% endif %}
+    - lm-sensors
 {% if salt['file.directory_exists']('/sys/class/ipmi') and salt['file.readdir']('/sys/class/ipmi') | difference(['.', '..']) | length > 0 %}
     - ipmitool
 {% endif %}
-    - lm-sensors
     - nvme-cli
     - pciutils
     - smartmontools
     - usbutils
+
+{# Wireless tools... #}
 {% if salt['file.directory_exists']('/sys/class/net') %}
 {% for netdev in salt['file.readdir']('/sys/class/net') | difference(['.', '..']) %}
 {% set wireless_check = salt['file.join'](netdev, 'wireless') %}
