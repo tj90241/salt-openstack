@@ -1,3 +1,4 @@
+{% set key_type = pillar.get('certbot', {}).get('key-type', 'ecdsa') %}
 {% for minion, options in pillar.get('certbot', {}).get('certs', {}).items() %}
 {% if options['challenge'] == 'hover-dns' %}
 certbot-renew-{{ minion}}-cert:
@@ -12,7 +13,7 @@ certbot-renew-{{ minion}}-cert:
         hover_domain: {{ options['hover_domain'] }}
 
   cmd.run:
-    - name: certbot certonly --cert-name '{{ minion }}' -d '{{ ','.join(options['domains']) }}' --rsa-key-size {{ options.get('rsa_key_size', 4096) }} --email '{{ options['email'] }}' --non-interactive --agree-tos --manual --manual-public-ip-logging-ok --preferred-challenges=dns --manual-auth-hook /usr/local/sbin/hover-dns-challenge-hook; rm -v /usr/local/sbin/hover-dns-challenge-hook
+    - name: certbot certonly --cert-name '{{ minion }}' -d '{{ ','.join(options['domains']) }}'{% if key_type == 'rsa' %} --rsa-key-size {{ options.get('rsa_key_size', 4096) }}{% endif %}{% if key_type == 'ecdsa' %} --elliptic-curve={{ options.get('elliptic_curve', 'secp521r1') }}{% endif %} --email '{{ options['email'] }}' --non-interactive --agree-tos --manual --manual-public-ip-logging-ok --preferred-challenges=dns --manual-auth-hook /usr/local/sbin/hover-dns-challenge-hook; rm -v /usr/local/sbin/hover-dns-challenge-hook
 
 {% if 'salt-masters' in pillar.get('nodegroups', []) %}
 certbot-symlink-{{ minion}}-cert:
