@@ -72,6 +72,10 @@ def get_nic_vf_dbdft(nic):
     Given a NIC virtual function, return the domain/bus/device/function
     of that virtual NIC (i.e., this returns a 4-tuple).
     """
+    if nic.startswith('pci:'):
+        capture = list(map(lambda x: int(x, 16), nic.split(':')[1:5]))
+        return capture + ['sr-iov']
+
     try:
         dev = os.readlink('/sys/class/net/{0}/device'.format(nic))
         dbd = os.path.basename(dev).split(':')
@@ -92,7 +96,7 @@ def get_nic_vf_dbdft(nic):
 
 
 def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
-                  iftype, name, vcpus, affinity, emu_affinity, ram_mb,
+                  iftype, name, vcpus, affinity, emu_affinity, cpu_pin, ram_mb,
                   pool_name, volume_type, secret_uuid,
                   vnic_queues, nic, rom_bar, mac=None, vlan=None,
                   bootdev='hd,network', rng_path='/dev/urandom'):
@@ -113,9 +117,18 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
     cpuset = {} if affinity is None else {'cpuset': affinity}
     ET.SubElement(domain, 'vcpu', attrib=cpuset).text = str(vcpus)
 
-    if emu_affinity is not None:
+    if emu_affinity is not None or cpu_pin is not None:
         cputune = ET.SubElement(domain, 'cputune')
-        ET.SubElement(cputune, 'emulatorpin', attrib={'cpuset': emu_affinity})
+
+        if cpu_pin is not None:
+            for entry in cpu_pin.split(','):
+                vcpu, pcpu = entry.split(':')
+                affinity_map = {'vcpu': vcpu, 'cpuset': pcpu}
+                ET.SubElement(cputune, 'vcpupin', attrib=affinity_map)
+
+        if emu_affinity is not None:
+            emu_affinity_map = {'cpuset': emu_affinity}
+            ET.SubElement(cputune, 'emulatorpin',attrib=emu_affinity_map)
 
     # Guest memory configuration.
     ET.SubElement(domain, 'memory').text = str(int(ram_mb) * 1024)
@@ -408,10 +421,10 @@ def main(args):
 
         new_domain = define_domain(conn, caps, domain, bus, device, function,
                                    iftype, args.name, args.vcpus,
-                                   args.affinity, args.emu_affinity, args.mem,
-                                   storage_pool_name, volume_type,
-                                   args.secret_uuid, args.queues, args.nic,
-                                   rom_bar, mac=args.mac_address,
+                                   args.affinity, args.emu_affinity, 
+                                   args.cpu_pin, args.mem, storage_pool_name,
+                                   volume_type, args.secret_uuid, args.queues,
+                                   args.nic, rom_bar, mac=args.mac_address,
                                    vlan=args.vlan)
 
         xml_config = ET.tostring(new_domain.getroot(), method='xml').decode()
@@ -444,6 +457,10 @@ if __name__ == '__main__':
     create.add_argument('-e', '--emulator-affinity',
                         metavar='EAFF', dest='emu_affinity',
                         help='Physical CPUs to run emulator threads on',
+                        action='store', type=str, default=None)
+
+    create.add_argument('-z', '--cpupin', metavar='PIN', dest='cpu_pin',
+                        help="Mapping of vCPU to pCPU pins",
                         action='store', type=str, default=None)
 
     create.add_argument('-r', '--mem', metavar='RAM', dest='mem',

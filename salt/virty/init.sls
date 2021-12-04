@@ -20,6 +20,9 @@ manage-virty-vm-{{ vm_name_filtered }}:
         vm_name: {{ vm_name }}
         vm_name_filtered: {{ vm_name_filtered }}
         vm_cores: {{ vm_data['cores'] }}
+        vm_cpu_affinity: {{ vm_data.get('cpu_affinity', False) }}
+        vm_emu_affinity: {{ vm_data.get('emu_affinity', False) }}
+        vm_cpu_pin: {{ vm_data.get('cpu_pin', False) }}
         vm_ram: {{ vm_data['ram'] }} 
 {% if 'blockdev' in vm_data %}
 {%- set vm_storage_data = salt['cmd.run']('lsblk -Jb ' + vm_data['blockdev']) | load_json %}
