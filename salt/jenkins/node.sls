@@ -2,6 +2,9 @@ include:
 {%- if 'jenkins-nodes-ceph' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.ceph
 {%- endif %}
+{%- if 'jenkins-nodes-hostap' in pillar.get('nodegroups', []) %}
+  - jenkins.requirements.hostap
+{%- endif %}
 {%- if 'jenkins-nodes-linux' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.linux
 {%- endif %}
