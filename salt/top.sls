@@ -81,6 +81,7 @@ base:
     - jq
     - kexec-tools
     - less
+    - linux
     - lsof
     - man-db
     - manpages
