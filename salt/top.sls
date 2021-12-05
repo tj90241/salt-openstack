@@ -147,6 +147,10 @@ base:
     - reprepro
     - apt.server
 
+  databases:
+    - match: nodegroup
+    - mariadb-server
+
   devpi-clients:
     - match: nodegroup
     - devpi
