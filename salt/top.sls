@@ -86,6 +86,7 @@ base:
     - man-db
     - manpages
     - manpages-dev
+    - mariadb-client
     - motd
     - netcat
     - net-tools
