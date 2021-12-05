@@ -27,6 +27,7 @@ base:
   databases:
     - match: nodegroup
     - mariadb.galera
+    - mariadb.server
 
   devpi-clients:
     - match: nodegroup

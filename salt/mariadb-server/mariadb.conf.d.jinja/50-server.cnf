@@ -102,6 +102,7 @@ collation-server      = utf8mb4_general_ci
 # Most important is to give InnoDB 80 % of the system RAM for buffer use:
 # https://mariadb.com/kb/en/innodb-system-variables/#innodb_buffer_pool_size
 #innodb_buffer_pool_size = 8G
+innodb-use-native-aio   = {{ 'ON' if pillar.get('mariadb', {}).get('server', {}).get('innodb-use-native-aio', False) else 'OFF' }}
 
 # this is only for embedded server
 [embedded]
