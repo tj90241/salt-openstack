@@ -3,6 +3,7 @@ manage-mariadb-packages:
     - pkgs:
         - bison
         - build-essential
+        - check
         - chrpath
         - cmake
         - cracklib-runtime
@@ -14,11 +15,13 @@ manage-mariadb-packages:
         - gdb
         - libaio-dev
         - libarchive-dev
+        - libasio-dev
         - libboost-atomic-dev
         - libboost-chrono-dev
         - libboost-date-time-dev
         - libboost-dev
         - libboost-filesystem-dev
+        - libboost-program-options-dev
         - libboost-regex-dev
         - libboost-system-dev
         - libboost-thread-dev
