@@ -24,6 +24,10 @@ base:
     - jenkins
     - jenkins.credentials.apt-node
 
+  databases:
+    - match: nodegroup
+    - mariadb.galera
+
   devpi-clients:
     - match: nodegroup
     - devpi
