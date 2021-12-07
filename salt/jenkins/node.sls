@@ -1,4 +1,7 @@
 include:
+{%- if 'jenkins-nodes-bcc' in pillar.get('nodegroups', []) %}
+  - jenkins.requirements.bcc
+{%- endif %}
 {%- if 'jenkins-nodes-ceph' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.ceph
 {%- endif %}
@@ -30,6 +33,7 @@ manage-jenkins-user:
     - system: True
     - groups:
       - {{ pillar['jenkins']['node']['user']['name'] }}
+      - sudo
 
 manage-jenkins-keypair:
   file.managed:

@@ -31,7 +31,7 @@ manage-jenkins-publish-directory:
     - user: {{ pillar['jenkins']['apt-node']['user']['name'] }}
     - group: {{ pillar['jenkins']['apt-node']['user']['name'] }}
 
-{% for project in ['ceph', 'galera', 'hostap', 'linux', 'mariadb', 'openvswitch'] %}
+{% for project in ['bcc', 'ceph', 'galera', 'hostap', 'linux', 'mariadb', 'openvswitch'] %}
 manage-jenkins-publish-{{ project }}-directory:
   file.directory:
     - name: {{ pillar['jenkins']['remote_dir'] }}/{{ project }}
