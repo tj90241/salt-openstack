@@ -100,6 +100,7 @@ base:
     - screen
     - sosreport
     - strace
+    - sudo
     - sysctl
     - sysstat
     - tasksel
