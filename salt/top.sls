@@ -59,6 +59,7 @@ base:
     - apt
     - arping
     - bash-completion
+    - bpfcc-tools
     - cloud-init
     - curl
     - dosfstools
