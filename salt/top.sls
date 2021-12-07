@@ -67,6 +67,7 @@ base:
     - eject
     - exim4
     - file
+    - gawk
     - gnupg2
     - grub
     - hover
