@@ -7,6 +7,9 @@
 # Note: This attribute can be overridden by the values supplied with the '-i'
 # command line parameter.
 interface={{ pillar['hostapd']['interface'] }}
+{%- if 'bssid' in primary_network %}
+bssid={{ primary_network['bssid'] }}
+{%- endif %}
 
 # In case of atheros and nl80211 driver interfaces, an additional
 # configuration parameter, bridge, may be used to notify hostapd if the
@@ -3091,6 +3094,9 @@ wps_state=0
 {%- for network in pillar['hostapd']['networks'][1:] %}
 
 bss={{ pillar['hostapd']['interface'] }}_{{ loop.index0 }}
+{%- if 'bssid' in network %}
+bssid={{ network['bssid'] }}
+{%- endif %}
 bridge={{ network['bridge'] }}
 ssid={{ network['ssid'] }}
 wpa=2
