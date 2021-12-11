@@ -14,3 +14,5 @@ manage-man-db:
   cmd.run:
     - name: /usr/bin/mandb
     - runas: man
+    - onchanges:
+      - file: manage-man-db
