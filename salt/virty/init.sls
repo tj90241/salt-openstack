@@ -36,8 +36,8 @@ manage-virty-vm-{{ vm_name_filtered }}:
 {% endif %}
         vm_storage_pool_dir: {{ vm_data.get('storage_pool_dir', '/var/lib/libvirt/images') }}
         vm_bridge_or_nic: {{ vm_data['bridge_or_nic'] }}
-        vm_nic_vlan: {{ vm_data.get('vlan', None) }}
-        vm_nic_rom_bar: {{ vm_data.get('rom_bar', None) }}
+        vm_nic_vlan: {{ vm_data.get('vlan', False) }}
+        vm_nic_rom_bar: {{ vm_data.get('rom_bar', False) }}
         vm_mac: {{ vm_data['mac'] }}
 
   module.run:
