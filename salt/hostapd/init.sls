@@ -31,3 +31,19 @@ manage-hostapd-configuration:
     - user: root
     - group: root
     - mode: 0644
+
+{# Do not start hostapd until OVS is up. #}
+manage-hostapd-override:
+  file.managed:
+    - name: /etc/systemd/system/hostapd.service.d/override.conf
+    - source: salt://hostapd/override.conf
+    - user: root
+    - group: root
+    - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-hostapd-override
