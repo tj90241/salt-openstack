@@ -50,7 +50,7 @@ class HoverInterface(object):
         cookie_handler = urllib2.HTTPCookieProcessor(CookieJar())
         self.__opener = urllib2.build_opener(https_handler, cookie_handler)
 
-        headers = {'Context-Type': 'application/x-www-form-urlencoded'}
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         data = {'username': username, 'password': password}
         response = self.call('/login', headers=headers, method='POST',
                              data=urllib.urlencode(data).encode())

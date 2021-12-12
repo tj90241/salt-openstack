@@ -65,6 +65,7 @@ base:
     - ignore_missing: True
     - match: nodegroup
     - consul.bootstrap
+    - jenkins
     - jenkins.credentials.salt
     - salt.default.master
     - roles

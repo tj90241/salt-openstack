@@ -96,7 +96,6 @@ def _api_request(uri, headers={}, method='GET', data=None, user=None):
         raise salt.exceptions.CommandExecutionError(err.reason)
 
     except (TypeError, ValueError):
-        raise Exception(str(response))
         message = 'The devpi API returned an incorrectly formatted response.'
         raise salt.exceptions.CommandExecutionError(message)
 
