@@ -14,12 +14,6 @@
 {% set osmajorrelease = grains.get('osmajorrelease', grains['osrelease_info'][0]) | string %}
 {% set oscodename = grains.oscodename | lower %}
 
-{# Support preliminary release testing. #}
-{% if osmajorrelease in ['testing', 'sid'] %}
-{% set osmajorrelease = '11' %}
-{% set oscodename = 'bullseye' %}
-{% endif %}
-
 {% set salt_release = salt_defaults.get('release', 'latest') | string %}
 {% set salt_release = 'latest' if salt_release.lower().strip() == 'latest' else 'archive/' + salt_release %}
 

@@ -175,6 +175,7 @@ base:
   jenkins-nodes:
     - match: nodegroup
     - default-jre
+    - docker
     - git
     - jenkins.node
 

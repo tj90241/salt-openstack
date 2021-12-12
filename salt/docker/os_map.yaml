@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+
+{% import_yaml 'docker/osdefs_map.yaml' as osdefs_map %}
+
+{% set osdefs_map = salt['grains.filter_by'](osdefs_map, grain='os') or {} %}
+{% set osreldefs_map = salt['grains.filter_by'](osdefs_map, grain='oscodename') or osdefs_map['default'] %}
+
+{% set oscodename = grains.oscodename | lower %}
+{% set install_transport_https = osreldefs_map.get('transport-https', False) %}
+
+Debian:
+  pkgrepo: 'deb https://download.docker.com/linux/debian {{ oscodename }} stable'
+  key_url: 'https://download.docker.com/linux/debian/gpg'
+  install_transport_https: {{ install_transport_https }}

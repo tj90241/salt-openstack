@@ -33,6 +33,8 @@ manage-jenkins-user:
     - system: True
     - groups:
       - {{ pillar['jenkins']['node']['user']['name'] }}
+      - docker
+      # TODO: remove
       - sudo
 
 manage-jenkins-keypair:

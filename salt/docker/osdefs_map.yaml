@@ -1,0 +1,24 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+
+Debian:
+  {# https://packages.debian.org/buster/apt-transport-https #}
+  {# https support has been moved into the apt package in 1.5.
+     It can be safely removed. #}
+  default:
+    transport-https: False
+
+  lenny:
+    transport-https: True
+
+  squeeze:
+    transport-https: True
+
+  wheezy:
+    transport-https: True
+
+  jessie:
+    transport-https: True
+
+  stretch:
+    transport-https: True
