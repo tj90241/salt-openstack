@@ -10,6 +10,15 @@ jenkins:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
 
+  securityRealm:
+    local:
+      allowsSignup: False
+      users:
+{%- for user, user_data in jenkins['users'].items() %}
+        - id: {{ user }}
+          password: '{{ user_data['password'] }}'
+{%- endfor %}
+
   crumbIssuer:
     standard:
        excludeClientIPFromCrumb: true
