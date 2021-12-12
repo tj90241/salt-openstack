@@ -39,3 +39,19 @@ manage-my-cnf-alternatives-symlink:
     - follow_symlinks: False
     - user: root
     - group: root
+
+{# Do not start mariadb until time is synchronized, OVS is up. #}
+manage-mariadb-server-override:
+  file.managed:
+    - name: /etc/systemd/system/mysql.service.d/override.conf
+    - source: salt://mariadb-server/override.conf
+    - user: root
+    - group: root
+    - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-mariadb-server-override
