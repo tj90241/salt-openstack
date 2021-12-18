@@ -25,7 +25,8 @@ manage-openvswitch:
 manage-openvswitch-override:
   file.managed:
     - name: /etc/systemd/system/openvswitch-switch.service.d/override.conf
-    - source: salt://openvswitch/override.conf
+    - source: salt://openvswitch/override.conf.jinja
+    - template: jinja
     - user: root
     - group: root
     - mode: 0644
