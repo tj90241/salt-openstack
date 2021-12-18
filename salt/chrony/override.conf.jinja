@@ -4,5 +4,5 @@ ExecStartPre=/bin/chown _chrony:_chrony /var/log/chrony
 ExecStartPre=/bin/chmod 0755 /var/log/chrony
 
 [Unit]
-Requires=network.target
-After=network.target
+Requires=network.target openvswitch-switch.service
+After=network.target openvswitch-switch.service
