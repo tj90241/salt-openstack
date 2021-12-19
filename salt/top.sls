@@ -33,7 +33,6 @@ base:
 {# Essential configuration and daemons (DNS, time, entropy, SSL,  etc.) #}
     - gai
     - hosts
-    - chrony
 {% if salt['file.is_chrdev']('/dev/hwrng') and salt['file.directory_exists']('/sys/class/tpm') and salt['cmd.run']('/bin/ls -A /sys/class/tpm') | trim | length > 0 %}
     - rng-tools
 {% elif 'rdrand' not in grains.get('cpu_flags', []) %}
@@ -43,12 +42,14 @@ base:
 {% endif %}
     - openssl
     - ssl
-    - consul
 {% if grains.get('virtual', 'virtual') == 'physical' %}
     - openvswitch
 {% endif %}
     - dnsmasq
     - ifupdown
+    # Intentionally out of order, bring up network before these.
+    - chrony
+    - consul
     - uuid-runtime
 
 {# General states #}
