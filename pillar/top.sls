@@ -21,6 +21,7 @@ base:
   apt-servers:
     - match: nodegroup
     - apt.gpg
+    - docker.registry
     - jenkins
     - jenkins.credentials.apt-node
 

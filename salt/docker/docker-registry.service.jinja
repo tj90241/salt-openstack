@@ -1,0 +1,24 @@
+[Unit]
+Description=Docker Registry
+After=docker.service
+Requires=docker.service
+ 
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker exec registry stop
+ExecStartPre=-/usr/bin/docker rm registry
+ExecStartPre=/usr/bin/docker pull registry:2
+ExecStart=/usr/bin/docker run --rm --name registry \
+	-v /etc/docker-registry:/docker-registry \
+	-v /var/lib/docker-registry:/var/lib/registry \
+        -e REGISTRY_AUTH=htpasswd \
+        -e REGISTRY_AUTH_HTPASSWD_PATH=/docker-registry/htpasswd \
+        -e REGISTRY_AUTH_HTPASSWD_REALM="Registry Realm" \
+	-e REGISTRY_HTTP_ADDR=0.0.0.0:443 \
+	-e REGISTRY_HTTP_TLS_CERTIFICATE=/docker-registry/{{ grains.id }}-fullchain.pem \
+	-e REGISTRY_HTTP_TLS_KEY=/docker-registry/private/{{ grains.id }}-privkey.pem \
+	-p 443:443 registry:2
+ 
+[Install]
+WantedBy=multi-user.target

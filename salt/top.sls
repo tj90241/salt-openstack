@@ -145,6 +145,9 @@ base:
 {# Role-specific states #}
   apt-servers:
     - match: nodegroup
+    - apache2-utils
+    - docker
+    - docker.registry
     - expect
     - jenkins.apt-node
     - nginx-light

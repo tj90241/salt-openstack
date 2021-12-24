@@ -33,6 +33,7 @@ Thumbs.db
 /pillar/apt/gpg.sls
 /pillar/consul/bootstrap.sls
 /pillar/consul/key.sls
+/pillar/docker/registry.sls
 /pillar/devpi/root.sls
 /pillar/jenkins/credentials/
 /pillar/openstack/devpi/user.sls
