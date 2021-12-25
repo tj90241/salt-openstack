@@ -73,3 +73,9 @@ manage-jenkins-node-tmp:
 
   service.enabled:
     - name: tmp.mount
+
+manage-docker-registry-login:
+  cmd.run:
+    - name: /usr/bin/docker login -u jenkins --password-stdin 'https://registry.service.{{ pillar['consul']['site']['domain'] }}:443'
+    - stdin: {{ pillar['docker']['registry']['users']['jenkins']['password'] }}
+    - runas: jenkins

@@ -24,6 +24,7 @@ base:
     - docker.registry
     - jenkins
     - jenkins.credentials.apt-node
+    - jenkins.credentials.docker
 
   consul-servers:
     - match: nodegroup
@@ -55,6 +56,7 @@ base:
   jenkins-nodes:
     - match: nodegroup
     - jenkins
+    - jenkins.credentials.docker
     - jenkins.credentials.node
 
   jenkins-servers:
