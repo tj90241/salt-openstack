@@ -86,20 +86,22 @@ manage-haproxy-consul-cert:
       - service: manage-haproxy
 {% endif %}
 
-{% if 'jenkins' in pillar.get('haproxy', {}).get('backends', {}).keys() | list %}
-manage-haproxy-jenkins-backend:
+{% for backend in ['git', 'jenkins'] %}
+{% if backend in pillar.get('haproxy', {}).get('backends', {}).keys() | list %}
+manage-haproxy-{{ backend }}-backend:
   file.managed:
-    - name: /etc/haproxy/haproxy.d/jenkins.cfg
-    - source: salt://haproxy/backends/jenkins.cfg.jinja
+    - name: /etc/haproxy/haproxy.d/{{ backend }}.cfg
+    - source: salt://haproxy/backends/{{ backend }}.cfg.jinja
     - template: jinja
     - user: root
     - group: haproxy
     - mode: 0644
     - context:
-        max_servers: {{ pillar['haproxy']['backends']['jenkins'].get('max-servers', 1) }}
+        max_servers: {{ pillar['haproxy']['backends'][backend].get('max-servers', 1) }}
     - watch_in:
       - service: manage-haproxy
 {% endif %}
+{% endfor %}
 
 {# Do not start haproxy until time is synchronized, Consul/OVS is up. #}
 manage-haproxy-override:

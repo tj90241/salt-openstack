@@ -22,6 +22,8 @@
 {% else %}
 {% if host in pillar.get('roles', {}).get('apt-server', []) %}
 {% from "consul/policies/apt-server.jinja" import policy with context %}
+{% elif host in pillar.get('roles', {}).get('git-server', []) %}
+{% from "consul/policies/git-server.jinja" import policy with context %}
 {% elif host in pillar.get('roles', {}).get('jenkins-server', []) %}
 {% from "consul/policies/jenkins-server.jinja" import policy with context %}
 {% else %}

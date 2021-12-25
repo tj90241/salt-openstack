@@ -172,6 +172,13 @@ base:
     - devpi.server
     - devpi.users_indexes
 
+  git-servers:
+    - match: nodegroup
+    - fcgiwrap
+    - git
+    - nginx-light
+    - gitweb
+
   hypervisors:
     - match: nodegroup
     - libvirt

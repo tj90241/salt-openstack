@@ -59,7 +59,7 @@ manage-consul-jenkins:
     - name: consul
     - restart: True
     - watch:
-      - file: /etc/consul.d/jenkins.json
+      - file: manage-consul-jenkins
 
 manage-jcasc-config:
   file.recurse:

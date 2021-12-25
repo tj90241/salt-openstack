@@ -1,0 +1,3 @@
+backend git
+	balance leastconn
+	server-template git {{ max_servers }} _git._tcp.service.consul.stachecki.net resolvers consul ssl verify required ca-file /etc/ssl/certs/ca-certificates.crt

@@ -1,0 +1,28 @@
+{%- set ipv6_enabled = pillar.get('grub', {}).get('ipv6_disable', False) in [False, 0] -%}
+
+server {
+	listen 443 default_server ssl http2;
+	{% if not ipv6_enabled -%} # {%-endif -%}listen [::]:443 default_server ssl http2;
+	server_name git.service.{{ pillar['consul']['site']['domain'] }} {{ grains.fqdn }};
+
+	location = /git {
+		rewrite ^ /git/index.cgi redirect;
+	}
+
+	location /git/index.cgi {
+		root /usr/share/gitweb;
+  		rewrite /git/(.*) /$1 break;
+		include fastcgi_params;
+		gzip off;
+
+		fastcgi_param SCRIPT_NAME $uri;
+		fastcgi_param GITWEB_CONFIG /etc/gitweb.conf;
+		fastcgi_pass unix:/var/run/fcgiwrap.socket;
+	}
+
+	location  /git/ {
+		root /usr/share/gitweb;
+  		rewrite /git/(.*) /$1 break;
+		index /git/index.cgi;
+	}
+}

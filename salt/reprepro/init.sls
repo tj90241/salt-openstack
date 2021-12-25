@@ -90,4 +90,4 @@ manage-consul-apt:
     - name: consul
     - restart: True
     - watch:
-      - file: /etc/consul.d/apt.json
+      - file: manage-consul-apt

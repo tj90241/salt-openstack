@@ -87,4 +87,4 @@ manage-consul-registry:
     - name: consul
     - restart: True
     - watch:
-      - file: /etc/consul.d/registry.json
+      - file: manage-consul-registry
