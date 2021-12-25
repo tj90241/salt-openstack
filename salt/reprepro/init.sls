@@ -76,3 +76,18 @@ manage-jenkins-publish:
     - user: root
     - group: root
     - mode: 0755
+
+manage-consul-apt:
+  file.managed:
+    - name: /etc/consul.d/apt.json
+    - source: salt://reprepro/consul.json.jinja
+    - template: jinja
+    - user: consul
+    - group: consul
+    - mode: 0640
+
+  service.running:
+    - name: consul
+    - restart: True
+    - watch:
+      - file: /etc/consul.d/apt.json

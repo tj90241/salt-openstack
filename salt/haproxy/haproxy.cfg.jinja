@@ -39,6 +39,10 @@ defaults
 	errorfile 502 /etc/haproxy/errors/502.http
 	errorfile 503 /etc/haproxy/errors/503.http
 	errorfile 504 /etc/haproxy/errors/504.http
+
+resolvers consul
+        nameserver consul 127.0.0.1:8600
+        accepted_payload_size 8192
 {% for frontend, configuration in pillar.get('haproxy', {}).get('frontends', {}).items() %}
 
 frontend {{ frontend }}

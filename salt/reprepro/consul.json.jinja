@@ -1,0 +1,25 @@
+{
+  "service": {
+    "id": "apt-{{ grains.id }}",
+    "name": "apt",
+    "tags": [],
+    "address": "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' else grains['mgmt_interface']][0] }}",
+    "port": 8080,
+    "meta": {
+      "meta": "APT"
+    },
+    "enable_tag_override": false,
+    "checks": [
+      {
+        "id": "Nginx",
+        "name": "APT Package Virtual Server",
+        "http": "http://{{ grains.fqdn }}:8080/salt-openstack/",
+        "method": "GET",
+        "header": {"User-Agent": ["Nginx-Healthcheck"]},
+        "body": "",
+        "interval": "10s",
+        "timeout": "3s"
+      }
+    ]
+  }
+}

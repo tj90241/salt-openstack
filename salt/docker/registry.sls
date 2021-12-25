@@ -73,3 +73,18 @@ manage-docker-htpasswd-{{ user }}-user:
     - watch_in:
       - service: manage-docker-registry
 {% endfor %}
+
+manage-consul-registry:
+  file.managed:
+    - name: /etc/consul.d/registry.json
+    - source: salt://docker/consul.json.jinja
+    - template: jinja
+    - user: consul
+    - group: consul
+    - mode: 0640
+
+  service.running:
+    - name: consul
+    - restart: True
+    - watch:
+      - file: /etc/consul.d/registry.json

@@ -20,6 +20,14 @@ service_prefix "" {
   policy = "read"
 }
 
+service "apt" {
+  policy = "write"
+}
+
+service "registry" {
+  policy = "write"
+}
+
 '-%}
 
 {# Policy description and export #}

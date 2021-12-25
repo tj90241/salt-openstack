@@ -25,6 +25,10 @@ base:
     - jenkins
     - jenkins.credentials.apt-node
 
+  consul-servers:
+    - match: nodegroup
+    - roles
+
   databases:
     - match: nodegroup
     - mariadb.galera

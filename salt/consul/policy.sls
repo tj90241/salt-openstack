@@ -20,7 +20,13 @@
 {% if minion_name in pillar['consul']['site']['server_fqdns'].values() | list %}
 {% from "consul/policies/consul-server.jinja" import policy with context %}
 {% else %}
+{% if host in pillar.get('roles', {}).get('apt-server', []) %}
+{% from "consul/policies/apt-server.jinja" import policy with context %}
+{% elif host in pillar.get('roles', {}).get('jenkins-server', []) %}
+{% from "consul/policies/jenkins-server.jinja" import policy with context %}
+{% else %}
 {% from "consul/policies/default.jinja" import policy with context %}
+{% endif %}
 {% endif %}
 create-consul-node-{{ host }}-policy:
   module.run:

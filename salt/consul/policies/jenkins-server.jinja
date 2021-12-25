@@ -20,6 +20,10 @@ service_prefix "" {
   policy = "read"
 }
 
+service "jenkins" {
+  policy = "write"
+}
+
 '-%}
 
 {# Policy description and export #}

@@ -1,0 +1,26 @@
+{
+  "service": {
+    "id": "registry-{{ grains.id }}",
+    "name": "registry",
+    "tags": [],
+    "address": "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' else grains['mgmt_interface']][0] }}",
+    "port": 443,
+    "meta": {
+      "meta": "DockerRegistry"
+    },
+    "enable_tag_override": false,
+    "checks": [
+      {
+        "id": "Registry",
+        "name": "Docker Registry Server",
+        "http": "https://{{ grains.fqdn }}:443/",
+        "tls_skip_verify": false,
+        "method": "GET",
+        "header": {"User-Agent": ["Registry-Healthcheck"]},
+        "body": "",
+        "interval": "10s",
+        "timeout": "3s"
+      }
+    ]
+  }
+}
