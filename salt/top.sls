@@ -148,6 +148,7 @@ base:
     - apache2-utils
     - docker
     - docker.registry
+    - docker.containers
     - expect
     - jenkins.apt-node
     - nginx-light
