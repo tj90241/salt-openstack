@@ -44,7 +44,7 @@ class JenkinsInterface(object):
 
         # Determine endpoint.
         if endpoint is None:
-            if 'url' not in __pillar__.get('jenkins', {}).get('url') is None:
+            if __pillar__.get('jenkins', {}).get('url') is None:
                 self.__endpoint = __grains__['fqdn']
 
             else:
