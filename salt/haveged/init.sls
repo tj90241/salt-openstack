@@ -16,5 +16,5 @@ manage-haveged:
     - enable: True
     - restart: True
     - watch:
-      - pkg: haveged
+      - pkg: manage-haveged
       - file: manage-haveged

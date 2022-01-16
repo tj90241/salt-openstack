@@ -1,0 +1,2 @@
+cpufrequtils:
+  governor: schedutil

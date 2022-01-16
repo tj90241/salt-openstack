@@ -119,6 +119,7 @@ base:
 {# Bare metal tools (sensory, monitoring, etc.) #}
   'virtual:physical':
     - match: grain
+    - cpufrequtils
 {% if salt['smbios.get']('processor-manufacturer') == 'GenuineIntel' %}
     - intel-microcode
 {% endif %}

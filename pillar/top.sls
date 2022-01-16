@@ -7,6 +7,7 @@ base:
     - consul
     - consul.key
     - consul.site
+    - cpufrequtils
     - grub
     - hosts
     - hover
@@ -92,6 +93,7 @@ base:
     - apt.hosts.{{ grains.id }}
     - certbot.hosts.{{ grains.id }}
     - chrony.hosts.{{ grains.id }}
+    - cpufrequtils.hosts.{{ grains.id }}
     - debian-installer.hosts.{{ grains.id }}
     - devpi.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}

@@ -8,4 +8,4 @@ manage-rng-tools5:
     - name: rngd
     - enable: True
     - require:
-      - pkg: rng-tools5
+      - pkg: manage-rng-tools5

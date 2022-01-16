@@ -16,5 +16,5 @@ manage-rng-tools:
     - enable: True
     - restart: True
     - watch:
-      - pkg: rng-tools-debian
+      - pkg: manage-rng-tools
       - file: manage-rng-tools
