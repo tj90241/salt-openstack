@@ -4,7 +4,7 @@ BUILD_DIR="$(mktemp -d ${TMPDIR:-/var/tmp}/mkimage-debian.XXXXXXXXXX)"
 CODENAME="$(lsb_release -cs)"
 VERSION_MAJOR="$(lsb_release -rs)"
 
-debootstrap --variant=buildd "${CODENAME}" "${BUILD_DIR}/rootfs"
+debootstrap --variant=minbase "${CODENAME}" "${BUILD_DIR}/rootfs"
 
 # Docker mounts tmpfs at /dev and procfs at /proc so we can remove them.
 rm -rf "${BUILD_DIR}/rootfs/dev" "${BUILD_DIR}/rootfs/proc"
