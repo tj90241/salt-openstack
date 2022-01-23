@@ -1,0 +1,3 @@
+reprepro:
+  repositories:
+    - salt-openstack

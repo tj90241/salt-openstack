@@ -1,9 +1,13 @@
 #!/bin/bash
 
+if [ -z "${JENKINS_PUBLISH_REPOSITORY}" ]; then
+	JENKINS_PUBLISH_REPOSITORY="salt-openstack"
+fi
+
 IFS=$'\n'
 mapfile -t list
 
-cd /var/lib/reprepro/repos/salt-openstack
+cd "/var/lib/reprepro/repos/${JENKINS_PUBLISH_REPOSITORY}"
 sudo /usr/local/bin/reprepro.exp includedeb {{ grains.oscodename }} ${list[*]}
 
 if [ $? -eq 0 ]; then

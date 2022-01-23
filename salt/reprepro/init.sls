@@ -25,9 +25,10 @@ manage-reprepro-expect-sudoers:
     - group: root
     - mode: 0640
 
-manage-reprepro-distributions:
+{% for repository in pillar.get('reprepro', {}).get('repositories', []) %}
+manage-reprepro-{{ repository }}-distributions:
   file.managed:
-    - name: /var/lib/reprepro/repos/salt-openstack/conf/distributions
+    - name: /var/lib/reprepro/repos/{{ repository }}/conf/distributions
     - source: salt://reprepro/distributions.jinja
     - template: jinja
     - user: root
@@ -36,15 +37,20 @@ manage-reprepro-distributions:
     - dir_mode: 0755
     - makedirs: True
     - context:
+        repository: {{ repository }}
         signing_pubkey_id: {{ signing_pubkey_id }}
 
-manage-reprepro-options:
+manage-reprepro-{{ repository }}-options:
   file.managed:
-    - name: /var/lib/reprepro/repos/salt-openstack/conf/options
-    - source: salt://reprepro/options
+    - name: /var/lib/reprepro/repos/{{ repository }}/conf/options
+    - source: salt://reprepro/options.jinja
+    - template: jinja
     - user: root
     - group: root
     - mode: 0644
+    - context:
+        repository: {{ repository }}
+{% endfor %}
 
 manage-reprepro-pubkey:
   cmd.run:

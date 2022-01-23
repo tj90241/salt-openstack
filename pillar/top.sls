@@ -15,6 +15,7 @@ base:
     - initramfs-tools
     - openssl
     - nginx
+    - reprepro
     - salt
     - sysctl
 
@@ -104,6 +105,7 @@ base:
     - isc-dhcp-server.hosts.{{ grains.id }}
     - libvirt.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
+    - reprepro.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}
     - sysctl.hosts.{{ grains.id }}
     - tftpd-hpa.hosts.{{ grains.id }}
