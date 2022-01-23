@@ -104,6 +104,7 @@ base:
     - ifupdown.hosts.{{ grains.id }}
     - isc-dhcp-server.hosts.{{ grains.id }}
     - libvirt.hosts.{{ grains.id }}
+    - optimization.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}
     - reprepro.hosts.{{ grains.id }}
     - salt.hosts.{{ grains.id }}

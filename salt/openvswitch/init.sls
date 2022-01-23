@@ -33,10 +33,21 @@ manage-openvswitch-override:
     - dir_mode: 0755
     - makedirs: True
 
+manage-openvswitch-slice:
+  file.managed:
+    - name: /etc/systemd/system/openvswitch.slice
+    - source: salt://openvswitch/openvswitch.slice.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+
+reload-for-openvswitch-changes:
   module.run:
     - service.systemctl_reload:
     - onchanges:
       - file: manage-openvswitch-override
+      - file: manage-openvswitch-slice
 
 manage-openvswitch-named-dependency:
   file.replace:

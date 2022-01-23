@@ -105,6 +105,7 @@ base:
     - sudo
     - sysctl
     - sysstat
+    - systemd
     - tasksel
     - tcpdump
     - tmux

@@ -1,0 +1,4 @@
+[Slice]
+{%- if 'housekeeping_cores' in pillar.get('optimization', {}) %}
+AllowedCPUs={{ pillar['optimization']['housekeeping_cores'] }}
+{%- endif %}

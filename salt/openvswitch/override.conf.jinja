@@ -1,3 +1,3 @@
 [Service]
-CPUAffinity=0-{{ grains.num_cpus - 1 }}
 ExecStartPre=/bin/mkdir -p /var/log/openvswitch
+Slice=openvswitch.slice

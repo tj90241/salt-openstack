@@ -1,7 +1,14 @@
 {%- set grub = pillar.get('grub', {}) -%}
+
+{# Base system... #}
 {%- set ipv6_disable = [] if grub.get('ipv6_disable', False) in [False, 0] else ['ipv6.disable=1'] -%}
 {%- set skip_timer_check = [] if grains.get('virtual', 'physical') == 'physical' else ['no_timer_check'] -%}
-{%- set cmdline_linux_default = grub.get('cmdline_linux_default', ['quiet']) + ipv6_disable + skip_timer_check -%}
+
+{# Optimizations... #}
+{% set systemd_cpu = ['systemd.cpu_affinity=' + pillar['optimization']['housekeeping_cores']] if 'housekeeping_cores' in pillar.get('optimization', {}) else [] %}
+{% set rcu_nohz = ['rcu_nocbs=' + pillar['optimization']['low_latency_cores'], 'nohz_full=' + pillar['optimization']['low_latency_cores']] if 'low_latency_cores' in pillar.get('optimization', {}) else [] %}
+
+{%- set cmdline_linux_default = grub.get('cmdline_linux_default', ['quiet']) + ipv6_disable + skip_timer_check + systemd_cpu + rcu_nohz -%}
 
 manage-grub-acpi-script:
   file.managed:
