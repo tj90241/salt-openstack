@@ -2,20 +2,11 @@ include:
 {%- if 'jenkins-nodes-bcc' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.bcc
 {%- endif %}
-{%- if 'jenkins-nodes-ceph' in pillar.get('nodegroups', []) %}
-  - jenkins.requirements.ceph
-{%- endif %}
 {%- if 'jenkins-nodes-hostap' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.hostap
 {%- endif %}
 {%- if 'jenkins-nodes-linux' in pillar.get('nodegroups', []) %}
   - jenkins.requirements.linux
-{%- endif %}
-{%- if 'jenkins-nodes-mariadb' in pillar.get('nodegroups', []) %}
-  - jenkins.requirements.mariadb
-{%- endif %}
-{%- if 'jenkins-nodes-openvswitch' in pillar.get('nodegroups', []) %}
-  - jenkins.requirements.openvswitch
 {%- endif %}
 
 manage-jenkins-group:
