@@ -19,7 +19,6 @@ manage-openvswitch:
     - watch:
       - pkg: manage-openvswitch
       - file: manage-openvswitch
-      - file: manage-openvswitch-named-dependency
 
 # Ensure the /var/log/openvswitch directory exists.
 manage-openvswitch-override:
@@ -49,9 +48,16 @@ reload-for-openvswitch-changes:
       - file: manage-openvswitch-override
       - file: manage-openvswitch-slice
 
-manage-openvswitch-named-dependency:
+manage-openvswitch-start-dependency:
   file.replace:
     - name: /etc/init.d/openvswitch-switch
-    - pattern: 'Required-Start:    $network $named'
+    - pattern: 'Required-Start:    \$network \$named \$remote_fs'
     - repl: 'Required-Start:    $network'
+    - backup: False
+
+manage-openvswitch-stop-dependency:
+  file.line:
+    - name: /etc/init.d/openvswitch-switch
+    - content: 'Required-Stop:'
+    - mode: delete
     - backup: False
