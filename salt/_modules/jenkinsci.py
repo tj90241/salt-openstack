@@ -71,6 +71,11 @@ class JenkinsInterface(object):
         b64string = '{0}:{1}'.format(username, password).encode('utf-8')
         self.__auth = base64.b64encode(b64string)
 
+        # Build opener and cookiejar.
+        cookie_handler = urllib2.HTTPCookieProcessor(CookieJar())
+        self.__opener = urllib2.build_opener(self.__https_handler,
+                                             cookie_handler)
+
 
     def __call(self, uri, headers={}, method='GET', data=None):
         '''
@@ -81,9 +86,10 @@ class JenkinsInterface(object):
                                                headers=headers, method=method,
                                                data=data)
 
-            raw_response = connection.read().decode('ascii')
+            raw_response = connection.read().decode('utf-8')
+            headers = dict(connection.getheaders())
 
-            if headers['Accept'].startswith('application/json'):
+            if headers.get('content-type', '').startswith('application/json'):
                 return json.loads(raw_response)
 
             return raw_response
@@ -99,9 +105,6 @@ class JenkinsInterface(object):
         '''
         Get a Jenkins Crumb valid for the given path.
         '''
-        cookie_handler = urllib2.HTTPCookieProcessor(CookieJar())
-        self.__opener = urllib2.build_opener(self.__https_handler,
-                                             cookie_handler)
         headers = {
             'Accept': 'application/json',
             'Authorization': 'Basic {0}'.format(self.__auth.decode('utf-8')),
@@ -183,3 +186,15 @@ def list_jobs():
     '''
     jobs = JenkinsInterface().call('/api/json')['jobs']
     return [job['name'] for job in jobs]
+
+
+def toggle_node_offline(node, reason=None):
+    '''
+    Marks the specified worker offline/offline.
+    '''
+    url = '/computer/{0}/toggleOffline'.format(node)
+
+    if reason is not None:
+        url += '?{0}'.format(urllib.urlencode({'offlineMessage': reason}))
+
+    JenkinsInterface().call(url, method='POST')
