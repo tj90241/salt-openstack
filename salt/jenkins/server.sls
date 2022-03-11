@@ -1,6 +1,22 @@
 include:
   - jenkins.pkgrepo
 
+manage-jenkins-override:
+  file.managed:
+    - name: /etc/systemd/system/jenkins.service.d/override.conf
+    - source: salt://jenkins/override.conf.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0600
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-jenkins-override
+
 manage-jenkins:
   pkg.installed:
     - name: jenkins

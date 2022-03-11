@@ -188,7 +188,7 @@ def list_jobs():
     return [job['name'] for job in jobs]
 
 
-def toggle_node_offline(node, reason=None):
+def toggle_node_offline(node, reason=None, **kwarg):
     '''
     Marks the specified worker offline/offline.
     '''

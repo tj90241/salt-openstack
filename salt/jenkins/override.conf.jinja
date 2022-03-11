@@ -1,0 +1,8 @@
+{%- set java_args = ['-Djava.awt.headless=true', '-Dhudson.model.UsageStatistics.disabled=true'] -%}
+[Service]
+Environment="JAVA_OPTS={{ ' '.join(java_args + pillar.get('jenkins', {}).get('java', {}).get('args', [])) }}"
+Environment="JENKINS_PORT=-1"
+Environment="JENKINS_HTTPS_PORT=8080"
+Environment="JENKINS_HTTPS_KEYSTORE=/var/lib/jenkins/cert.jks"
+Environment="JENKINS_HTTPS_KEYSTORE_PASSWORD='{{ pillar['jenkins']['controller']['jks']['password'] }}'"
+Environment="JENKINS_PREFIX=/jenkins"
