@@ -5,8 +5,8 @@
 {%- set skip_timer_check = [] if grains.get('virtual', 'physical') == 'physical' else ['no_timer_check'] -%}
 
 {# Optimizations... #}
-{% set systemd_cpu = ['systemd.cpu_affinity=' + pillar['optimization']['housekeeping_cores']] if 'housekeeping_cores' in pillar.get('optimization', {}) else [] %}
-{% set rcu_nohz = ['rcu_nocbs=' + pillar['optimization']['low_latency_cores'], 'nohz_full=' + pillar['optimization']['low_latency_cores']] if 'low_latency_cores' in pillar.get('optimization', {}) else [] %}
+{% set systemd_cpu = ['systemd.cpu_affinity=' + pillar['optimization']['housekeeping_cores'] | string] if 'housekeeping_cores' in pillar.get('optimization', {}) else [] %}
+{% set rcu_nohz = ['rcu_nocbs=' + pillar['optimization']['low_latency_cores'] | string, 'nohz_full=' + pillar['optimization']['low_latency_cores'] | string] if 'low_latency_cores' in pillar.get('optimization', {}) else [] %}
 
 {%- set cmdline_linux_default = grub.get('cmdline_linux_default', ['quiet']) + ipv6_disable + skip_timer_check + systemd_cpu + rcu_nohz -%}
 
