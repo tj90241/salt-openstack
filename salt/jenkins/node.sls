@@ -1,14 +1,3 @@
-include:
-{%- if 'jenkins-nodes-bcc' in pillar.get('nodegroups', []) %}
-  - jenkins.requirements.bcc
-{%- endif %}
-{%- if 'jenkins-nodes-hostap' in pillar.get('nodegroups', []) %}
-  - jenkins.requirements.hostap
-{%- endif %}
-{%- if 'jenkins-nodes-linux' in pillar.get('nodegroups', []) %}
-  - jenkins.requirements.linux
-{%- endif %}
-
 manage-jenkins-group:
   group.present:
     - name: {{ pillar['jenkins']['node']['user']['name'] }}
