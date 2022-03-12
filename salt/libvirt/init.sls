@@ -3,6 +3,7 @@ manage-libvirtd:
     - pkgs:
       - ipxe-qemu
       - libvirt-daemon-system
+      - libvirt-daemon-driver-storage-rbd
       - python3-libvirt
       - qemu-system-x86
     - refresh: False
