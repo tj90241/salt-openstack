@@ -14,10 +14,8 @@ manage-jenkins-user:
     - groups:
       - {{ pillar['jenkins']['node']['user']['name'] }}
       - docker
-      # TODO: remove
-      - sudo
 
-manage-jenkins-keypair:
+manage-jenkins-controller-pubkey:
   file.managed:
     - name: /home/{{ pillar['jenkins']['node']['user']['name'] }}/.ssh/authorized_keys
     - contents_pillar: jenkins:controller:keypair:public
@@ -25,6 +23,17 @@ manage-jenkins-keypair:
     - user: {{ pillar['jenkins']['node']['user']['name'] }}
     - group: {{ pillar['jenkins']['node']['user']['name'] }}
     - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+manage-jenkins-publish-privkey:
+  file.managed:
+    - name: /home/{{ pillar['jenkins']['node']['user']['name'] }}/.ssh/id_rsa
+    - contents_pillar: jenkins:publish:keypair:private
+    - contents_newline: False
+    - user: {{ pillar['jenkins']['node']['user']['name'] }}
+    - group: {{ pillar['jenkins']['node']['user']['name'] }}
+    - mode: 0600
     - dir_mode: 0755
     - makedirs: True
 
