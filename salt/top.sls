@@ -189,6 +189,7 @@ base:
   jenkins-nodes:
     - match: nodegroup
     - default-jre
+    - devscripts
     - docker
     - git
     - jenkins.node
