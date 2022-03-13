@@ -4,5 +4,5 @@ ExecStartPre=/bin/chown _chrony:_chrony /var/log/chrony
 ExecStartPre=/bin/chmod 0755 /var/log/chrony
 
 [Unit]
-Requires=network.target openvswitch-switch.service
-After=network.target openvswitch-switch.service
+Requires=network.target{% if grains.get('virtual', 'virtual') == 'physical' %} openvswitch-switch.service{% endif %}
+After=network.target{% if grains.get('virtual', 'virtual') == 'physical' %} openvswitch-switch.service{% endif %}
