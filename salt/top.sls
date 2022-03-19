@@ -63,6 +63,9 @@ base:
     - bpfcc-tools
     - cloud-init
     - curl
+{% if pillar.get('dpdk', {}).get('enabled', False) %}
+    - dpdk
+{% endif %}
     - dosfstools
     - dnsutils
     - ethtool

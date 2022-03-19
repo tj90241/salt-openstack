@@ -1,6 +1,7 @@
+{%- set dpdk = pillar.get('dpdk', {}).get('enabled', False) -%}
 manage-openvswitch:
   pkg.installed:
-    - name: openvswitch-switch
+    - name: openvswitch-switch{% if dpdk %}-dpdk{% endif %}
     - refresh: False
     - version: latest
 
@@ -19,6 +20,11 @@ manage-openvswitch:
     - watch:
       - pkg: manage-openvswitch
       - file: manage-openvswitch
+
+{%- if dpdk %}
+  cmd.run:
+    - name: ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
+{%- endif %}
 
 # Ensure the /var/log/openvswitch directory exists.
 manage-openvswitch-override:

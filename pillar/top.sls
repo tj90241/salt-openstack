@@ -8,6 +8,7 @@ base:
     - consul.key
     - consul.site
     - cpufrequtils
+    - dpdk
     - grub
     - hosts
     - hover
