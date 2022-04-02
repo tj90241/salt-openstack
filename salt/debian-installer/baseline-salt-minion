@@ -23,8 +23,8 @@ DEBIAN_RELEASE_NAME=`lsb_release -sc`
 DEFAULT_MINION_NAME=${DEFAULT_MINION_NAME:="$( hostname -s )"}
 
 # Provision the upstream Saltstack repository.
-curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3004/SALTSTACK-GPG-KEY.pub" | apt-key add -
-echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3004 ${DEBIAN_RELEASE_NAME} main" > /etc/apt/sources.list.d/saltstack.list
+curl -sL "https://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3004.1/SALTSTACK-GPG-KEY.pub" | apt-key add -
+echo "deb http://repo.saltstack.com/py3/debian/${DEBIAN_MAJOR_VERSION}/amd64/archive/3004.1 ${DEBIAN_RELEASE_NAME} main" > /etc/apt/sources.list.d/saltstack.list
 apt-get update
 
 # Install and configure the minion.
