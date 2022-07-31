@@ -9,7 +9,7 @@ Type=oneshot
 {%- if not vm_skip_pool_creation %}
 ExecStart=/bin/bash -c '/usr/bin/virsh pool-define-as {{ vm_storage_pool }} dir - - - - {{ vm_storage_pool_dir }} && /usr/bin/virsh pool-autostart {{ vm_storage_pool }} && /usr/bin/virsh pool-start {{ vm_storage_pool }} || /bin/true'
 {% endif %}
-ExecStart=/usr/local/sbin/virty create -c {{ vm_cores }}{% if vm_cores > 1 %} -q {{ vm_cores }}{% endif %} -r {{ vm_ram }} -s {{ vm_storage }} -p {{ vm_storage_pool }} {{ vm_bridge_or_nic }} -m {{ vm_mac }}{% if vm_nic_vlan %} -v {{ vm_nic_vlan }}{% endif %}{% if vm_nic_rom_bar %} -b {{ vm_nic_rom_bar }}{% endif %}{% if vm_cpu_affinity %} -a {{ vm_cpu_affinity }}{% endif %}{% if vm_emu_affinity %} -e {{ vm_emu_affinity }}{% endif %}{% if vm_cpu_pin %} -z {{ vm_cpu_pin }}{% endif %} {{ vm_name_filtered }}
+ExecStart=/usr/local/sbin/virty create -c {{ vm_cores }}{% if vm_cores > 1 %} -q {{ vm_cores }}{% endif %} -r {{ vm_ram }} -s {{ vm_storage }} -p {{ vm_storage_pool }} {{ vm_bridge_or_nic }} -m {{ vm_mac }}{% if vm_nic_vlan %} -v {{ vm_nic_vlan }}{% endif %}{% if vm_nic_rom_bar %} -b {{ vm_nic_rom_bar }}{% endif %}{% if not vm_cpu_affinity is false %} -a {{ vm_cpu_affinity }}{% endif %}{% if not vm_emu_affinity is false %} -e {{ vm_emu_affinity }}{% endif %}{% if vm_cpu_pin %} -z {{ vm_cpu_pin }}{% endif %}{% if not vm_numanodes is false %} -n {{ vm_numanodes }}{% endif %} {{ vm_name_filtered }}
 RemainAfterExit=true
 
 [Install]

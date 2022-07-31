@@ -96,8 +96,8 @@ def get_nic_vf_dbdft(nic):
 
 
 def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
-                  iftype, name, vcpus, affinity, emu_affinity, cpu_pin, ram_mb,
-                  pool_name, volume_type, secret_uuid,
+                  iftype, name, vcpus, affinity, emu_affinity, cpu_pin,
+                  numanodes, ram_mb, pool_name, volume_type, secret_uuid,
                   vnic_queues, nic, rom_bar, mac=None, vlan=None,
                   bootdev='hd,network', rng_path='/dev/urandom'):
     """
@@ -131,6 +131,13 @@ def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
             ET.SubElement(cputune, 'emulatorpin',attrib=emu_affinity_map)
 
     # Guest memory configuration.
+    if numanodes is not None:
+        cleaned_nodes = ','.join([n for n in numanodes.split(',')])
+        numa_attribs = {'mode': 'strict', 'nodeset': cleaned_nodes}
+
+        numatune = ET.SubElement(domain, 'numatune')
+        ET.SubElement(numatune, 'memory', attrib=numa_attribs)
+
     ET.SubElement(domain, 'memory').text = str(int(ram_mb) * 1024)
     ET.SubElement(domain, 'currentMemory').text = str(int(ram_mb) * 1024)
     ET.SubElement(ET.SubElement(domain, 'memoryBacking'), 'hugepages')
@@ -422,9 +429,10 @@ def main(args):
         new_domain = define_domain(conn, caps, domain, bus, device, function,
                                    iftype, args.name, args.vcpus,
                                    args.affinity, args.emu_affinity, 
-                                   args.cpu_pin, args.mem, storage_pool_name,
-                                   volume_type, args.secret_uuid, args.queues,
-                                   args.nic, rom_bar, mac=args.mac_address,
+                                   args.cpu_pin, args.numanodes, args.mem,
+                                   storage_pool_name, volume_type,
+                                   args.secret_uuid, args.queues, args.nic,
+                                   rom_bar, mac=args.mac_address,
                                    vlan=args.vlan)
 
         xml_config = ET.tostring(new_domain.getroot(), method='xml').decode()
@@ -461,6 +469,10 @@ if __name__ == '__main__':
 
     create.add_argument('-z', '--cpupin', metavar='PIN', dest='cpu_pin',
                         help="Mapping of vCPU to pCPU pins",
+                        action='store', type=str, default=None)
+
+    create.add_argument('-n', '--numanodes', metavar='NPIN', dest='numanodes',
+                        help="NUMA nodes to pin memory to",
                         action='store', type=str, default=None)
 
     create.add_argument('-r', '--mem', metavar='RAM', dest='mem',
