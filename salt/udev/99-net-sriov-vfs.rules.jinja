@@ -1,4 +1,4 @@
-# Ensure Intel NICs have desired number of SR-IOV functions when enumerating
+# Ensure Intel NICs have the desired number of SR-IOV functions when enumerating
 {%- for mac_address, num_vfs in sriov_map.items() %}
 ACTION=="add", SUBSYSTEM=="net", ATTR{address}=="{{ mac_address }}", ATTR{device/sriov_numvfs}="{{ num_vfs }}"
 {%- endfor %}
