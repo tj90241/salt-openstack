@@ -15,6 +15,7 @@ base:
     - ifupdown
     - initramfs-tools
     - openssl
+    - openstack.network
     - nginx
     - reprepro
     - salt

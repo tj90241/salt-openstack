@@ -1,6 +1,8 @@
 {%- set consul_domain = pillar['consul']['site']['domain'] -%}
 {%- set mgmt_interface = salt['network.interface']('vrf-mgmt' if 'vrf-mgmt' in grains.ip4_interfaces else grains.mgmt_interface)[0] -%}
 {%- set mgmt_cidr = salt['network.calc_net'](mgmt_interface.address, mgmt_interface.netmask) -%}
+
+{%- set do_openstack_mgmt = grains.id in pillar.get('openstack', {}).get('mgmt', {}).get('minions', {}) -%}
 {%- set do_galera = 'databases' in pillar.get('nodegroups', []) and 'network' in pillar['mariadb']['galera'] -%}
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
@@ -16,7 +18,7 @@ iface lo inet loopback
 allow-ovs br-mgmt
 iface br-mgmt inet manual
 	ovs_type OVSBridge
-	ovs_ports {{ grains.mgmt_interface }} vrf-mgmt{% if do_galera %} vrf-galera{% endif %}
+	ovs_ports {{ grains.mgmt_interface }} vrf-mgmt{% if do_openstack_mgmt%} vrf-openstack{% endif %}{% if do_galera %} vrf-galera{% endif %}
 	ovs_extra set interface ${IFACE} mtu_request={{ salt['file.read']('/sys/class/net/{0}/mtu'.format(grains.mgmt_interface)).strip() }}
 
 # The Open vSwitch management network interface
@@ -41,6 +43,18 @@ iface vrf-mgmt inet static
 	dns-nameserver 127.0.0.1
 	dns-nameserver {{ grains.ip4_gw }}
 	dns-search node.{{ consul_domain }} service.{{ consul_domain }}
+{%- if do_openstack_mgmt %}
+
+# The OpenStack management network VRF
+allow-br-mgmt vrf-openstack
+iface vrf-openstack inet static
+        ovs_bridge br-mgmt
+        ovs_type OVSIntPort
+        ovs_options vlan_mode=access{% if 'vlan_tag' in pillar['openstack']['mgmt']['network'] %} tag={{ pillar['openstack']['mgmt']['network']['vlan_tag'] }}{% endif %}
+        ovs_extra set interface ${IFACE} mtu_request=9000
+
+        address {{ pillar['openstack']['mgmt']['minions'][grains.id] }}/{{ pillar['openstack']['mgmt']['network']['subnet'].split('/')[-1] }}
+{%- endif %}
 {%- if do_galera %}
 
 # The Galera replication network VRF
