@@ -207,3 +207,7 @@ base:
     - match: nodegroup
     - haproxy
     - ipmitool
+
+  rabbitmq-servers:
+    - match: nodegroup
+    - rabbitmq-server

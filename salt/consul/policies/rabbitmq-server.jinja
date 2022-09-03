@@ -1,0 +1,36 @@
+{%- set rules = '
+
+agent "' + host + '" {
+  policy = "write"
+}
+
+agent_prefix "" {
+  policy = "deny"
+}
+
+node "' + host + '" {
+  policy = "write"
+}
+
+node_prefix "" {
+  policy = "read"
+}
+
+service_prefix "" {
+  policy = "read"
+}
+
+service "rabbitmq" {
+  policy = "write"
+}
+
+'-%}
+
+{# Policy description and export #}
+{%- set policy_dict = {
+  'Name': 'node-' + host,
+  'Description': 'Policy for "' + host + '"',
+  'Rules': rules.strip()
+}-%}
+
+{% set policy = policy_dict | json %}

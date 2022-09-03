@@ -37,5 +37,6 @@ Thumbs.db
 /pillar/devpi/root.sls
 /pillar/jenkins/credentials/
 /pillar/openstack/devpi/user.sls
+/pillar/rabbitmq-server/cookie.sls
 /pillar/salt/hosts/
 /private/

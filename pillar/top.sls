@@ -72,6 +72,12 @@ base:
     - jenkins.credentials.users
     - jenkins.credentials.salt
 
+  rabbitmq-servers:
+    - match: nodegroup
+    - rabbitmq-server.init
+    - rabbitmq-server.cookie
+    - rabbitmq-server.users
+
   'salt-masters':
     - ignore_missing: True
     - match: nodegroup

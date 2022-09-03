@@ -1,0 +1,26 @@
+{
+  "service": {
+    "id": "rabbitmq-{{ grains.id }}",
+    "name": "rabbitmq",
+    "tags": [],
+    "address": "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' else grains['mgmt_interface']][0] }}",
+    "port": 15671,
+    "meta": {
+      "meta": "RabbitMQ Management Server"
+    },
+    "enable_tag_override": false,
+    "checks": [
+      {
+        "id": "RabbitMQ",
+        "name": "RabbitMQ Management Server",
+        "http": "https://{{ grains.fqdn }}:15671/rabbit/",
+        "tls_skip_verify": false,
+        "method": "GET",
+        "header": {"User-Agent": ["RabbitMQ-Healthcheck"]},
+        "body": "",
+        "interval": "10s",
+        "timeout": "3s"
+      }
+    ]
+  }
+}

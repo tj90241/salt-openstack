@@ -1,0 +1,3 @@
+backend rabbitmq
+	balance leastconn
+	server-template rabbitmq {{ max_servers }} _rabbitmq._tcp.service.consul.stachecki.net resolvers consul ssl verify required ca-file /etc/ssl/certs/ca-certificates.crt

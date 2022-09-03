@@ -86,7 +86,7 @@ manage-haproxy-consul-cert:
       - service: manage-haproxy
 {% endif %}
 
-{% for backend in ['git', 'jenkins'] %}
+{% for backend in ['git', 'jenkins', 'rabbitmq'] %}
 {% if backend in pillar.get('haproxy', {}).get('backends', {}).keys() | list %}
 manage-haproxy-{{ backend }}-backend:
   file.managed:
