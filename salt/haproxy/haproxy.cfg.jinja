@@ -1,3 +1,7 @@
+{%- set acls = pillar.get('haproxy', {}).get('frontends', {}).get('www', {}).get('acls', {}) -%}
+{%- if 'consul' in pillar.get('haproxy', {}).get('backends', {}).keys() -%}
+{%- do acls.update({'url_consul': 'path_beg /consul'}) -%}
+{%- endif -%}
 global
 	log /dev/log	local0
 	log /dev/log	local1 notice
@@ -48,14 +52,18 @@ resolvers consul
 frontend {{ frontend }}
 {%- if configuration['mode'] == 'http' %}
 	mode http
+{% for acl, acl_condition in acls.items() %}
+	acl {{ acl }} {{ acl_condition }}
+{%- endfor %}
+
 	http-request redirect prefix https://{{ grains.fqdn }} code 301 if !{ ssl_fc }
+{%- if 'consul' in pillar.get('haproxy', {}).get('backends', {}).keys() %}
+	http-request redirect prefix https://{{ grains.fqdn }}:8501 code 301 if url_consul
+{%- endif %}
 	http-response set-header Strict-Transport-Security max-age=63072000
 {% for bind_addr in configuration['bind_addrs'] %}
 	bind {{ bind_addr }}:80
 	bind {{ bind_addr }}:443 ssl crt /etc/haproxy/{{ grains.id }}.pem alpn h2,http/1.1
-{%- endfor %}
-{% for acl, acl_condition in configuration.get('acls', {}).items() %}
-	acl {{ acl }} {{ acl_condition }}
 {%- endfor %}
 {% for mapping in configuration.get('use_backend', []) %}
 	use_backend {{ mapping['backend'] }} {{ mapping['condition'] }}

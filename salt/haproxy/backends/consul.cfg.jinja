@@ -4,7 +4,7 @@ listen consul
 	bind {{ bind_addr }} ssl crt /etc/haproxy/{{ grains.host }}.pem alpn h2,http/1.1
 {%- endfor %}
 
-	acl url_consul path_beg /consul/
+	acl url_consul path_beg /consul
 	use_backend consul_ui if url_consul
 
 	http-request redirect prefix https://{{ grains.fqdn }} code 301 if !{ ssl_fc }
