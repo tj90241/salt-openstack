@@ -1,0 +1,73 @@
+{%- set role_to_services = {
+  'apt-server': ['apt', 'registry'],
+  'database': ['mysql'],
+  'git-server': ['git'],
+  'jenkins-server': ['jenkins'],
+  'rabbitmq-server': ['rabbitmq'],
+} -%}
+
+{%- set rules = '
+
+agent "' + host + '" {
+  policy = "write"
+}
+
+agent_prefix "" {
+  policy = "deny"
+}
+
+node "' + host + '" {
+  policy = "write"
+}
+
+node_prefix "" {
+  policy = "read"
+}
+
+service_prefix "" {
+  policy = "read"
+}
+'-%}
+
+{%- if host in consul_server_hosts %}
+{%- set rules = rules + '
+service "consul" {
+  policy = "write"
+}
+'-%}
+{% endif %}
+
+{# Enumerate a list of services based on the membership of roles of this host. #}
+{%- set host_roles = [] %}
+{%- for role, services in role_to_services.items() %}
+{%- if host in roles.get(role, []) %}
+{%- for service in services %}
+{%- do host_roles.append('
+service "' + service + '" {
+  policy = "write"
+}
+')-%}
+{%- endfor %}
+
+{# If this role is associated with session, permit ability to permute them. #}
+{# These hosts need to be able to create sessions for coordinating clustering. #}
+{%- if role == 'database' or role == 'rabbitmq-server' -%}
+{%- for peer in roles.get(role, []) %}
+{%- do host_roles.append('
+session "' + peer + '" {
+  policy = "' + ('write' if peer == host else 'read') + '"
+}
+')-%}
+{%- endfor %}
+{%- endif %}
+{%- endif %}
+{%- endfor %}
+
+{# Policy description and export #}
+{%- set policy_dict = {
+  'Name': 'node-' + host,
+  'Description': 'Policy for "' + host + '"',
+  'Rules': rules.strip() + '\n' + host_roles | join
+}-%}
+
+{% set policy = policy_dict | json %}

@@ -1,17 +1,4 @@
 {%- set rules = '
-
-agent "' + host + '" {
-  policy = "write"
-}
-
-agent_prefix "" {
-  policy = "deny"
-}
-
-node "' + host + '" {
-  policy = "write"
-}
-
 node_prefix "" {
   policy = "read"
 }
@@ -19,13 +6,12 @@ node_prefix "" {
 service_prefix "" {
   policy = "read"
 }
-
 '-%}
 
 {# Policy description and export #}
 {%- set policy_dict = {
-  'Name': 'node-' + host,
-  'Description': 'Policy for "' + host + '"',
+  'Name': 'default-policy',
+  'Description': 'Default policy for agents',
   'Rules': rules.strip()
 }-%}
 

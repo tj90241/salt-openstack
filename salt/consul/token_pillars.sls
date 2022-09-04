@@ -11,13 +11,26 @@
   ]
 ) -%}
 
+{% set default_policy_token = token_query['dict'] | selectattr('Description', '==', 'default-policy') | map(attribute='SecretID') | first %}
+manage-consul-default-policy-token-pillar:
+  file.managed:
+    - name: /srv/pillar/consul/tokens.sls
+    - contents: |
+        consul:
+          tokens:
+            default: {{ default_policy_token.strip() }}
+    - user: root
+    - group: root
+    - mode: 0644
+    - show_changes: False
+
 {% for minion_name in salt['minion.list']()['minions'] %}
 {% set host = grains.host if minion_name == grains.id else minion_name %}
-{% set token = token_query['dict'] | selectattr('Description', '==', 'node-' + host) | map(attribute='SecretID') | first %}
-manage-consul-node-{{ host }}-token-pillar:
+{% set agent_policy_token = token_query['dict'] | selectattr('Description', '==', 'node-' + host) | map(attribute='SecretID') | first %}
+manage-consul-node-{{ host }}-agent-policy-token-pillar:
   file.managed:
     - name: /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/token
-    - contents: {{ token.strip() }}
+    - contents: {{ agent_policy_token.strip() }}
     - user: root
     - group: root
     - mode: 0640

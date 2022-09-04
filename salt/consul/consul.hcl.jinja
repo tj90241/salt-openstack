@@ -60,9 +60,12 @@ acl = {
   default_policy = "deny"
   down_policy = "extend-cache"
   enable_token_persistence = true
-{%- if 'token' in pillar['consul'] %}
+{%- if 'default' in pillar['consul'].get('tokens', {}) %}
   tokens {
-    default = "{{ pillar['consul']['token'].strip() }}"
+    default = "{{ pillar['consul']['tokens']['default'].strip() }}"
+{%- if 'token' in pillar['consul'] %}
+    agent = "{{ pillar['consul']['token'].strip() }}"
+{%- endif %}
   }
 {%- endif %}
 }

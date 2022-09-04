@@ -99,6 +99,7 @@ base:
   # minion-specific data and defaults
   '{{ grains.id }}':
     - ignore_missing: True
+    - consul.tokens
     - apt.hosts.{{ grains.id }}
     - certbot.hosts.{{ grains.id }}
     - chrony.hosts.{{ grains.id }}
