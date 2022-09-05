@@ -1,3 +1,13 @@
+{% from 'rabbitmq-server/cluster.jinja' import
+  rabbitmq_cluster_leader,
+  rabbitmq_session_uuid
+  with context %}
+
+display_rabbitmq_session_results:
+  test.succeed_without_changes:
+    - name: "The cluster session lock is owned by {{ rabbitmq_cluster_leader }}"
+
+{# We now know how to cluster if needed, proceed with the rest of the state. #}
 manage-rabbitmq-directory:
   file.directory:
     - name: /var/lib/rabbitmq
@@ -97,6 +107,13 @@ manage-rabbitmq-override:
     - service.systemctl_reload:
     - onchanges:
       - file: manage-rabbitmq-override
+
+{% if pillar.get('bootstrap_rabbitmq', False) and rabbitmq_cluster_leader != grains.id %}
+cluster-rabbitmq:
+  cmd.run:
+    - name: /usr/sbin/rabbitmqctl stop_app; /usr/sbin/rabbitmqctl reset; /usr/sbin/rabbitmqctl join_cluster "rabbit@{{ rabbitmq_cluster_leader }}"; /usr/sbin/rabbitmqctl start_app
+    - runas: rabbitmq
+{% endif %}
 
 manage-rabbitmq-ha-policy:
   rabbitmq_policy.present:

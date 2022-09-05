@@ -103,14 +103,64 @@ def _api_request(url, headers={}, method='GET', data=None):
     return json.loads(connection.read().decode('utf-8'))
 
 
+def key_get(name):
+    """
+    Returns the specified k/v pair from Consul's KV store.
+    """
+    return _api_request('/v1/kv/{0}'.format(name))
+
+
+def session_acquire(uuid, name=None):
+    """
+    Attempts to acquire a lock for the session given by the UUID.
+    """
+    if name is None:
+        name = session_info(uuid)[0]['Name']
+
+    return _api_request('/v1/kv/{0}?acquire={1}'.format(name, uuid),
+                        method='PUT')
+
+
 def session_create(name):
+    """
+    Creates a new session with the specified name.
+    """
     data = {"Name": name}
     return _api_request('/v1/session/create', method='PUT', data=data)
 
 
 def session_delete(uuid):
+    """
+    Deletes the session with the specified UUID.
+    """
     return _api_request('/v1/session/destroy/{0}'.format(uuid), method='PUT')
 
 
-def session_list():
-    return _api_request('/v1/session/list')
+def session_info(uuid):
+    """
+    Returns information about the session given by the UUID.
+    """
+    return _api_request('/v1/session/info/{0}'.format(uuid))
+
+
+def session_list(node=None):
+    """
+    Returns a list of sessions that ACLs permit this minion to see.
+    """
+    url = '/v1/session/list'
+ 
+    if node is not None:
+        url = '/v1/session/node/{0}'.format(node)
+
+    return _api_request(url)
+
+
+def session_release(uuid, name=None):
+    """
+    Releases the session given by the UUID.
+    """
+    if name is None:
+        name = session_info(uuid)[0]['Name']
+
+    return _api_request('/v1/kv/{0}?release={1}'.format(name, uuid),
+                        method='PUT')

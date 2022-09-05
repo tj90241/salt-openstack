@@ -47,11 +47,18 @@ service "' + service + '" {
   policy = "write"
 }
 ')-%}
-{%- endfor %}
 
-{# If this role is associated with session, permit ability to permute them. #}
+{# If this role is associated with sessions, permit ability to permute them. #}
 {# These hosts need to be able to create sessions for coordinating clustering. #}
 {%- if role == 'database' or role == 'rabbitmq-server' -%}
+{%- do host_roles.append('
+key_prefix "service/' + service + '/" {
+  policy = "write"
+}
+')-%}
+{%- endif %}
+{%- endfor %}
+
 {%- for peer in roles.get(role, []) %}
 {%- do host_roles.append('
 session "' + peer + '" {
@@ -59,7 +66,6 @@ session "' + peer + '" {
 }
 ')-%}
 {%- endfor %}
-{%- endif %}
 {%- endif %}
 {%- endfor %}
 
