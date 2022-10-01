@@ -1,5 +1,9 @@
 {
   "service": {
+{%- if 'token' in pillar['consul'] %}
+    "token": "{{ pillar['consul']['token'].strip() }}",
+{%- endif %}
+
     "id": "rabbitmq-{{ grains.id }}",
     "name": "rabbitmq",
     "tags": [],
