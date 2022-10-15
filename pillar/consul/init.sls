@@ -4,7 +4,7 @@ consul:
     cert_valid_days: 30
 
   package:
-    version: '1.10.4'
-    hashes: https://releases.hashicorp.com/consul/1.10.4/consul_1.10.4_SHA256SUMS
+    version: '1.13.2'
+    hashes: https://releases.hashicorp.com/consul/1.13.2/consul_1.13.2_SHA256SUMS
     x86_64:
-      source: https://releases.hashicorp.com/consul/1.10.4/consul_1.10.4_linux_amd64.zip
+      source: https://releases.hashicorp.com/consul/1.13.2/consul_1.13.2_linux_amd64.zip
