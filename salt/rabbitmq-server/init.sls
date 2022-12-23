@@ -1,19 +1,18 @@
-{% from 'rabbitmq-server/cluster.jinja' import
-  rabbitmq_cluster_leader,
-  rabbitmq_session_uuid
-  with context %}
-
-display_rabbitmq_session_results:
-  test.succeed_without_changes:
-    - name: "The cluster session lock is owned by {{ rabbitmq_cluster_leader }}"
-
-{# We now know how to cluster if needed, proceed with the rest of the state. #}
 manage-rabbitmq-directory:
   file.directory:
     - name: /var/lib/rabbitmq
     - user: rabbitmq
     - group: rabbitmq
     - mode: 0755
+    - require:
+      - pkg: rabbitmq-server
+
+manage-rabbitmq-log-directory:
+  file.directory:
+    - name: /var/log/rabbitmq
+    - user: rabbitmq
+    - group: rabbitmq
+    - mode: 0750
     - require:
       - pkg: rabbitmq-server
 
@@ -37,11 +36,12 @@ manage-rabbitmq-server:
     - enable: True
     - restart: True
     - require:
-      - file: /var/lib/rabbitmq
-      - file: /var/lib/rabbitmq/mnesia
+      - file: manage-rabbitmq-directory
+      - file: manage-rabbitmq-log-directory
+      - file: manage-rabbitmq-mnesia-directory
     - watch:
-      - file: /etc/rabbitmq
-      - file: /etc/default/rabbitmq-server
+      - file: manage-rabbitmq-server
+      - file: manage-rabbitmq-server-configuration
       - pkg: rabbitmq-server
 
   file.managed:
@@ -80,6 +80,39 @@ manage-rabbitmq-ssl-mgmt-{{ ssl }}:
       - service: rabbitmq-server
 {% endfor %}
 
+manage-rabbitmq-consul-cacert:
+  file.managed:
+    - name: /etc/rabbitmq/ssl/consul_chain.pem
+    - contents_pillar: 'consul:cacert.pem'
+    - contents_newline: False
+    - user: rabbitmq
+    - group: rabbitmq
+    - mode: 0644
+    - watch_in:
+      - service: rabbitmq-server
+
+manage-rabbitmq-consul-cert:
+  file.managed:
+    - name: /etc/rabbitmq/ssl/consul_cert.pem
+    - contents_pillar: 'consul:cert.pem'
+    - contents_newline: False
+    - user: rabbitmq
+    - group: rabbitmq
+    - mode: 0644
+    - watch_in:
+      - service: rabbitmq-server
+
+manage-rabbitmq-consul-key:
+  file.managed:
+    - name: /etc/rabbitmq/ssl/consul_privkey.pem
+    - contents_pillar: 'consul:key.pem'
+    - contents_newline: False
+    - user: rabbitmq
+    - group: rabbitmq
+    - mode: 0640
+    - watch_in:
+      - service: rabbitmq-server
+
 manage-rabbitmq-erlang-cookie:
   file.managed:
     - name: /var/lib/rabbitmq/.erlang.cookie
@@ -92,7 +125,15 @@ manage-rabbitmq-erlang-cookie:
     - watch_in:
       - service: rabbitmq-server
 
-# Do not start rabbitmq-server until the clock is synced.
+{% for plugin in pillar.get('rabbitmq', {}).get('plugins', ['rabbitmq_management']) %}
+manage-rabbitmq-plugin-{{ plugin }}:
+  rabbitmq_plugin.enabled:
+    - name: {{ plugin }}
+    - watch_in:
+      - service: rabbitmq-server
+{% endfor %}
+
+# Do not start rabbitmq-server until the clock is synced and Consul is ready.
 manage-rabbitmq-override:
   file.managed:
     - name: /etc/systemd/system/rabbitmq-server.service.d/override.conf
@@ -107,13 +148,6 @@ manage-rabbitmq-override:
     - service.systemctl_reload:
     - onchanges:
       - file: manage-rabbitmq-override
-
-{% if pillar.get('bootstrap_rabbitmq', False) and rabbitmq_cluster_leader != grains.id %}
-cluster-rabbitmq:
-  cmd.run:
-    - name: /usr/sbin/rabbitmqctl stop_app; /usr/sbin/rabbitmqctl reset; /usr/sbin/rabbitmqctl join_cluster "rabbit@{{ rabbitmq_cluster_leader }}"; /usr/sbin/rabbitmqctl start_app
-    - runas: rabbitmq
-{% endif %}
 
 manage-rabbitmq-ha-policy:
   rabbitmq_policy.present:
@@ -137,22 +171,3 @@ manage-rabbitmq-user-{{ user }}:
     - perms: {{ data['perms'] }}
     - runas: rabbitmq
 {% endfor %}
-
-manage-rabbitmq-plugin-management:
-  rabbitmq_plugin.enabled:
-    - name: rabbitmq_management
-
-manage-consul-rabbitmq:
-  file.managed:
-    - name: /etc/consul.d/rabbitmq.json
-    - source: salt://rabbitmq-server/consul.json.jinja
-    - template: jinja
-    - user: consul
-    - group: consul
-    - mode: 0640
-
-  service.running:
-    - name: consul
-    - restart: True
-    - watch:
-      - file: manage-consul-rabbitmq

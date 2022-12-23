@@ -1,1 +1,1 @@
-[rabbitmq_management].
+[{{ ','.join(pillar.get('rabbitmq', {}).get('plugins', ['rabbitmq_management'])) }}].
