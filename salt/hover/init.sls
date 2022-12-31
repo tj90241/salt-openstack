@@ -24,9 +24,11 @@ manage-{{ domain.replace('.', '_') }}-aaaa-records-{{ loop.index }}:
 {% endif %}
 {% endfor %}
 
+{% if pillar.get('hover', {}).keys() | list not in [[], ['schedule']] %}
 schedule-hover-sync:
   schedule.present:
     - function: state.sls
     - job_args:
       - hover
     - cron: '{{ pillar['hover']['schedule'] }}'
+{% endif %}
