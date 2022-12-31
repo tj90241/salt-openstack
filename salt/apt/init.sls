@@ -8,7 +8,7 @@ apt-manage-sources.list:
 
 apt-package-database-update:
   module.wait:
-    - pkg.refresh_db:
+    - name: pkg.refresh_db
     - watch:
       - file: apt-manage-sources.list
 
