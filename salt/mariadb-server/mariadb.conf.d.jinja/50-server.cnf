@@ -19,7 +19,6 @@ datadir                 = /var/lib/mysql
 tmpdir                  = /tmp
 lc-messages-dir         = /usr/share/mysql
 lc-messages             = en_US
-skip-external-locking
 
 # Broken reverse DNS slows down connections considerably and name resolve is
 # safe to skip if there are no "host by domain name" access grants
@@ -112,7 +111,7 @@ innodb-use-native-aio   = {{ 'ON' if pillar.get('mariadb', {}).get('server', {})
 # you can put MariaDB-only options here
 [mariadb]
 
-# This group is only read by MariaDB-10.7 servers.
+# This group is only read by MariaDB-10.10 servers.
 # If you use the same .cnf file for MariaDB of different versions,
 # use this group for options that older servers don't understand
-[mariadb-10.7]
+[mariadb-10.10]
