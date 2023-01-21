@@ -1,0 +1,31 @@
+--- /usr/lib/python3/dist-packages/salt/pillar/__init__.py	2023-01-21 17:15:14.980812612 +0000
++++ /usr/lib/python3/dist-packages/salt/pillar/__init__.py	2023-01-21 17:34:28.503485056 +0000
+@@ -686,7 +686,7 @@
+         errors = []
+         # Gather initial top files
+         try:
+-            saltenvs = set()
++            saltenvs, saltenvs_order = set(), list()
+             if self.opts["pillarenv"]:
+                 # If the specified pillarenv is not present in the available
+                 # pillar environments, do not cache the pillar top file.
+@@ -699,12 +699,18 @@
+                     )
+                 else:
+                     saltenvs.add(self.opts["pillarenv"])
++                    saltenvs_order.append(self.opts["pillarenv"])
+             else:
+-                saltenvs.update(self._get_envs())
++                envs = self._get_envs()
++                saltenvs.update(envs)
++                saltenvs_order.extend(envs)
+                 if self.opts.get("pillar_source_merging_strategy", None) == "none":
+                     saltenvs &= {self.saltenv or "base"}
+ 
+-            for saltenv in saltenvs:
++            for saltenv in saltenvs_order:
++                if saltenv not in saltenvs:
++                    continue
++                saltenvs.remove(saltenv)
+                 top = self.client.cache_file(self.opts["state_top"], saltenv)
+                 if top:
