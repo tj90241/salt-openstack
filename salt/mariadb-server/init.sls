@@ -1,3 +1,22 @@
+{# If we already have a grastate file, then we were formerly clustered. #}
+{%- set galera_cluster_exists = salt['file.file_exists']('/var/lib/mysql/grastate.dat') %}
+{%- set bootstrap_galera_cluster = False %}
+
+{# If we have no grastate, leverage Consul to nominate someone to bootstrap. #}
+{# TODO: When rebuilding a node, this logic can potentially become perilous? #}
+{%- set session_key = 'service/mysql/cluster' %}
+{%- set sessions = salt['consul.session_list'](node=grains['id']) %}
+{%- set session_uuid = sessions | selectattr('Name', '==', session_key) | list %}
+
+{%- if session_uuid | length == 0 %}
+{%- set session_uuid = salt['consul.session_create'](session_key)['ID'] -%}
+{%- else %}
+{%- set session_uuid = session_uuid[0]['ID'] -%}
+{%- endif %}
+
+{%- if salt['consul.session_acquire'](session_uuid, session_key) %}
+{%- set bootstrap_galera_cluster = True %}
+{%- endif %}
 manage-mariadb-server:
   pkg.installed:
     - name: mariadb-server
@@ -31,6 +50,8 @@ manage-mariadb-server-configuration:
     - clean: False
     - dir_mode: 0755
     - file_mode: 0644
+    - context:
+        configure_galera_cluster: {{ galera_cluster_exists or (not bootstrap_galera_cluster) }}
 
 manage-my-cnf-alternatives-symlink:
   file.symlink:

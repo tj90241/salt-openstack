@@ -1,7 +1,7 @@
 {%- set galera_ips = [] -%}
 {%- set galera_node_address = pillar['mariadb']['galera']['minions'][grains.id] -%}
 {%- for minion, ip in pillar['mariadb']['galera']['minions'].items() -%}
-{%- if minion != grains.id -%}
+{%- if minion != grains.id and configure_galera_cluster -%}
 {%- do galera_ips.append(ip) -%}
 {%- endif -%}
 {%- endfor -%}
@@ -13,9 +13,9 @@
 
 [galera]
 # Mandatory settings
-wsrep_on                 = {{ 'ON' if salt['file.file_exists']('/var/lib/mysql/grastate.dat') else 'OFF' }}
-wsrep_provider           = "/usr/lib/galera/libgalera_smm.so"
-wsrep_provider_options   = "gmcast.listen_addr=tcp://{{ galera_node_address }}:4567;ist.recv_addr={{ galera_node_address }};ist.recv_bind={{ galera_node_address }}"
+wsrep_on                 = ON
+wsrep_provider           = /usr/lib/galera/libgalera_smm.so
+wsrep_provider_options   = gmcast.listen_addr=tcp://{{ galera_node_address }}:4567;ist.recv_addr={{ galera_node_address }};ist.recv_bind={{ galera_node_address }}
 wsrep_cluster_name       = "salt-openstack Galera Cluster"
 wsrep_cluster_address    = gcomm://{{ ','.join(galera_ips) }}
 binlog_format            = row

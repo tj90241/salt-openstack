@@ -83,8 +83,7 @@ def _api_request(url, headers={}, method='GET', data=None):
     Consul itself uses for the node.
     '''
     consul_domain = __pillar__['consul']['site']['domain']
-    consul_host = 'consul.service.{0}'.format(consul_domain)
-    endpoint = 'https://{0}'.format(consul_host)
+    endpoint = 'https://localhost:8501'
 
     headers['Accept'] = 'application/json; charset=utf-8'
     headers['X-Consul-Token'] = __pillar__['consul']['token'].strip()
@@ -98,7 +97,7 @@ def _api_request(url, headers={}, method='GET', data=None):
     request = urllib2.Request(endpoint + url, headers=headers, data=data)
     request.get_method = lambda: method
 
-    consul_https_handler = ConsulHTTPSHandler(consul_host)
+    consul_https_handler = ConsulHTTPSHandler('localhost')
     connection = urllib2.build_opener(consul_https_handler).open(request)
     return json.loads(connection.read().decode('utf-8'))
 
