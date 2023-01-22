@@ -1,22 +1,15 @@
 {# If we already have a grastate file, then we were formerly clustered. #}
 {%- set galera_cluster_exists = salt['file.file_exists']('/var/lib/mysql/grastate.dat') %}
-{%- set bootstrap_galera_cluster = False %}
 
-{# If we have no grastate, leverage Consul to nominate someone to bootstrap. #}
-{# TODO: When rebuilding a node, this logic can potentially become perilous? #}
+{# In the case where we have no grastate, leverage Consul to determine who is bootstrapping. #}
 {%- set session_key = 'service/mysql/cluster' %}
 {%- set sessions = salt['consul.session_list'](node=grains['id']) %}
 {%- set session_uuid = sessions | selectattr('Name', '==', session_key) | list %}
+{%- set session_uuid = salt['consul.session_create'](session_key)['ID']
+                       if session_uuid | length == 0
+                       else session_uuid[0]['ID'] -%}
 
-{%- if session_uuid | length == 0 %}
-{%- set session_uuid = salt['consul.session_create'](session_key)['ID'] -%}
-{%- else %}
-{%- set session_uuid = session_uuid[0]['ID'] -%}
-{%- endif %}
-
-{%- if salt['consul.session_acquire'](session_uuid, session_key) %}
-{%- set bootstrap_galera_cluster = True %}
-{%- endif %}
+{%- set bootstrap_galera_cluster = salt['consul.session_acquire'](session_uuid, session_key) -%}
 manage-mariadb-server:
   pkg.installed:
     - name: mariadb-server
@@ -76,3 +69,36 @@ manage-mariadb-server-override:
     - service.systemctl_reload:
     - onchanges:
       - file: manage-mariadb-server-override
+
+{# Configure the service which provides Galera monitoring and Consul updates. #}
+manage-galera-monitor:
+  pkg.installed:
+    - name: python3-pymysql
+    - refresh: False
+    - version: latest
+
+  file.managed:
+    - name: /usr/local/sbin/galera_monitor.py
+    - source: salt://mariadb-server/galera_monitor.py.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0755
+
+manage-galera-monitor-service:
+  file.managed:
+    - name: /etc/systemd/system/galera-monitor.service
+    - source: salt://mariadb-server/galera-monitor.service
+    - user: root
+    - group: root
+    - mode: 0644
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-galera-monitor-service
+
+  service.running:
+    - name: galera-monitor
+    - enable: True
+    - restart: True

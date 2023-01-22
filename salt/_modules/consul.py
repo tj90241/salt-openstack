@@ -82,9 +82,7 @@ def _api_request(url, headers={}, method='GET', data=None):
     The cacert, cert, and key are assumed to be the same as the defaults that
     Consul itself uses for the node.
     '''
-    consul_domain = __pillar__['consul']['site']['domain']
     endpoint = 'https://localhost:8501'
-
     headers['Accept'] = 'application/json; charset=utf-8'
     headers['X-Consul-Token'] = __pillar__['consul']['token'].strip()
 
@@ -98,7 +96,8 @@ def _api_request(url, headers={}, method='GET', data=None):
     request.get_method = lambda: method
 
     consul_https_handler = ConsulHTTPSHandler('localhost')
-    connection = urllib2.build_opener(consul_https_handler).open(request)
+    connection = urllib2.build_opener(consul_https_handler).open(request,
+                                                                 timeout=10)
     return json.loads(connection.read().decode('utf-8'))
 
 
