@@ -1,3 +1,3 @@
 backend jenkins
 	balance leastconn
-	server-template jenkins {{ max_servers }} _jenkins._tcp.service.consul.stachecki.net resolvers consul ssl verify required ca-file /etc/ssl/certs/ca-certificates.crt
+	server-template jenkins {{ backend.get('max_servers', 1) }} _jenkins._tcp.service.consul.stachecki.net resolvers consul ssl verify required ca-file /etc/ssl/certs/ca-certificates.crt

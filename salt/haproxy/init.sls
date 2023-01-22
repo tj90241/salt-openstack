@@ -97,7 +97,7 @@ manage-haproxy-{{ backend }}-backend:
     - group: haproxy
     - mode: 0644
     - context:
-        max_servers: {{ pillar['haproxy']['backends'][backend].get('max-servers', 1) }}
+        backend: {{ pillar['haproxy']['backends'][backend] }}
     - watch_in:
       - service: manage-haproxy
 {% endif %}

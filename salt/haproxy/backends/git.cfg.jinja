@@ -1,3 +1,3 @@
 backend git
 	balance leastconn
-	server-template git {{ max_servers }} _git._tcp.service.consul.stachecki.net resolvers consul ssl verify required ca-file /etc/ssl/certs/ca-certificates.crt
+	server-template git {{ backend.get('max_servers', 1) }} _git._tcp.service.consul.stachecki.net resolvers consul ssl verify required ca-file /etc/ssl/certs/ca-certificates.crt
