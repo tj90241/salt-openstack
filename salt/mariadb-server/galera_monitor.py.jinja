@@ -18,6 +18,11 @@ import urllib
 from urllib import request as urllib2
 
 
+# TTL to use for failover, in seconds (between 10 and 86400).
+# Session will be renewed everytime the TTL is halfway to expiration.
+CONSUL_TTL = 10
+
+
 # Configure logging
 LOG = logging.getLogger(__name__)
 LOG.setLevel(logging.INFO)
@@ -168,9 +173,10 @@ def consul_update_thread(thread_stop_request):
             session_key = "service/mysql/cluster"
             session_list_url = "/v1/session/node/{{ grains.id }}"
             sessions, _ =  make_consul_request(opener, session_list_url)
-            mysql_session, found_session = None, False
 
             # Search for an existing MySQL session, get its UUID...
+            mysql_session, found_session = None, False
+
             if isinstance(sessions, list):
                 for session in sessions:
                     if isinstance(session, dict):
@@ -179,14 +185,22 @@ def consul_update_thread(thread_stop_request):
                             found_session = isinstance(mysql_session, str)
                             break
 
+                # Ensure that the session has the correct TTL
+                if found_session and session.get("TTL") != f"{CONSUL_TTL}s":
+                    LOG.info("Deleting session with incorrect TTL")
+
+                    session_url = f"/v1/session/destroy/{mysql_session}"
+                    make_consul_request(opener, session_url, method="PUT")
+                    found_session = False
+
             # Else, if no session exists, create a new session...
             if not found_session:
+                session = {"Name": session_key, "TTL": f"{CONSUL_TTL}s"}
                 session, _ = make_consul_request(opener, "/v1/session/create",
-                                                data={"Name": session_key},
-                                                method="PUT")
+                                                 data=session, method="PUT")
 
                 if not isinstance(session, dict) \
-                        or not isinstance(session.get('ID'), str):
+                        or not isinstance(session.get("ID"), str):
                     LOG.error("consul-status-thread: New session has no ID?")
                     time.sleep(1)
                     continue
@@ -198,104 +212,118 @@ def consul_update_thread(thread_stop_request):
             # Determine if the database is healthy or not:
             # If it is, acquire the session. Otherwise, release it.
             action = "acquire" if galera_sync_check()[0] else "release"
-            session_url = f"/v1/kv/{session_key}?{action}={mysql_session}"
-            node = {"node": "{{ grains.id }}" }
-            leader, headers = make_consul_request(opener, session_url,
-                                                  method="PUT", data=node)
+            acq_session_url = f"/v1/kv/{session_key}?{action}={mysql_session}"
+            node = {"node": "{{ grains.id }}"}
 
             # If the database is not in a healthy state, we released the
             # session and should now spin until it becomes healthy. Only when
             # it does should we again attempt to contact Consul.
             if action == "release":
                 LOG.debug("consul-status-thread: Wait for database health")
+                _, _ = make_consul_request(opener, acq_session_url,
+                                           method="PUT")
+
+                # Sleep for a bit longer than usual as to not bounce sessions.
+                # TODO: Spin above for database health.
+                time.sleep(CONSUL_TTL)
+                continue
+
+            session_renew_url = f"/v1/session/renew/{mysql_session}"
+            session_url = f"/v1/kv/{session_key}"
+            half_ttl = CONSUL_TTL / 2
+
+            # Maintain the session and monitor for changes as long as the
+            # database continues to remain in a healthy state.
+            try:
+                _, connection = galera_sync_check(reuse_connection=True)
+                leader = False
 
                 while not thread_stop_request.is_set() and \
-                        not galera_sync_check()[0]:
-                    time.sleep(1)
+                        galera_sync_check(connection=connection,
+                                          reuse_connection=True)[0]:
 
-                if thread_stop_request.is_set():
-                    break
+                    # Maintain the session (renew if TTL > TTL / 2). If we are
+                    # the leader, we check each loop. But the watchers can
+                    # assume a check is needed as they sleep for TTL / 2 below.
+                    expiring = leader is False
 
-                LOG.info("consul-status-thread: Database becomes healthy")
-                continue
+                    if leader is True:
+                        current_time = time.monotonic()
 
-            # If the database is healthy and we are leading, monitor the
-            # database and report back to Consul only when we fail.
-            elif leader is True:
-                LOG.info("consul-status-thread: I am becoming the leader")
+                        if (current_time - last_time) > half_ttl:
+                            last_time = current_time
+                            expiring = True
 
-                # Reuse the connection in a tighter loop for rapid failure
-                # detection as we are effectively leader, now.
-                try:
-                    _, connection = galera_sync_check(reuse_connection=True)
+                    if expiring is True:
+                        LOG.debug("Renewing session TTL now...")
+                        make_consul_request(opener, session_renew_url,
+                                            method="PUT")
 
-                    while not thread_stop_request.is_set() and \
-                            galera_sync_check(connection=connection,
-                                              reuse_connection=True)[0]:
+                    # If we are the leader, sleep just a bit to not burn CPU.
+                    if leader is True:
                         time.sleep(0.1)
-
-                    connection.close()
-
-                except pymysql.Error:
-                    pass
-
-                # We are exiting or became unhealthy: update Consul.
-                session_url = f"/v1/kv/{session_key}?release={mysql_session}"
-                make_consul_request(opener, session_url, method="PUT")
-
-                if thread_stop_request.is_set():
-                    break
-
-                LOG.warning("consul-status-thread: Database becomes unhealthy")
-                continue
-
-            # Someone else is the leader. We just want to monitor the session
-            # to see if and when the session is released.
-            else:
-                session_url = f"/v1/kv/{session_key}"
-                _, headers = make_consul_request(opener, session_url)
-
-                try:
-                    index = int(headers['X-Consul-Index'])
-                    session_url = f"{session_url}?index={index}"
-
-                    if index <= 0:
-                        LOG.error("consul-status-thread: Index check failed")
-                        time.sleep(1)
                         continue
 
-                except (KeyError, TypeError, ValueError):
-                    LOG.error("consul-status-thread: Index is malformed")
-                    time.sleep(1)
-                    continue
+                    # Not the leader: try acquiring the session before backoff.
+                    leader, _ = make_consul_request(opener, acq_session_url,
+                                                    method="PUT", data=node)
 
-                # Poll for writes to the key very slowly.
-                LOG.info("Awaiting the leader to change...")
+                    if leader is True:
+                        LOG.info("consul-status-thread: Becoming the leader")
+                        last_time = time.monotonic()
+                        continue
 
-                while headers.get('X-Consul-Index') == str(index):
+                    # Could not become the leader: watch the session instead.
+                    _, headers = make_consul_request(opener, session_url)
+
                     try:
-                        _, headers = make_consul_request(opener, session_url,
-                                                         timeout=60)
-                        LOG.debug("Observed a write to the session")
-                        break
+                        index = int(headers["X-Consul-Index"])
+                        session_poll_url = f"{session_url}?index={index}"
+
+                        if index <= 0:
+                            LOG.error("consul-status-thread: Index check fail")
+                            time.sleep(half_ttl)
+                            continue
+
+                        _, headers = make_consul_request(opener,
+                                                         session_poll_url,
+                                                         timeout=half_ttl)
+
+                    except (KeyError, TypeError, ValueError):
+                        LOG.error("consul-status-thread: Index is malformed")
+                        time.sleep(half_ttl)
+                        continue
 
                     except socket.timeout:
                         pass
 
-                    if thread_stop_request.is_set():
-                        break
+            except pymysql.Error:
+                LOG.warning("consul-status-thread: Database error observed")
+
+            # We are exiting or became unhealthy: update Consul.
+            session_url = f"/v1/kv/{session_key}?release={mysql_session}"
+            make_consul_request(opener, session_url, method="PUT")
+
+            # We observed a database error while polling. Ensure the connection
+            # handle kept open in the inner loop is released.
+            try:
+                connection.close()
+                connection = None
+
+            except pymysql.Error:
+                pass
 
         except urllib.error.HTTPError as error:
             prelude = f"consul-status-thread: HTTPError ({error.code})"
             LOG.error(f"{prelude}: {error.reason}")
+            time.sleep(1)
 
         except urllib.error.URLError as error:
             LOG.error(f"consul-status-thread: URLError: {error.reason}")
+            time.sleep(1)
 
         except socket.timeout:
             LOG.error("consul-status-thread: Unexpected API timeout")
-
-        time.sleep(1)
 
 
 if __name__ == "__main__":

@@ -102,3 +102,5 @@ manage-galera-monitor-service:
     - name: galera-monitor
     - enable: True
     - restart: True
+    - onchanges:
+      - file: manage-galera-monitor-service
