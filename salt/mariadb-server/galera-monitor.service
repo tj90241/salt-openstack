@@ -7,3 +7,6 @@ After=consul.service mariadb.service time-sync.target
 ExecStart=/usr/local/sbin/galera_monitor.py
 KillSignal=SIGINT
 TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target
