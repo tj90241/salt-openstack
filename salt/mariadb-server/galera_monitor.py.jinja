@@ -261,7 +261,7 @@ def consul_update_thread(thread_stop_request):
 
                     # If we are the leader, sleep just a bit to not burn CPU.
                     if leader is True:
-                        time.sleep(0.1)
+                        time.sleep(0.25)
                         continue
 
                     # Not the leader: try acquiring the session before backoff.
