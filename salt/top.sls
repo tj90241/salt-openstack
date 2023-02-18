@@ -191,6 +191,7 @@ base:
 
   jenkins-nodes:
     - match: nodegroup
+    - apparmor
     - default-jre
     - devscripts
     - docker
