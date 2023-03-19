@@ -108,6 +108,38 @@ def make_consul_request(opener, url, headers={}, method="GET",
     return json.loads(connection.read().decode("utf-8")), connection.headers
 
 
+def galera_service_definition(leader=False):
+    """
+    Returns a Consul service definition for MySQL.
+    """
+    return {
+        "Node": "{{ grains.id }}",
+        "Address": "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' and pillar.get('ifupdown', {}).get('managed', True) else grains['mgmt_interface']][0] }}",
+        "Service": {
+            "ID": "mysql:{{ grains.id }}.node.{{ domain }}",
+            "Service": "mysql",
+            "Tags": ["primary"] if leader is True else [],
+            #"Address": "{{ grains.id }}.node.{{ domain }}",
+            "Address": "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' and pillar.get('ifupdown', {}).get('managed', True) else grains['mgmt_interface']][0] }}",
+            "Port": 3306,
+        }
+    }
+
+
+def galera_service_dereg_definition(node=None, service_id=None):
+    """
+    Returns a Consul service (deregistration) definition>
+    """
+    if node is None or service_id is None:
+        node = "{{ grains.id }}"
+        service_id = "mysql:{{ grains.id }}.node.{{ domain }}"
+
+    return {
+        "Node": node,
+        "ServiceID": service_id,
+    }
+
+
 def galera_sync_check(connection=None, reuse_connection=False):
     """
     Function which attempts to connect to the Galera cluster via the local
@@ -165,11 +197,21 @@ def consul_update_thread(thread_stop_request):
     ensures that the session for MySQl in Consul remains coherent with
     respect to the synchronization status of the local instance.
     """
-    while not thread_stop_request.is_set():
-        consul_https_handler = ConsulHTTPSHandler("localhost")
-        opener = urllib2.build_opener(consul_https_handler)
+    service_nodes_url = "/v1/catalog/service/mysql"
+    service_deregister_url = "/v1/catalog/deregister"
+    service_register_url = "/v1/catalog/register"
 
+    while not thread_stop_request.is_set():
         try:
+            consul_https_handler = ConsulHTTPSHandler("localhost")
+            opener = urllib2.build_opener(consul_https_handler)
+
+            # Starting or unhealthy: ensure we are not registered yet.
+            # We can register once we're in a known-good state (again?)
+            make_consul_request(opener, service_deregister_url,
+                                data=galera_service_dereg_definition(),
+                                method="PUT")
+
             session_key = "service/mysql/cluster"
             session_list_url = "/v1/session/node/{{ grains.id }}"
             sessions, _ =  make_consul_request(opener, session_list_url)
@@ -269,8 +311,36 @@ def consul_update_thread(thread_stop_request):
                                                     method="PUT", data=node)
 
                     if leader is True:
+                        results, _ = make_consul_request(opener,
+                                                         service_nodes_url)
+
+                        # Previous leader(s) may have failed; don't assume that
+                        # they deregistered themselves, and do it ourselves.
+                        for node in results:
+                            continue
+                            if "leader" in node.get("ServiceTags", []):
+                                if node["Node"] == "{{ grains.id }}":
+                                    continue
+
+                                node, sid = node["Node"], node["ServiceID"]
+                                data = galera_service_dereg_definition(node,
+                                                                       sid)
+
+                                make_consul_request(opener,
+                                                    service_deregister_url,
+                                                    data=data, method="PUT")
+
                         LOG.info("consul-status-thread: Becoming the leader")
                         last_time = time.monotonic()
+
+                    # Once all former leaders are deregistered, if any and we
+                    # should have deregistered them, register ourselves.
+                    data = galera_service_definition(leader=leader)
+                    make_consul_request(opener, service_register_url,
+                                        data=data, method="PUT")
+
+                    if leader is True:
+                        LOG.info("consul-status-thread: Became the leader")
                         continue
 
                     # Could not become the leader: watch the session instead.
@@ -324,6 +394,16 @@ def consul_update_thread(thread_stop_request):
 
         except socket.timeout:
             LOG.error("consul-status-thread: Unexpected API timeout")
+
+    # Exiting... try to unregister.
+    try:
+        consul_https_handler = ConsulHTTPSHandler("localhost")
+        opener = urllib2.build_opener(consul_https_handler)
+        make_consul_request(opener, service_deregister_url,
+                            data=galera_service_dereg_definition(),
+                            method="PUT")
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
