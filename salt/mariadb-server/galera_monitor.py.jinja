@@ -3,6 +3,8 @@
 {%- set role = 'server' if grains.fqdn in consul_site['server_fqdns'] else 'client' -%}
 #!/usr/bin/env python3
 
+import base64
+import binascii
 import http.client as httplib
 import http.server
 import json
@@ -105,7 +107,23 @@ def make_consul_request(opener, url, headers={}, method="GET",
     request.get_method = lambda: method
 
     connection = opener.open(request, timeout=timeout)
-    return json.loads(connection.read().decode("utf-8")), connection.headers
+
+    # We asked for JSON, but sometimes we get an empty response anyways.
+    # This happens with, e.g., the agent service deregistration endpoint.
+    content_type = connection.headers.get('Content-Type', '')
+
+    if not content_type.startswith('application/json'):
+        return {}, connection.headers
+
+    # Try decoding the response as JSON, or leave a friendly log message.
+    body = connection.read().decode("utf-8")
+
+    try:
+        return json.loads(body), connection.headers
+
+    except json.decoder.JSONDecodeError:
+        reason = f"Received non-JSON response from Consul for URL: {url}"
+        raise urllib.error.URLError(reason=reason)
 
 
 def galera_service_definition(leader=False):
@@ -113,30 +131,12 @@ def galera_service_definition(leader=False):
     Returns a Consul service definition for MySQL.
     """
     return {
-        "Node": "{{ grains.id }}",
+        "ID": "mysql-{{ grains.id }}",
+        "Name": "mysql",
+        "Tags": ["primary"] if leader is True else [],
+        #"Address": "{{ grains.id }}.node.{{ domain }}",
         "Address": "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' and pillar.get('ifupdown', {}).get('managed', True) else grains['mgmt_interface']][0] }}",
-        "Service": {
-            "ID": "mysql:{{ grains.id }}.node.{{ domain }}",
-            "Service": "mysql",
-            "Tags": ["primary"] if leader is True else [],
-            #"Address": "{{ grains.id }}.node.{{ domain }}",
-            "Address": "{{ grains['ip4_interfaces']['vrf-mgmt' if grains.get('virtual', 'virtual') == 'physical' and pillar.get('ifupdown', {}).get('managed', True) else grains['mgmt_interface']][0] }}",
-            "Port": 3306,
-        }
-    }
-
-
-def galera_service_dereg_definition(node=None, service_id=None):
-    """
-    Returns a Consul service (deregistration) definition>
-    """
-    if node is None or service_id is None:
-        node = "{{ grains.id }}"
-        service_id = "mysql:{{ grains.id }}.node.{{ domain }}"
-
-    return {
-        "Node": node,
-        "ServiceID": service_id,
+        "Port": 3306,
     }
 
 
@@ -197,9 +197,15 @@ def consul_update_thread(thread_stop_request):
     ensures that the session for MySQl in Consul remains coherent with
     respect to the synchronization status of the local instance.
     """
-    service_nodes_url = "/v1/catalog/service/mysql"
-    service_deregister_url = "/v1/catalog/deregister"
-    service_register_url = "/v1/catalog/register"
+    thread_name = "consul-status-thread"
+    session_key = "service/mysql/cluster"
+
+    kv_read_url = "/v1/kv/service/mysql/cluster"
+    service_deregister_url = "/v1/agent/service/deregister/mysql-{{ grains.id }}"
+    service_read_url = "/v1/agent/service/mysql-{{ grains.id }}"
+    service_register_url = "/v1/agent/service/register"
+    session_create_url = "/v1/session/create"
+    session_list_url = "/v1/session/node/{{ grains.id }}"
 
     while not thread_stop_request.is_set():
         try:
@@ -208,15 +214,16 @@ def consul_update_thread(thread_stop_request):
 
             # Starting or unhealthy: ensure we are not registered yet.
             # We can register once we're in a known-good state (again?)
-            make_consul_request(opener, service_deregister_url,
-                                data=galera_service_dereg_definition(),
-                                method="PUT")
+            try:
+                make_consul_request(opener, service_deregister_url,
+                                    method="PUT")
 
-            session_key = "service/mysql/cluster"
-            session_list_url = "/v1/session/node/{{ grains.id }}"
-            sessions, _ =  make_consul_request(opener, session_list_url)
+            except urllib.error.HTTPError as error:
+                if error.code != 404:
+                    raise
 
             # Search for an existing MySQL session, get its UUID...
+            sessions, _ =  make_consul_request(opener, session_list_url)
             mysql_session, found_session = None, False
 
             if isinstance(sessions, list):
@@ -228,8 +235,12 @@ def consul_update_thread(thread_stop_request):
                             break
 
                 # Ensure that the session has the correct TTL
-                if found_session and session.get("TTL") != f"{CONSUL_TTL}s":
-                    LOG.info("Deleting session with incorrect TTL")
+                if found_session:
+                    bad_ttl = session.get("TTL") != f"{CONSUL_TTL}s"
+                    bad_ld = not (session.get("LockDelay") in ["0s", 0])
+
+                    if bad_ttl or bad_ld:
+                        LOG.info("Deleting session with incorrect config")
 
                     session_url = f"/v1/session/destroy/{mysql_session}"
                     make_consul_request(opener, session_url, method="PUT")
@@ -237,19 +248,24 @@ def consul_update_thread(thread_stop_request):
 
             # Else, if no session exists, create a new session...
             if not found_session:
-                session = {"Name": session_key, "TTL": f"{CONSUL_TTL}s"}
-                session, _ = make_consul_request(opener, "/v1/session/create",
+                session = {
+                    "Name": session_key,
+                    "LockDelay": "0s",
+                    "TTL": f"{CONSUL_TTL}s"
+                }
+
+                session, _ = make_consul_request(opener, session_create_url,
                                                  data=session, method="PUT")
 
                 if not isinstance(session, dict) \
                         or not isinstance(session.get("ID"), str):
-                    LOG.error("consul-status-thread: New session has no ID?")
+                    LOG.error(f"{thread_name}: New session has no ID?")
                     time.sleep(1)
                     continue
 
                 mysql_session = session["ID"]
 
-            LOG.debug(f"consul-status-thread: Using session: {mysql_session}")
+            LOG.debug(f"{thread_name}: Using session: {mysql_session}")
 
             # Determine if the database is healthy or not:
             # If it is, acquire the session. Otherwise, release it.
@@ -261,7 +277,7 @@ def consul_update_thread(thread_stop_request):
             # session and should now spin until it becomes healthy. Only when
             # it does should we again attempt to contact Consul.
             if action == "release":
-                LOG.debug("consul-status-thread: Wait for database health")
+                LOG.debug(f"{thread_name}: Wait for database health")
                 _, _ = make_consul_request(opener, acq_session_url,
                                            method="PUT")
 
@@ -296,52 +312,88 @@ def consul_update_thread(thread_stop_request):
                             last_time = current_time
                             expiring = True
 
+                        # Not about to TTL now; sleep a bit to not burn CPU.
+                        else:
+                            time.sleep(0.25)
+                            continue
+
                     if expiring is True:
                         LOG.debug("Renewing session TTL now...")
                         make_consul_request(opener, session_renew_url,
                                             method="PUT")
 
+                    # If we are the leader, ensure that the kv is still ours.
+                    if expiring is True and leader is True:
+                        kv, _ =  make_consul_request(opener, kv_read_url)
+
+                        if not isinstance(kv, list) or len(kv) != 1:
+                            LOG.error("MySQL kv type is not a list of size 1?")
+                            break
+
+                        kv = kv[0]
+
+                        if kv["Session"] != mysql_session:
+                            LOG.error("Self-observed unexpected loss of lock")
+                            break
+
+                        try:
+                            value = json.loads(base64.b64decode(kv["Value"]))
+
+                            if not isinstance(value, dict):
+                                LOG.error("MySQL kv value is a dictionary?")
+                                break
+
+                        except (binascii.Error, json.decoder.JSONDecodeError):
+                            LOG.error("MySQL kv is not base64 JSON-encoded?")
+                            break
+
+                        if value.get("node") != "{{ grains.id }}":
+                            LOG.error("Session owned by us, but node not us?")
+                            break
+
+                    # Not the leader: try acquiring the session before backoff.
+                    elif leader is False:
+                        check, _ = make_consul_request(opener, acq_session_url,
+                                                       method="PUT", data=node)
+
+                        if not isinstance(check, bool):
+                            LOG.error("Session lock attempt not true/false?")
+                            break
+
+                        leader = check
+
+                        if leader is True:
+                            LOG.info(f"{thread_name}: Becoming the leader")
+                            last_time = time.monotonic()
+
+                    # Ensure that our service exists and is tagged correctly.
+                    need_update = True
+
+                    try:
+                        svc, _ = make_consul_request(opener, service_read_url)
+
+                        if not isinstance(svc, dict):
+                            LOG.error("Service return is not a dictionary?")
+                            break
+
+                        tags = svc.get("Tags", [])
+                        need_update = tags != (["primary"] if leader else [])
+
+                    except urllib.error.HTTPError as error:
+                        if error.code != 404:
+                            raise
+
+                    if need_update is True:
+                        LOG.info(f"Updating service record: leader={leader}")
+                        data = galera_service_definition(leader=leader)
+                        make_consul_request(opener, service_register_url,
+                                            data=data, method="PUT")
+
                     # If we are the leader, sleep just a bit to not burn CPU.
                     if leader is True:
                         time.sleep(0.25)
                         continue
-
-                    # Not the leader: try acquiring the session before backoff.
-                    leader, _ = make_consul_request(opener, acq_session_url,
-                                                    method="PUT", data=node)
-
-                    if leader is True:
-                        results, _ = make_consul_request(opener,
-                                                         service_nodes_url)
-
-                        # Previous leader(s) may have failed; don't assume that
-                        # they deregistered themselves, and do it ourselves.
-                        for node in results:
-                            if "leader" in node.get("ServiceTags", []):
-                                if node["Node"] == "{{ grains.id }}":
-                                    continue
-
-                                node, sid = node["Node"], node["ServiceID"]
-                                data = galera_service_dereg_definition(node,
-                                                                       sid)
-
-                                make_consul_request(opener,
-                                                    service_deregister_url,
-                                                    data=data, method="PUT")
-
-                        LOG.info("consul-status-thread: Becoming the leader")
-                        last_time = time.monotonic()
-
-                    # Once all former leaders are deregistered, if any and we
-                    # should have deregistered them, register ourselves.
-                    data = galera_service_definition(leader=leader)
-                    make_consul_request(opener, service_register_url,
-                                        data=data, method="PUT")
-
-                    if leader is True:
-                        LOG.info("consul-status-thread: Became the leader")
-                        continue
-
+                    
                     # Could not become the leader: watch the session instead.
                     _, headers = make_consul_request(opener, session_url)
 
@@ -350,7 +402,7 @@ def consul_update_thread(thread_stop_request):
                         session_poll_url = f"{session_url}?index={index}"
 
                         if index <= 0:
-                            LOG.error("consul-status-thread: Index check fail")
+                            LOG.error(f"{thread_name}: Index check fail")
                             time.sleep(half_ttl)
                             continue
 
@@ -359,7 +411,7 @@ def consul_update_thread(thread_stop_request):
                                                          timeout=half_ttl)
 
                     except (KeyError, TypeError, ValueError):
-                        LOG.error("consul-status-thread: Index is malformed")
+                        LOG.error(f"{thread_name}: Index is malformed")
                         time.sleep(half_ttl)
                         continue
 
@@ -367,7 +419,7 @@ def consul_update_thread(thread_stop_request):
                         pass
 
             except pymysql.Error:
-                LOG.warning("consul-status-thread: Database error observed")
+                LOG.warning(f"{thread_name}: Database error observed")
 
             # We are exiting or became unhealthy: update Consul.
             session_url = f"/v1/kv/{session_key}?release={mysql_session}"
@@ -383,23 +435,22 @@ def consul_update_thread(thread_stop_request):
                 pass
 
         except urllib.error.HTTPError as error:
-            prelude = f"consul-status-thread: HTTPError ({error.code})"
+            prelude = f"{thread_name}: HTTPError ({error.code})"
             LOG.error(f"{prelude}: {error.reason}")
             time.sleep(1)
 
         except urllib.error.URLError as error:
-            LOG.error(f"consul-status-thread: URLError: {error.reason}")
+            LOG.error(f"{thread_name}: URLError: {error.reason}")
             time.sleep(1)
 
         except socket.timeout:
-            LOG.error("consul-status-thread: Unexpected API timeout")
+            LOG.error(f"{thread_name}: Unexpected API timeout")
 
     # Exiting... try to unregister.
     try:
         consul_https_handler = ConsulHTTPSHandler("localhost")
         opener = urllib2.build_opener(consul_https_handler)
         make_consul_request(opener, service_deregister_url,
-                            data=galera_service_dereg_definition(),
                             method="PUT")
     except Exception:
         pass
