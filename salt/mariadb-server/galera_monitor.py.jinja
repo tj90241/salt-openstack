@@ -323,7 +323,7 @@ def consul_update_thread(thread_stop_request):
                                             method="PUT")
 
                     # If we are the leader, ensure that the kv is still ours.
-                    if expiring is True and leader is True:
+                    if leader is True:
                         kv, _ =  make_consul_request(opener, kv_read_url)
 
                         if not isinstance(kv, list) or len(kv) != 1:
@@ -352,7 +352,7 @@ def consul_update_thread(thread_stop_request):
                             break
 
                     # Not the leader: try acquiring the session before backoff.
-                    elif leader is False:
+                    else:
                         check, _ = make_consul_request(opener, acq_session_url,
                                                        method="PUT", data=node)
 
@@ -429,10 +429,11 @@ def consul_update_thread(thread_stop_request):
             # handle kept open in the inner loop is released.
             try:
                 connection.close()
-                connection = None
 
             except pymysql.Error:
                 pass
+
+            connection = None
 
         except urllib.error.HTTPError as error:
             prelude = f"{thread_name}: HTTPError ({error.code})"
