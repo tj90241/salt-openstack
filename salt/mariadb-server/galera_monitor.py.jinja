@@ -317,7 +317,6 @@ def consul_update_thread(thread_stop_request):
                         # Previous leader(s) may have failed; don't assume that
                         # they deregistered themselves, and do it ourselves.
                         for node in results:
-                            continue
                             if "leader" in node.get("ServiceTags", []):
                                 if node["Node"] == "{{ grains.id }}":
                                     continue
