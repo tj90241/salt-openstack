@@ -43,12 +43,8 @@ class JenkinsInterface(object):
         self.__https_handler = urllib2.HTTPSHandler(context=ctx)
 
         # Determine endpoint.
-        if endpoint is None:
-            if __pillar__.get('jenkins', {}).get('url') is None:
-                self.__endpoint = __grains__['fqdn']
-
-            else:
-                self.__endpoint = __pillar__['jenkins']['url']
+        dom = __pillar__['consul']['site']['domain']
+        self.__endpoint = 'https://jenkins.service.{}:8080/jenkins'.format(dom)
 
         # Determine user.
         if username is None:
@@ -89,7 +85,7 @@ class JenkinsInterface(object):
             raw_response = connection.read().decode('utf-8')
             headers = dict(connection.getheaders())
 
-            if headers.get('content-type', '').startswith('application/json'):
+            if headers.get('Content-Type', '').startswith('application/json'):
                 return json.loads(raw_response)
 
             return raw_response
