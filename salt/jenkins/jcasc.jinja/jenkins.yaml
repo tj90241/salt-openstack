@@ -29,3 +29,13 @@ unclassified:
     adminAddress: "{{ jenkins['admin_email'] }}"
 {%- endif %}
     url: "{{ grains.fqdn if 'url' not in jenkins else jenkins['url'] }}"
+{%- if jenkins.get('libraries', {}) | length > 0 %}
+
+  globalLibraries:
+    libraries:
+{%- for library, config in jenkins['libraries'].items() %}
+      - name: {{ library }}
+        defaultVersion: {{ config['defaultVersion'] }}
+        retriever: {{ config['retriever'] }}
+{%- endfor %}
+{%- endif %}

@@ -1,12 +1,19 @@
 jenkins:
   nodes:
-{%- for agent in pillar['jenkins']['agents'] %}
-{%- set labels = [] if not pillar['jenkins']['agents'] is mapping else pillar['jenkins']['agents'][agent].get('labels', []) %}
+{%- set agents = pillar.get('jenkins', {}).get('agents', {}) %}
+{%- for agent in agents %}
+{%- if agents is mapping %}
+{%- set executors = agents.get(agent, {}).get('executors', 1) %}
+{%- set labels = agents.get(agent, {}).get('labels', []) %}
+{%- else %}
+{%- set executors = 1 %}
+{%- set labels = [] %}
+{%- endif %}
     - permanent:
         labelString: "{{ ' '.join(labels) }}"
         mode: NORMAL
         name: "{{ agent }}"
-        numExecutors: {{ grains.num_cpus // 2 }}
+        numExecutors: {{ executors }}
         remoteFS: "{{ pillar['jenkins']['remote_dir'] }}"
         launcher:
           ssh:
