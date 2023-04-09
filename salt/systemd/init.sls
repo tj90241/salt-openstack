@@ -16,3 +16,19 @@ manage-{{ slice }}-slice:
 reload-for-systemd-changes:
   module.run:
     - service.systemctl_reload:
+
+manage-watchdog:
+  file.managed:
+    - name: /etc/systemd/system.conf.d/watchdog.conf
+    - source: salt://systemd/watchdog.conf.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+    - dir_mode: 0755
+    - makedirs: True
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-watchdog
