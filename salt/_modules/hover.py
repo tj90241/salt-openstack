@@ -8,12 +8,12 @@ import ssl
 
 # py2/py3 compatibility
 try:
-    from cookielib import CookieJar
+    from cookielib import Cookie, CookieJar
     import urllib
     import urllib2
 
 except ImportError:
-    from http.cookiejar import CookieJar
+    from http.cookiejar import Cookie, CookieJar
     from urllib import request as urllib2
     from urllib import parse as urllib
 
@@ -35,7 +35,7 @@ class HoverInterface(object):
         request.get_method = lambda: method
         return self.__opener.open(request)
 
-    def __init__(self, username, password):
+    def __init__(self, user_id, session_token, auth_token):
         '''
         Authenticate with the endpoint, get us some cookies.
         '''
@@ -47,13 +47,49 @@ class HoverInterface(object):
         https_handler = urllib2.HTTPSHandler(context=ctx)
 
         self.__endpoint = 'https://www.hover.com/api'
-        cookie_handler = urllib2.HTTPCookieProcessor(CookieJar())
+
+        # Hover's API now requires MFA logins (it did not formerly).
+        # You must acquire a user ID, session token, and auth token from
+        # browser after completing a MFA login. Those are then used here.
+        cookie_jar = CookieJar()
+        cookie_handler = urllib2.HTTPCookieProcessor(cookie_jar)
         self.__opener = urllib2.build_opener(https_handler, cookie_handler)
 
-        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-        data = {'username': username, 'password': password}
-        response = self.call('/login', headers=headers, method='POST',
-                             data=urllib.urlencode(data).encode())
+        # The user ID cookie actually has an expiration date, but somehow
+        # getting that value into here is a future exercise.
+        common_cookie_params = {
+            'version': 0,
+            'port': None,
+            'port_specified': False,
+            'domain_specified': True,
+            'path': '/',
+            'path_specified': True,
+            'secure': False,
+            'expires': None,
+            'discard': False,
+            'comment_url': None,
+        }
+
+        user_id_c = Cookie(name='__zlcmid', value=user_id, domain=".hover.com",
+                           domain_initial_dot=True, comment="Hover User ID",
+                           rest={"HostOnly": False, "HttpOnly": False},
+                           **common_cookie_params)
+
+        session_c = Cookie(name='hover_session', value=session_token,
+                           domain="www.hover.com", domain_initial_dot=False,
+                           comment="Hover Session Token",
+                           rest={"HostOnly": True, "HttpOnly": True},
+                           **common_cookie_params)
+
+        auth_c = Cookie(name='hoverauth', value=auth_token,
+                        domain="www.hover.com", domain_initial_dot=False,
+                        comment="Hover Authentication Token",
+                        rest={"HostOnly": True, "HttpOnly": False},
+                        **common_cookie_params)
+
+        cookie_jar.set_cookie(user_id_c)
+        cookie_jar.set_cookie(session_c)
+        cookie_jar.set_cookie(auth_c)
 
     def call(self, uri, headers={}, method='GET', data=None):
         '''
@@ -90,8 +126,9 @@ def get_records(domain, hover=None):
     '''
     if hover is None:
         credentials = __pillar__['hover'][domain]
-        hover = HoverInterface(credentials['username'],
-                               credentials['password'])
+        hover = HoverInterface(credentials['user_id'],
+                               credentials['session_token'],
+                               credentials['auth_token'])
 
     domains = hover.call('/dns', method='GET').get('domains', [])
     filtered = [x for x in domains if x['domain_name'] == domain]
@@ -108,7 +145,9 @@ def put_a_aaaa_records(domain, ip_address, record_type, hostname=''):
     Updates the A record(s) with the specified IP address.
     '''
     credentials = __pillar__['hover'][domain]
-    hover = HoverInterface(credentials['username'], credentials['password'])
+    hover = HoverInterface(credentials['user_id'],
+                           credentials['session_token'],
+                           credentials['auth_token'])
     entries = get_records(domain, hover=hover).get('entries', [])
 
     record_type = record_type.lower().strip()
@@ -136,7 +175,9 @@ def put_acme_challenge(domain, challenge, host=None):
     Updates the _acme-challenge TXT record with the specified challenge string.
     '''
     credentials = __pillar__['hover'][domain]
-    hover = HoverInterface(credentials['username'], credentials['password'])
+    hover = HoverInterface(credentials['user_id'],
+                           credentials['session_token'],
+                           credentials['auth_token'])
     entries = get_records(domain, hover=hover).get('entries', [])
 
     record = '_acme-challenge'
