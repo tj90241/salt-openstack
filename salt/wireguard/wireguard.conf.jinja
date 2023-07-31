@@ -1,0 +1,11 @@
+[Interface]
+ListenPort = 51820
+{%- if 'private_key' in pillar.get('wireguard', {}) %}
+PrivateKey = {{ pillar['wireguard']['private_key'] }}
+{%- endif %}
+{%- for peer in pillar.get('wireguard', {}).get('peers', []) %}
+
+[Peer]
+PublicKey = {{ peer['public_key'] }}
+AllowedIPs = {{ peer['allowed_ips'] }}
+{%- endfor %}

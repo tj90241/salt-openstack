@@ -36,8 +36,10 @@ Thumbs.db
 /pillar/consul/tokens.sls
 /pillar/docker/registry.sls
 /pillar/devpi/root.sls
+/pillar/hostapd/hosts/
 /pillar/jenkins/credentials/
 /pillar/openstack/devpi/user.sls
 /pillar/rabbitmq-server/cookie.sls
 /pillar/salt/hosts/
+/pillar/wireguard/hosts/
 /private/

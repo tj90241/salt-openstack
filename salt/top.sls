@@ -116,6 +116,7 @@ base:
     - udev
     - unzip
     - vim
+    - wireguard
     - xz-utils
     - zip
     - apt.autoremove

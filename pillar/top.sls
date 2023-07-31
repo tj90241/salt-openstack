@@ -122,3 +122,4 @@ base:
     - tftpd-hpa.hosts.{{ grains.id }}
     - udev.hosts.{{ grains.id }}
     - virty.hosts.{{ grains.id }}
+    - wireguard.hosts.{{ grains.id }}
