@@ -11,3 +11,11 @@ manage-wireguard:
     - user: root
     - group: root
     - mode: 0640
+
+manage-wireguard-module:
+  file.managed:
+    - name: /etc/modprobe.d/wireguard.conf
+    - source: salt://wireguard/module.conf
+    - user: root
+    - group: root
+    - mode: 0640
