@@ -1,0 +1,10 @@
+[Service]
+Slice=ceph.slice
+
+[Unit]
+After=
+Before=
+Wants=
+After=network-online.target local-fs.target openvswitch-switch.service time-sync.target
+Before=ceph-mgr.target
+Wants=network-online.target local-fs.target openvswitch-switch.service time-sync.target ceph-mgr.target

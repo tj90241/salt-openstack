@@ -61,6 +61,7 @@ base:
     - arping
     - bash-completion
     - bpfcc-tools
+    - ceph
     - cloud-init
     - curl
 {% if pillar.get('dpdk', {}).get('enabled', False) %}
@@ -161,6 +162,22 @@ base:
     - reprepro.gpg
     - reprepro
     - apt.server
+
+  ceph-mgrs:
+    - match: nodegroup
+    - ceph.mgr
+
+  ceph-mons:
+    - match: nodegroup
+    - ceph.mon
+
+  ceph-osds:
+    - match: nodegroup
+    - ceph.osd
+
+  ceph-rgws:
+    - match: nodegroup
+    - ceph.radosgw
 
   databases:
     - match: nodegroup
