@@ -3,6 +3,20 @@
 # salt-openstack overrides for mkinitramfs(8). See initramfs.conf(5).
 
 #
+# MODULES: [ most | netboot | dep | list ]
+#
+# most - Add most filesystem and all harddrive drivers.
+#
+# dep - Try and guess which modules to load.
+#
+# netboot - Add the base modules, network modules, but skip block devices.
+#
+# list - Only include modules from the 'additional modules' list
+#
+
+MODULES={{ pillar.get('initramfs-tools', {}).get('modules', 'most') }}
+
+#
 # COMPRESS: [ gzip | bzip2 | lz4 | lzma | lzop | xz ]
 #
 

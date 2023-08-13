@@ -1,3 +1,12 @@
+manage-initramfs-modules:
+  file.managed:
+    - name: /etc/initramfs-tools/modules
+    - source: salt://initramfs-tools/modules.jinja
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+
 manage-initramfs-tools:
   pkg.installed:
     - name: initramfs-tools
@@ -14,7 +23,6 @@ manage-initramfs-tools:
 
   cmd.run:
     - name: /usr/sbin/update-initramfs -uk all
-    - env:
-        PATH: /usr/sbin:/usr/bin:/sbin:/bin
     - onchanges:
+      - file: manage-initramfs-modules
       - file: manage-initramfs-tools

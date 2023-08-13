@@ -111,6 +111,7 @@ base:
     - hostapd.hosts.{{ grains.id }}
     - hosts.hosts.{{ grains.id }}
     - hover.hosts.{{ grains.id }}
+    - initramfs-tools.hosts.{{ grains.id }}
     - ifupdown.hosts.{{ grains.id }}
     - isc-dhcp-server.hosts.{{ grains.id }}
     - libvirt.hosts.{{ grains.id }}
