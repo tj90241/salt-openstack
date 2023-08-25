@@ -1,7 +1,9 @@
+{%- for distribution in pillar.get('reprepro', {}).get('distributions', [grains.oscodename]) %}
 Origin: {{ repository }}
 Label: {{ repository }}
-Codename: {{ grains.oscodename }}
+Codename: {{ distribution }}
 Architectures: amd64
 Components: main
 Description: {{ repository }} APT Repository
 SignWith: {{ signing_pubkey_id }}
+{% endfor -%}
