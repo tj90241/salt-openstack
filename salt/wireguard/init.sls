@@ -18,4 +18,4 @@ manage-wireguard-module:
     - source: salt://wireguard/module.conf
     - user: root
     - group: root
-    - mode: 0640
+    - mode: 0644

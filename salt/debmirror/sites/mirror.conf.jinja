@@ -1,0 +1,25 @@
+server {
+  listen 80;
+  server_name {{ grains.host }}.node.{{ pillar['consul']['site']['domain'] }};
+
+  access_log /var/log/nginx/mirror.log;
+  error_log /var/log/nginx/mirror-error.log;
+
+  location ~* "/(debian|debian-security)($|/)" {
+    root /var/lib/debmirror;
+    try_files $uri $uri/ =404;
+    index index.html;
+    autoindex on;
+  }
+
+  location = / {
+    root /var/lib/debmirror;
+    index index.html;
+    autoindex on;
+  }
+
+  location / {
+    deny all;
+    return 405;
+  }
+}

@@ -1,0 +1,4 @@
+[Slice]
+{%- if 'low_latency_cores' in pillar.get('optimization', {}) %}
+AllowedCPUs={{ pillar['optimization']['low_latency_cores'] }}
+{%- endif %}

@@ -1,5 +1,5 @@
 manage-netcat:
   pkg.installed:
-    - name: netcat
+    - name: netcat-openbsd
     - refresh: False
     - version: latest

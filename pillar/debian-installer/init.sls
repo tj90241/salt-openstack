@@ -1,5 +1,5 @@
 debian-installer:
-  release: bullseye
+  release: bookworm
 #
 #  macs:
 #    'aa:bb:cc:dd:ee:ff':

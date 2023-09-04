@@ -8,6 +8,7 @@ base:
     - consul.key
     - consul.site
     - cpufrequtils
+    - docker
     - dpdk
     - grub
     - hosts
@@ -38,6 +39,10 @@ base:
     - match: nodegroup
     - mariadb.galera
     - mariadb.server
+
+  debian-mirrors:
+    - match: nodegroup
+    - debmirror
 
   devpi-clients:
     - match: nodegroup

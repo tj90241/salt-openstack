@@ -13,6 +13,17 @@ manage-{{ slice }}-slice:
       - module: reload-for-systemd-changes
 {% endfor %}
 
+manage-low-latency-slice:
+  file.managed:
+    - name: /etc/systemd/system/low-latency.slice
+    - source: salt://systemd/overrides.jinja/low-latency.slice
+    - template: jinja
+    - user: root
+    - group: root
+    - mode: 0644
+    - onchanges_in:
+      - module: reload-for-systemd-changes
+
 reload-for-systemd-changes:
   module.run:
     - service.systemctl_reload:

@@ -5,4 +5,7 @@ schedule-hover-sync:
     - job_args:
       - hover.sync
     - cron: '{{ pillar['hover']['schedule'] }}'
+{%- if 'splay' in pillar['hover'] %}
+    - splay: {{ pillar['hover']['splay'] }}
+{%- endif %}
 {% endif %}

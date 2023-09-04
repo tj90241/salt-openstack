@@ -40,7 +40,7 @@ manage-nginx-configuration:
     - dir_mode: 0755
     - file_mode: 0644
 
-{% for dir in ['conf.d', 'modules-available', 'modules-enabled', 'sites-available', 'sites-enabled'] %}
+{% for dir in ['conf.d', 'sites-available', 'sites-enabled'] %}
 manage-nginx-{{ dir.replace('.', '_') }}:
   file.absent:
     - name: /etc/nginx/{{ dir }}

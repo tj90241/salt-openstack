@@ -1,13 +1,10 @@
 # Customizations for the libvirtd.service systemd unit
 
-LIBVIRTD_ARGS=""
-
-# The default upstream behavior is for libvirtd.service to
-# start on boot, perform VM autostart and shutdown again if
-# nothing was started; later on, systemd socket activation
-# is used to start it again when some client app connects.
-#
-# The following can be used to enable this behavior
+# Default behaviour is for libvirtd.service to start on boot
+# so that VM autostart can be performed. We then want it to
+# shutdown again if nothing was started and rely on systemd
+# socket activation to start it again when some client app
+# connects.
 #LIBVIRTD_ARGS="--timeout 120"
 
 # If systemd socket activation is disabled, then the following

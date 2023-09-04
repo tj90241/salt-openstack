@@ -22,12 +22,29 @@ apt-provide-https-support:
     - refresh: False
 {% endif %}
 
+apt-acknowledge-nonfree-firmware:
+  file.managed:
+    - name: /etc/apt/apt.conf.d/98acknowledge-nonfree-firmware
+    - contents: |
+        APT::Get::Update::SourceListWarnings::NonFreeFirmware "false";
+    - user: root
+    - group: root
+    - mode: 0644
+
 apt-no-install-recommends:
   file.managed:
     - name: /etc/apt/apt.conf.d/99no-install-recommends
     - contents: |
         APT::Install-Recommends "0";
         APT::Install-Suggests "0";
+    - user: root
+    - group: root
+    - mode: 0644
+
+apt-package-preferences:
+  file.managed:
+    - name: /etc/apt/preferences.d/00package-preferences
+    - source: salt://apt/00package-preferences
     - user: root
     - group: root
     - mode: 0644

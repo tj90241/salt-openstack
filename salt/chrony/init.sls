@@ -55,7 +55,7 @@ manage-chrony-keys:
 # Do not start chrony until the network/nameserver are up.
 manage-chronyd-override:
   file.managed:
-    - name: /etc/systemd/system/chrony.service.d/override.conf
+    - name: /etc/systemd/system/chronyd.service.d/override.conf
     - source: salt://chrony/override.conf.jinja
     - template: jinja
     - user: root

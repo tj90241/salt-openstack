@@ -20,8 +20,8 @@ manage-consul-default-policy-token-pillar:
           tokens:
             default: {{ default_policy_token.strip() }}
     - user: root
-    - group: root
-    - mode: 0644
+    - group: salt
+    - mode: 0640
     - show_changes: False
 
 {% for minion_name in salt['minion.list']()['minions'] %}
@@ -32,7 +32,7 @@ manage-consul-node-{{ host }}-agent-policy-token-pillar:
     - name: /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/token
     - contents: {{ agent_policy_token.strip() }}
     - user: root
-    - group: root
+    - group: salt
     - mode: 0640
     - show_changes: False
 {% endfor %}

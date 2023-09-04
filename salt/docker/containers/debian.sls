@@ -8,7 +8,8 @@ manage-docker-registry-login:
 manage-debian-container-image:
   file.managed:
     - name: /usr/local/sbin/mkimage-debian.sh
-    - source: salt://docker/containers/mkimage-debian.sh
+    - source: salt://docker/containers/mkimage-debian.sh.jinja
+    - template: jinja
     - user: root
     - group: root
     - mode: 0755

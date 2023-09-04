@@ -19,8 +19,8 @@ manage-consul-acl-bootstrap-token:
           acl:
             bootstrap_token: "{{ bootstrap_response['dict']['SecretID'] }}"
     - user: root
-    - group: root
-    - mode: 0644
+    - group: salt
+    - mode: 0640
 
   module.run:
     - saltutil.refresh_pillar:

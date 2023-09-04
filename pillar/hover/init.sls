@@ -1,2 +1,3 @@
 hover:
-  schedule: '1 * * * *'
+  schedule: '0 * * * *'
+  splay: '1800'

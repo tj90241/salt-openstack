@@ -1,8 +1,6 @@
 {%- import_yaml 'salt/defaults.yaml' as salt_defaults -%}
 
 include:
-  - salt.pkgrepo
-  - salt.packages
   - .sync
   - .api
 

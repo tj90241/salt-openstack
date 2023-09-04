@@ -2,8 +2,8 @@ manage-consul-ca-cert:
   file.directory:
     - name: /etc/consul
     - user: root
-    - group: root
-    - mode: 0600
+    - group: consul
+    - mode: 0755
 
   cmd.run:
     - name: >
@@ -23,8 +23,8 @@ manage-consul-minion-{{ minion_name }}-cert:
   file.directory:
     - name: /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul
     - user: root
-    - group: root
-    - mode: 0700
+    - group: salt
+    - mode: 0750
     - makedirs: True
 
   cmd.run:
@@ -33,9 +33,13 @@ manage-consul-minion-{{ minion_name }}-cert:
         /usr/local/bin/consul tls cert create -server -days {{ pillar['consul']['cert']['cert_valid_days'] }} -ca /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem -key /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca-key.pem -dc {{ pillar['consul']['site']['datacenter'] }} -domain {{ pillar['consul']['site']['domain'] }} -additional-dnsname {{ server_fqdn }} -additional-dnsname consul.service.{{ pillar['consul']['site']['domain'] }} &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-server-{{ pillar['consul']['site']['domain'] }}-0.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cert.pem &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-server-{{ pillar['consul']['site']['domain'] }}-0-key.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/key.pem &&
+        chown root:salt /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/key.pem &&
+        chmod 0640 /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/key.pem &&
         /usr/local/bin/consul tls cert create -cli -days {{ pillar['consul']['cert']['cert_valid_days'] }} -ca /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem -key /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca-key.pem -dc {{ pillar['consul']['site']['datacenter'] }} -domain {{ pillar['consul']['site']['domain'] }} &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-cli-{{ pillar['consul']['site']['domain'] }}-0.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-cert.pem &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-cli-{{ pillar['consul']['site']['domain'] }}-0-key.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-key.pem &&
+        chown root:salt /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-key.pem &&
+        chmod 0640 /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-key.pem &&
         ln -sfv /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cacert.pem &&
         cd /tmp && rm -rfv "${SERVERCERTDIR}";
 {% endfor %}
@@ -47,8 +51,8 @@ manage-consul-minion-{{ minion_name }}-cert:
   file.directory:
     - name: /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul
     - user: root
-    - group: root
-    - mode: 0700
+    - group: salt
+    - mode: 0750
     - makedirs: True
 
   cmd.run:
@@ -57,9 +61,13 @@ manage-consul-minion-{{ minion_name }}-cert:
         /usr/local/bin/consul tls cert create -client -days {{ pillar['consul']['cert']['cert_valid_days'] }} -ca /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem -key /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca-key.pem -dc {{ pillar['consul']['site']['datacenter'] }} -domain {{ pillar['consul']['site']['domain'] }}{% if minion_name == grains.id %} -additional-dnsname {{ grains.fqdn }}{% endif %} &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-client-{{ pillar['consul']['site']['domain'] }}-0.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cert.pem &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-client-{{ pillar['consul']['site']['domain'] }}-0-key.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/key.pem &&
+        chown root:salt /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/key.pem &&
+        chmod 0640 /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/key.pem &&
         /usr/local/bin/consul tls cert create -cli -days {{ pillar['consul']['cert']['cert_valid_days'] }} -ca /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem -key /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca-key.pem -dc {{ pillar['consul']['site']['datacenter'] }} -domain {{ pillar['consul']['site']['domain'] }} &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-cli-{{ pillar['consul']['site']['domain'] }}-0.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-cert.pem &&
         mv -v {{ pillar['consul']['site']['datacenter'] }}-cli-{{ pillar['consul']['site']['domain'] }}-0-key.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-key.pem &&
+        chown root:salt /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-key.pem &&
+        chmod 0640 /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cli-key.pem &&
         ln -sfv /etc/consul/{{ pillar['consul']['site']['domain'] }}-agent-ca.pem /etc/salt/file_tree_pillar/hosts/{{ minion_name }}/consul/cacert.pem &&
         cd /tmp && rm -rfv "${CLIENTCERTDIR}";
 {% endif %}

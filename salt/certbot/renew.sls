@@ -13,18 +13,20 @@ certbot-renew-{{ minion}}-cert:
         hover_domain: {{ options['hover_domain'] }}
 
   cmd.run:
-    - name: certbot certonly --cert-name '{{ minion }}' -d '{{ ','.join(options['domains']) }}'{% if key_type == 'rsa' %} --rsa-key-size {{ options.get('rsa_key_size', 4096) }}{% endif %}{% if key_type == 'ecdsa' %} --elliptic-curve={{ options.get('elliptic_curve', 'secp521r1') }}{% endif %} --email '{{ options['email'] }}' --non-interactive --agree-tos --manual --manual-public-ip-logging-ok --preferred-challenges=dns --manual-auth-hook /usr/local/sbin/hover-dns-challenge-hook; rm -v /usr/local/sbin/hover-dns-challenge-hook
+    - name: certbot certonly --cert-name '{{ minion }}' -d '{{ ','.join(options['domains']) }}'{% if key_type == 'rsa' %} --rsa-key-size {{ options.get('rsa_key_size', 4096) }}{% endif %}{% if key_type == 'ecdsa' %} --elliptic-curve={{ options.get('elliptic_curve', 'secp384r1') }}{% endif %} --email '{{ options['email'] }}' --non-interactive --agree-tos --manual --manual-public-ip-logging-ok --preferred-challenges=dns --manual-auth-hook /usr/local/sbin/hover-dns-challenge-hook; rm -v /usr/local/sbin/hover-dns-challenge-hook
 
 {% if 'salt-masters' in pillar.get('nodegroups', []) %}
-certbot-symlink-{{ minion}}-cert:
-  file.symlink:
-    - name: /etc/salt/file_tree_pillar/hosts/{{ minion }}/ssl
-    - target: /etc/letsencrypt/live/{{ minion }}
+{% for cert in ['cert', 'chain', 'fullchain', 'privkey'] %}
+ensure-{{ minion }}-{{ cert }}-exists-in-pillar:
+  file.managed:
+    - name: /etc/salt/file_tree_pillar/hosts/{{ minion }}/ssl/{{ cert }}.pem
+    - source: /etc/letsencrypt/live/{{ minion }}/{{ cert }}.pem
     - user: root
-    - group: root
-    - mode: 0700
+    - group: salt
+    - mode: {{ '0640' if cert == 'privkey' else '0644' }}
     - makedirs: True
-    - force: True
+    - dir_mode: 0750
+{% endfor %}
 {% endif %}
 {% endif %}
 {% endfor %}

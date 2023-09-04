@@ -102,7 +102,6 @@ base:
     - patch
     - procps
     - psmisc
-    - python2
     - screen
     - sosreport
     - strace
@@ -182,6 +181,11 @@ base:
   databases:
     - match: nodegroup
     - mariadb-server
+
+  debian-mirrors:
+    - match: nodegroup
+    - nginx-light
+    - debmirror
 
   devpi-clients:
     - match: nodegroup

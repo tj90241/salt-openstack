@@ -15,6 +15,7 @@ iface lo inet loopback
 {%- if grains.get('virtual', 'virtual') == 'physical' %}
 
 # The Open vSwitch management bridge
+auto br-mgmt
 allow-ovs br-mgmt
 iface br-mgmt inet manual
 	ovs_type OVSBridge

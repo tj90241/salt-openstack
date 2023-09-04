@@ -36,7 +36,7 @@ manage-consul-artifacts-directory:
     - name: /etc/consul
     - user: root
     - group: consul
-    - mode: 0750
+    - mode: 0755
 
 manage-consul-configuration:
   file.managed:
