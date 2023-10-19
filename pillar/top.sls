@@ -15,6 +15,7 @@ base:
     - hover
     - ifupdown
     - initramfs-tools
+    - kdump-tools
     - openssl
     - openstack.network
     - nginx
@@ -119,6 +120,7 @@ base:
     - initramfs-tools.hosts.{{ grains.id }}
     - ifupdown.hosts.{{ grains.id }}
     - isc-dhcp-server.hosts.{{ grains.id }}
+    - kdump-tools.hosts.{{ grains.id }}
     - libvirt.hosts.{{ grains.id }}
     - optimization.hosts.{{ grains.id }}
     - nginx.hosts.{{ grains.id }}

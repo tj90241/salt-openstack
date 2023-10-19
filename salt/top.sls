@@ -86,6 +86,7 @@ base:
     - iperf
     - ipset
     - jq
+    - kdump-tools
     - kexec-tools
     - less
     - linux
