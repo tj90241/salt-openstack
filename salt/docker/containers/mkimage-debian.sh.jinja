@@ -4,11 +4,19 @@ BUILD_DIR="$(mktemp -d ${TMPDIR:-/var/tmp}/mkimage-debian.XXXXXXXXXX)"
 CODENAME="$(lsb_release -cs)"
 VERSION_MAJOR="$(lsb_release -rs)"
 
-debootstrap --variant=minbase "${CODENAME}" "${BUILD_DIR}/rootfs"{{ (' ' + pillar['docker']['debian_mirror']) if pillar.get('docker', {}).get('debian_mirror', '') != '' else '' }}
+debootstrap --variant=minbase "${CODENAME}" "${BUILD_DIR}/rootfs"{{ (' ' + pillar['docker']['debian']['mirror']) if pillar.get('docker', {}).get('debian', {}).get('mirror', '') != '' else '' }}
 
 # Docker mounts tmpfs at /dev and procfs at /proc so we can remove them.
 rm -rf "${BUILD_DIR}/rootfs/dev" "${BUILD_DIR}/rootfs/proc"
 mkdir -p "${BUILD_DIR}/rootfs/dev" "${BUILD_DIR}/rootfs/proc"
+
+# Add in -security and -updates pockets.
+{%- if pillar.get('docker', {}).get('debian', {}).get('security_mirror', '') != '' %}
+echo "deb {{ pillar['docker']['debian']['security_mirror'] }} ${CODENAME}-security main" >> "${BUILD_DIR}/rootfs/etc/apt/sources.list"
+{%- endif %}
+{%- if pillar.get('docker', {}).get('debian', {}).get('mirror', '') != '' %}
+echo "deb {{ pillar['docker']['debian']['mirror'] }} ${CODENAME}-updates main" >> "${BUILD_DIR}/rootfs/etc/apt/sources.list"
+{%- endif %}
 
 # Prepare and compress the root filesystem tarball.
 tar --numeric-owner -cf - -C "${BUILD_DIR}/rootfs" --transform='s,^./,,' . | xz -T0 > "${BUILD_DIR}/rootfs.tar.xz"
@@ -18,6 +26,8 @@ cat > "${BUILD_DIR}/Dockerfile" << EOF
 FROM scratch
 ADD rootfs.tar.xz /
 CMD ["bash"]
+
+RUN apt-get update && apt-get dist-upgrade -fy
 EOF
 
 read VERSION < "${BUILD_DIR}/rootfs/etc/debian_version"
