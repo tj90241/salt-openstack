@@ -28,6 +28,16 @@ manage-kdump-tools-grub:
     - onchanges:
       - file: manage-kdump-tools-grub
 
+{# SysVInit script clashes with systemd in weird ways... #}
+manage-kdump-tools-service:
+  file.absent:
+    - name: /lib/systemd/system/kdump-tools.service
+
+  module.run:
+    - service.systemctl_reload:
+    - onchanges:
+      - file: manage-kdump-tools-service
+
 manage-makedumpfile:
   pkg.installed:
     - name: makedumpfile

@@ -3,3 +3,7 @@ manage-nvme-cli:
     - name: nvme-cli
     - refresh: False
     - version: latest
+
+  service.dead:
+    - name: nvme-autoconnect
+    - enable: False
