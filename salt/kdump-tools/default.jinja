@@ -63,7 +63,7 @@ MAKEDUMP_ARGS="-c -d 31"
 #     "reset_devices systemd.unit=kdump-tools-dump.service nr_cpus=1 irqpoll usbcore.nousb"
 #KDUMP_KEXEC_ARGS=""
 #KDUMP_CMDLINE=""
-#KDUMP_CMDLINE_APPEND="reset_devices systemd.unit=kdump-tools-dump.service nr_cpus=1 irqpoll usbcore.nousb"
+KDUMP_CMDLINE_APPEND="{{ pillar.get('kdump-tools', {}).get('cmdline_append', 'reset_devices systemd.unit=kdump-tools-dump.service nr_cpus=1 irqpoll usbcore.nousb') }}"
 
 # ---------------------------------------------------------------------------
 # Architecture specific Overrides:
