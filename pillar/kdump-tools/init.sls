@@ -1,2 +1,2 @@
 kdump-tools:
-  enabled: False
+  enabled: True
