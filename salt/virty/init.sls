@@ -22,9 +22,11 @@ manage-virty-vm-{{ vm_name_filtered }}:
         vm_cores: {{ vm_data['cores'] }}
         vm_cpu_affinity: {{ vm_data.get('cpu_affinity', False) }}
         vm_emu_affinity: {{ vm_data.get('emu_affinity', False) }}
+        vm_iothread_affinity: {{ vm_data.get('iothread_affinity', False) }}
         vm_cpu_pin: {{ vm_data.get('cpu_pin', False) }}
         vm_numanodes: {{ vm_data.get('numanodes', False) }}
         vm_ram: {{ vm_data['ram'] }} 
+        vm_boot_storage: {{ vm_data.get('boot_storage', False) }}
 {% if 'blockdev' in vm_data %}
 {%- set vm_storage_data = salt['cmd.run']('lsblk -Jb ' + vm_data['blockdev']) | load_json %}
         vm_storage: {{ vm_storage_data['blockdevices'][0]['size'] | int // 1048576 }}

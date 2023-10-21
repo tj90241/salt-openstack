@@ -10,6 +10,356 @@ import stat
 import sys
 
 
+def allocate_storage(conn, volume_type, name, size, keep_volume=False,
+                     pool_name='default', pool_path="/var/lib/libvirt/images"):
+    """
+    Defines a volume of the given size in the associated pool.
+    Creates the associated pool (if needed) and marks it autostart.
+    """
+    try:
+        storage_pool = conn.storagePoolLookupByName(pool_name)
+
+    except libvirt.libvirtError:
+        pool = ET.Element('pool', attrib={'type': 'dir'})
+        tree = ET.ElementTree(element=pool)
+        ET.SubElement(pool, 'name').text = pool_name
+
+        source = ET.SubElement(pool, 'source')
+
+        target = ET.SubElement(pool, 'target')
+        ET.SubElement(target, 'path').text = pool_path
+        permissions = ET.SubElement(target, 'permissions')
+        ET.SubElement(permissions, 'mode').text = '0750'
+        ET.SubElement(permissions, 'owner').text = '-1'
+        ET.SubElement(permissions, 'group').text = '-1'
+
+        xml = ET.tostring(pool, method='xml').decode('utf-8')
+        storage_pool = conn.storagePoolDefineXML(xml, 0)
+        storage_pool.setAutostart(1)
+        storage_pool.create()
+
+    # Check for an existing volume, delete it as needed.
+    extension = '' if volume_type != 'file' else '.raw'
+    volume_name = '{0}{1}'.format(name, extension)
+
+    if volume_name in storage_pool.listVolumes():
+        vol = storage_pool.storageVolLookupByName(volume_name)
+
+        if not keep_volume:
+            vol.delete()
+
+    # Provision new storage for the guest as needed.
+    new_storage = define_storage(name, size, pool_name, volume_type)
+    storage_xml = new_storage.getroot()
+    xml_config = ET.tostring(storage_xml, method='xml').decode()
+
+    if volume_name not in storage_pool.listVolumes():
+        storage = storage_pool.createXML(xml_config, 0)
+
+        if storage is None:
+            return 'Failed to allocate storage for "{0}"'.format(name)
+
+
+def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
+                  iftype, name, vcpus, affinity, emu_affinity,
+                  iothread_affinity, cpu_pin, numanodes, ram_mb, pool_name,
+                  volume_type, secret_uuid, queues, nic, rom_bar,
+                  mac=None, vlan=None, has_boot_storage=False,
+                  bootdev='hd,network', rng_path='/dev/urandom'):
+    """
+    Defines a domain XML tree for a new guest.
+    """
+    config = get_guest_configuration(caps, arch='x86_64',
+                                     machine_types=['q35', 'pc'])
+    domain = ET.Element('domain', attrib={'type': 'kvm'})
+    tree = ET.ElementTree(element=domain)
+
+    # Guest name, UUID, and OS info.
+    ET.SubElement(domain, 'name').text = name
+    ET.SubElement(domain, 'uuid').text = str(uuid.uuid4())
+    metadata = ET.SubElement(domain, 'metadata')
+
+    # Guest VCPUs configuration.
+    cpuset = {} if affinity is None else {'cpuset': affinity}
+    ET.SubElement(domain, 'vcpu', attrib=cpuset).text = str(vcpus)
+
+    if emu_affinity is not None or iothread_affiity is not None \
+            or cpu_pin is not None:
+        cputune = ET.SubElement(domain, 'cputune')
+
+        if cpu_pin is not None:
+            for entry in cpu_pin.split(','):
+                vcpu, pcpu = entry.split(':')
+                affinity_map = {'vcpu': vcpu, 'cpuset': pcpu}
+                ET.SubElement(cputune, 'vcpupin', attrib=affinity_map)
+
+        if emu_affinity is not None:
+            emu_affinity_map = {'cpuset': emu_affinity}
+            ET.SubElement(cputune, 'emulatorpin',attrib=emu_affinity_map)
+
+        if iothread_affinity is not None:
+            iothreads = iothread_affinity.split(',')
+            ET.SubElement(domain, 'iothreads').text = '1'
+
+            iothread_attribs = {
+                'iothread': '1',
+                'cpuset': iothread_affinity,
+            }
+
+            ET.SubElement(cputune, 'iothreadpin', attrib=iothread_attribs)
+
+    # Guest memory configuration.
+    if numanodes is not None:
+        cleaned_nodes = ','.join([n for n in numanodes.split(',')])
+        numa_attribs = {'mode': 'strict', 'nodeset': cleaned_nodes}
+
+        numatune = ET.SubElement(domain, 'numatune')
+        ET.SubElement(numatune, 'memory', attrib=numa_attribs)
+
+    ET.SubElement(domain, 'memory').text = str(int(ram_mb) * 1024)
+    ET.SubElement(domain, 'currentMemory').text = str(int(ram_mb) * 1024)
+    ET.SubElement(ET.SubElement(domain, 'memoryBacking'), 'hugepages')
+
+    # Guest arch/OS/machine configuration.
+    os = ET.SubElement(domain, 'os')
+
+    for dev in bootdev.split(','):
+        ET.SubElement(os, 'boot', attrib={'dev': dev.strip()})
+
+    ET.SubElement(os, 'bios', attrib={'useserial': 'yes'})
+    os_type = ET.SubElement(os, 'type', attrib={'arch': config['arch'],
+                                                'machine': config['machine']})
+    os_type.text = config['os_type']
+
+    # Guest features configuration.
+    features = ET.SubElement(domain, 'features')
+
+    for feature in ['acpi', 'apic']:
+        if config.get(feature, False):
+            ET.SubElement(features, feature)
+
+    # Guest CPU configuration.  Passthrough the CPU, as the intent
+    # of this utility is to create optimized guests for *this* host.
+    cpu_mode = {
+        'mode': 'host-passthrough',
+        'match': 'exact',
+        'cache': {
+            'mode': 'passthrough',
+        }
+    }
+
+    cpu = ET.SubElement(domain, 'cpu', attrib=cpu_mode)
+
+    # Assume these are cores, as a possible TODO, add NUMA-bindings
+    # to the guests for those running these on multi-NUMA domain hosts.
+    topology = {
+        'sockets': '1',
+        'cores': str(vcpus),
+        'threads': '1',
+    }
+
+    ET.SubElement(cpu, 'topology', attrib=topology)
+
+    # Guest clock configuration (assume Linux guests only).
+    clock = ET.SubElement(domain, 'clock', attrib={'offset': 'utc'})
+    ET.SubElement(clock, 'timer', attrib={'name': 'kvmclock',
+                                          'present': 'yes'})
+
+    # Guest power management.
+    pm = ET.SubElement(domain, 'pm')
+    ET.SubElement(pm, 'suspend-to-mem', attrib={'enabled': 'no'})
+    ET.SubElement(pm, 'suspend-to-disk', attrib={'enabled': 'no'})
+
+    # Guest devices.
+    devices = ET.SubElement(domain, 'devices')
+    ET.SubElement(devices, 'emulator').text = config['emulator']
+
+    # Disk controller.
+    scsi_controller_attribs = {
+        'model': 'virtio-scsi',
+        'type': 'scsi',
+    }
+
+    controller = ET.SubElement(devices, 'controller',
+                               attrib=scsi_controller_attribs)
+
+    # Disk controller tuning.
+    driver_attribs = {'queues': str(queues if queues is not None else 1)}
+
+    if args.iothread_affinity:
+        driver_attribs['iothread'] = '1'
+
+    ET.SubElement(controller, 'driver', attrib=driver_attribs)
+
+    # Add guest volume storage.
+    disk_types = {
+        'block': 'block',
+        'file': 'file',
+        'rbd': 'network',
+    }
+
+    root_dev = 'sda'
+
+    driver_attribs = {
+        'name': 'qemu',
+        'type': 'raw',
+        'cache': 'none',
+        'discard': 'unmap',
+    }
+
+    if has_boot_storage:
+        root_dev = 'sdb'
+        disk_attribs = {'device': 'disk', 'type': 'file'}
+        disk = ET.SubElement(devices, 'disk', attrib=disk_attribs)
+        ET.SubElement(disk, 'target', attrib={'dev': 'sda', 'bus': 'scsi'})
+        ET.SubElement(disk, 'driver', attrib=driver_attribs)
+
+        storage_pool = conn.storagePoolLookupByName('default')
+        vol = storage_pool.storageVolLookupByName('{0}-boot.raw'.format(name))
+        ET.SubElement(disk, 'source', attrib={'file': vol.path()})
+
+
+    disk_attribs = {'device': 'disk', 'type': disk_types[volume_type]}
+    disk = ET.SubElement(devices, 'disk', attrib=disk_attribs)
+    ET.SubElement(disk, 'target', attrib={'dev': root_dev, 'bus': 'scsi'})
+    ET.SubElement(disk, 'driver', attrib=driver_attribs)
+
+    if volume_type == 'rbd':
+        disk_path = '{0}/{1}'.format(pool_name, name)
+        disk_auth = ET.SubElement(disk, 'auth', attrib={'username': 'libvirt'})
+        disk_source = ET.SubElement(disk, 'source', attrib={'protocol': 'rbd',
+                                                            'name': disk_path})
+
+        ET.SubElement(disk_source, 'host', attrib={'name': mon_host})
+
+        ET.SubElement(disk_auth, 'secret', attrib={'type': 'ceph',
+                                                   'uuid': secret_uuid})
+
+    elif volume_type == 'block':
+        ET.SubElement(disk, 'source', attrib={'dev': pool_name})
+        sector_size = get_sector_size(pool_name)
+
+        if isinstance(sector_size, int) and sector_size > 512:
+            sector_size = {
+                'logical_block_size': str(sector_size),
+                'physical_block_size': str(sector_size),
+            }
+
+            ET.SubElement(disk, 'blockio', attrib=sector_size)
+
+    else:
+        storage_pool = conn.storagePoolLookupByName(pool_name)
+        vol = storage_pool.storageVolLookupByName('{0}.raw'.format(name))
+        ET.SubElement(disk, 'source', attrib={'file': vol.path()})
+
+    # Add guest network device.
+    if iftype == 'sr-iov':
+        iface_attribs = {'type': 'hostdev', 'managed': 'yes'}
+        interface = ET.SubElement(devices, 'interface', attrib=iface_attribs)
+
+        ET.SubElement(interface, 'model', attrib={'type': 'virtio'})
+
+        # Specify NIC VF ROM.
+        ET.SubElement(interface, 'rom', attrib={'file': rom_bar,
+                                                'bar': 'on'})
+
+        # Specify source address (PCI) of VF.
+        source_attribs = {
+            'type': 'pci',
+            'domain': hex(vf_domain),
+            'bus': hex(vf_bus),
+            'slot': hex(vf_device),
+            'function': hex(vf_function),
+        }
+
+        source = ET.SubElement(interface, 'source')
+        ET.SubElement(source, 'address', attrib=source_attribs)
+
+        # Assign MAC and VLAN to interface (if requested).
+        if mac is not None:
+            ET.SubElement(interface, 'mac', attrib={'address': mac})
+
+        if vlan is not None:
+            vlan_element = ET.SubElement(interface, 'vlan')
+            ET.SubElement(vlan_element, 'tag', attrib={'id': str(int(vlan))})
+
+    else:
+        interface = ET.SubElement(devices, 'interface',
+                                  attrib={'type': 'bridge'})
+
+        source_attrib = {'bridge': nic}
+        ET.SubElement(interface, 'source', attrib=source_attrib)
+
+        if iftype == 'ovs-bridge':
+            bridge_attribs = {'type': 'openvswitch'}
+            ET.SubElement(interface, 'virtualport', attrib=bridge_attribs)
+
+        driver_attrib = {'name': 'vhost', 'queues': str(queues)}
+        ET.SubElement(interface, 'driver', attrib=driver_attrib)
+
+        # Assign MAC and VLAN to interface (if requested).
+        if mac is not None:
+            ET.SubElement(interface, 'mac', attrib={'address': mac})
+
+        if vlan is not None:
+            vlan_element = ET.SubElement(interface, 'vlan')
+            ET.SubElement(vlan_element, 'tag', attrib={'id': str(int(vlan))})
+
+        ET.SubElement(interface, 'model', attrib={'type': 'virtio'})
+
+    # Add mouse and keyboard.
+    for input_device in ['keyboard', 'mouse']:
+        ET.SubElement(devices, 'input', attrib={'type': input_device,
+                                                'bus': 'ps2'})
+
+    # Add serial port.
+    serial = ET.SubElement(devices, 'serial', attrib={'type': 'pty'})
+    ser_target = ET.SubElement(serial, 'target', attrib={'type': 'isa-serial',
+                                                         'port': '0'})
+
+    ET.SubElement(ser_target, 'model', attrib={'name': 'isa-serial'})
+
+    # Add console device.
+    console = ET.SubElement(devices, 'console', attrib={'type': 'pty'})
+    ET.SubElement(console, 'target', attrib={'type': 'serial', 'port': '0'})
+
+    name = 'org.qemu.guest_agent.0'
+    channel = ET.SubElement(devices, 'channel', attrib={'type': 'unix'})
+    ch_source = ET.SubElement(channel, 'source', attrib={'mode': 'bind'})
+    ch_target = ET.SubElement(channel, 'target', attrib={'type': 'virtio',
+                                                         'name': name})
+
+    # Add RNG device.
+    rng = ET.SubElement(devices, 'rng', attrib={'model': 'virtio'})
+    ET.SubElement(rng, 'backend', attrib={'model': 'random'}).text = rng_path
+
+    return tree
+
+
+def define_storage(name, storage, pool_name, volume_type):
+    """
+    Defines a storage XML tree for a new guest.
+    """
+    volume_name = name if volume_type != 'file' else '{0}.raw'.format(name)
+    volume_attribs = {} if volume_type is None else {'type': volume_type}
+    volume = ET.Element('volume', attrib=volume_attribs)
+    tree = ET.ElementTree(element=volume)
+
+    ET.SubElement(volume, 'name').text = volume_name
+    ET.SubElement(volume, 'key').text = '{0}/{1}'.format(pool_name, name)
+    ET.SubElement(volume, 'source')
+
+    size = str(int(storage) * 1024 * 1024)
+    ET.SubElement(volume, 'capacity', attrib={'unit': 'bytes'}).text = size
+    ET.SubElement(volume, 'allocation', attrib={'unit': 'bytes'}).text = '0'
+
+    target = ET.SubElement(volume, 'target')
+    ET.SubElement(target, 'path').text = '{0}/{1}'.format(pool_name, name)
+    ET.SubElement(target, 'format', attrib={'type': 'raw'})
+
+    return tree
+
+
 def get_guest_configuration(caps, arch, machine_types):
     """
     Searches for a possible guest configurations for a architecture/machine.
@@ -95,254 +445,33 @@ def get_nic_vf_dbdft(nic):
         return None, None, None, None, bridge
 
 
-def define_domain(conn, caps, vf_domain, vf_bus, vf_device, vf_function,
-                  iftype, name, vcpus, affinity, emu_affinity, cpu_pin,
-                  numanodes, ram_mb, pool_name, volume_type, secret_uuid,
-                  vnic_queues, nic, rom_bar, mac=None, vlan=None,
-                  bootdev='hd,network', rng_path='/dev/urandom'):
+def get_sector_size(block_name):
     """
-    Defines a domain XML tree for a new guest.
+    Attempts to determine the sector size of a given block device.
+    If this value cannot be determined, return None.
     """
-    config = get_guest_configuration(caps, arch='x86_64',
-                                     machine_types=['q35', 'pc'])
-    domain = ET.Element('domain', attrib={'type': 'kvm'})
-    tree = ET.ElementTree(element=domain)
+    block_name = block_name.split(os.path.sep)[-1]
 
-    # Guest name, UUID, and OS info.
-    ET.SubElement(domain, 'name').text = name
-    ET.SubElement(domain, 'uuid').text = str(uuid.uuid4())
-    metadata = ET.SubElement(domain, 'metadata')
+    try:
+        with open(f'/sys/class/block/{block_name}/partition', 'r') as bdev:
+            partition = str(int(bdev.read()))
 
-    # Guest VCPUs configuration.
-    cpuset = {} if affinity is None else {'cpuset': affinity}
-    ET.SubElement(domain, 'vcpu', attrib=cpuset).text = str(vcpus)
+            if block_name.endswith(f"p{partition}"):
+                block_name = block_name[:-2]
 
-    if emu_affinity is not None or cpu_pin is not None:
-        cputune = ET.SubElement(domain, 'cputune')
+            elif block_name.endswith(partition):
+                block_name = block_name[:-1]
 
-        if cpu_pin is not None:
-            for entry in cpu_pin.split(','):
-                vcpu, pcpu = entry.split(':')
-                affinity_map = {'vcpu': vcpu, 'cpuset': pcpu}
-                ET.SubElement(cputune, 'vcpupin', attrib=affinity_map)
+    except (FileNotFoundError, IOError, ValueError):
+        pass
 
-        if emu_affinity is not None:
-            emu_affinity_map = {'cpuset': emu_affinity}
-            ET.SubElement(cputune, 'emulatorpin',attrib=emu_affinity_map)
+    try:
+        dev_path = f'/sys/class/block/{block_name}/queue/hw_sector_size'
+        with open(dev_path, 'r') as bdev:
+            return int(bdev.read())
 
-    # Guest memory configuration.
-    if numanodes is not None:
-        cleaned_nodes = ','.join([n for n in numanodes.split(',')])
-        numa_attribs = {'mode': 'strict', 'nodeset': cleaned_nodes}
-
-        numatune = ET.SubElement(domain, 'numatune')
-        ET.SubElement(numatune, 'memory', attrib=numa_attribs)
-
-    ET.SubElement(domain, 'memory').text = str(int(ram_mb) * 1024)
-    ET.SubElement(domain, 'currentMemory').text = str(int(ram_mb) * 1024)
-    ET.SubElement(ET.SubElement(domain, 'memoryBacking'), 'hugepages')
-
-    # Guest arch/OS/machine configuration.
-    os = ET.SubElement(domain, 'os')
-
-    for dev in bootdev.split(','):
-        ET.SubElement(os, 'boot', attrib={'dev': dev.strip()})
-
-    ET.SubElement(os, 'bios', attrib={'useserial': 'yes'})
-    os_type = ET.SubElement(os, 'type', attrib={'arch': config['arch'],
-                                                'machine': config['machine']})
-    os_type.text = config['os_type']
-
-    # Guest features configuration.
-    features = ET.SubElement(domain, 'features')
-
-    for feature in ['acpi', 'apic']:
-        if config.get(feature, False):
-            ET.SubElement(features, feature)
-
-    # Guest CPU configuration.  Passthrough the CPU, as the intent
-    # of this utility is to create optimized guests for *this* host.
-    cpu_mode = {
-        'mode': 'host-passthrough',
-        'match': 'exact',
-        'cache': {
-            'mode': 'passthrough',
-        }
-    }
-
-    cpu = ET.SubElement(domain, 'cpu', attrib=cpu_mode)
-
-    # Assume these are cores, as a possible TODO, add NUMA-bindings
-    # to the guests for those running these on multi-NUMA domain hosts.
-    topology = {
-        'sockets': '1',
-        'cores': str(vcpus),
-        'threads': '1',
-    }
-
-    ET.SubElement(cpu, 'topology', attrib=topology)
-
-    # Guest clock configuration (assume Linux guests only).
-    clock = ET.SubElement(domain, 'clock', attrib={'offset': 'utc'})
-    ET.SubElement(clock, 'timer', attrib={'name': 'kvmclock',
-                                          'present': 'yes'})
-
-    # Guest power management.
-    pm = ET.SubElement(domain, 'pm')
-    ET.SubElement(pm, 'suspend-to-mem', attrib={'enabled': 'no'})
-    ET.SubElement(pm, 'suspend-to-disk', attrib={'enabled': 'no'})
-
-    # Guest devices.
-    devices = ET.SubElement(domain, 'devices')
-    ET.SubElement(devices, 'emulator').text = config['emulator']
-
-    # Disk controller.
-    scsi_controller_attribs = {
-        'model': 'virtio-scsi',
-        'type': 'scsi',
-    }
-
-    controller = ET.SubElement(devices, 'controller',
-                               attrib=scsi_controller_attribs)
-
-    # Add guest volume storage.
-    disk_types = {
-        'block': 'block',
-        'file': 'file',
-        'rbd': 'network',
-    }
-
-    disk_attribs = {'device': 'disk', 'type': disk_types[volume_type]}
-    disk = ET.SubElement(devices, 'disk', attrib=disk_attribs)
-    ET.SubElement(disk, 'target', attrib={'dev': 'sda', 'bus': 'scsi'})
-    ET.SubElement(disk, 'driver', attrib={'name': 'qemu', 'type': 'raw',
-                                          'cache': 'none', 'discard': 'unmap'})
-
-    if volume_type == 'rbd':
-        disk_path = '{0}/{1}'.format(pool_name, name)
-        disk_auth = ET.SubElement(disk, 'auth', attrib={'username': 'libvirt'})
-        disk_source = ET.SubElement(disk, 'source', attrib={'protocol': 'rbd',
-                                                            'name': disk_path})
-
-        ET.SubElement(disk_source, 'host', attrib={'name': mon_host})
-
-        ET.SubElement(disk_auth, 'secret', attrib={'type': 'ceph',
-                                                   'uuid': secret_uuid})
-
-    elif volume_type == 'block':
-        ET.SubElement(disk, 'source', attrib={'dev': pool_name})
-
-    else:
-        storage_pool = conn.storagePoolLookupByName(pool_name)
-        vol = storage_pool.storageVolLookupByName('{0}.raw'.format(name))
-        ET.SubElement(disk, 'source', attrib={'file': vol.path()})
-
-    # Add guest network device.
-    if iftype == 'sr-iov':
-        iface_attribs = {'type': 'hostdev', 'managed': 'yes'}
-        interface = ET.SubElement(devices, 'interface', attrib=iface_attribs)
-
-        ET.SubElement(interface, 'model', attrib={'type': 'virtio'})
-
-        # Specify NIC VF ROM.
-        ET.SubElement(interface, 'rom', attrib={'file': rom_bar,
-                                                'bar': 'on'})
-
-        # Specify source address (PCI) of VF.
-        source_attribs = {
-            'type': 'pci',
-            'domain': hex(vf_domain),
-            'bus': hex(vf_bus),
-            'slot': hex(vf_device),
-            'function': hex(vf_function),
-        }
-
-        source = ET.SubElement(interface, 'source')
-        ET.SubElement(source, 'address', attrib=source_attribs)
-
-        # Assign MAC and VLAN to interface (if requested).
-        if mac is not None:
-            ET.SubElement(interface, 'mac', attrib={'address': mac})
-
-        if vlan is not None:
-            vlan_element = ET.SubElement(interface, 'vlan')
-            ET.SubElement(vlan_element, 'tag', attrib={'id': str(int(vlan))})
-
-    else:
-        interface = ET.SubElement(devices, 'interface',
-                                  attrib={'type': 'bridge'})
-
-        source_attrib = {'bridge': nic}
-        ET.SubElement(interface, 'source', attrib=source_attrib)
-
-        if iftype == 'ovs-bridge':
-            bridge_attribs = {'type': 'openvswitch'}
-            ET.SubElement(interface, 'virtualport', attrib=bridge_attribs)
-
-        driver_attrib = {'name': 'vhost', 'queues': str(vnic_queues)}
-        ET.SubElement(interface, 'driver', attrib=driver_attrib)
-
-        # Assign MAC and VLAN to interface (if requested).
-        if mac is not None:
-            ET.SubElement(interface, 'mac', attrib={'address': mac})
-
-        if vlan is not None:
-            vlan_element = ET.SubElement(interface, 'vlan')
-            ET.SubElement(vlan_element, 'tag', attrib={'id': str(int(vlan))})
-
-        ET.SubElement(interface, 'model', attrib={'type': 'virtio'})
-
-    # Add mouse and keyboard.
-    for input_device in ['keyboard', 'mouse']:
-        ET.SubElement(devices, 'input', attrib={'type': input_device,
-                                                'bus': 'ps2'})
-
-    # Add serial port.
-    serial = ET.SubElement(devices, 'serial', attrib={'type': 'pty'})
-    ser_target = ET.SubElement(serial, 'target', attrib={'type': 'isa-serial',
-                                                         'port': '0'})
-
-    ET.SubElement(ser_target, 'model', attrib={'name': 'isa-serial'})
-
-    # Add console device.
-    console = ET.SubElement(devices, 'console', attrib={'type': 'pty'})
-    ET.SubElement(console, 'target', attrib={'type': 'serial', 'port': '0'})
-
-    name = 'org.qemu.guest_agent.0'
-    channel = ET.SubElement(devices, 'channel', attrib={'type': 'unix'})
-    ch_source = ET.SubElement(channel, 'source', attrib={'mode': 'bind'})
-    ch_target = ET.SubElement(channel, 'target', attrib={'type': 'virtio',
-                                                         'name': name})
-
-    # Add RNG device.
-    rng = ET.SubElement(devices, 'rng', attrib={'model': 'virtio'})
-    ET.SubElement(rng, 'backend', attrib={'model': 'random'}).text = rng_path
-
-    return tree
-
-
-def define_storage(name, storage, pool_name, volume_type):
-    """
-    Defines a storage XML tree for a new guest.
-    """
-    volume_name = name if volume_type != 'file' else '{0}.raw'.format(name)
-    volume_attribs = {} if volume_type is None else {'type': volume_type}
-    volume = ET.Element('volume', attrib=volume_attribs)
-    tree = ET.ElementTree(element=volume)
-
-    ET.SubElement(volume, 'name').text = volume_name
-    ET.SubElement(volume, 'key').text = '{0}/{1}'.format(pool_name, name)
-    ET.SubElement(volume, 'source')
-
-    size = str(int(storage) * 1024 * 1024 * 1024)
-    ET.SubElement(volume, 'capacity', attrib={'unit': 'bytes'}).text = size
-    ET.SubElement(volume, 'allocation', attrib={'unit': 'bytes'}).text = '0'
-
-    target = ET.SubElement(volume, 'target')
-    ET.SubElement(target, 'path').text = '{0}/{1}'.format(pool_name, name)
-    ET.SubElement(target, 'format', attrib={'type': 'raw'})
-
-    return tree
+    except (FileNotFoundError, IOError, ValueError):
+        pass
 
 
 def main(args):
@@ -375,6 +504,7 @@ def main(args):
                 return 1
 
         elif volume_type == 'block':
+            get_sector_size(storage_pool_name)
             if not stat.S_ISBLK(os.stat(storage_pool_name).st_mode):
                 print('Supplied block device path is not a block device')
                 return 1
@@ -382,37 +512,26 @@ def main(args):
         else:
             volume_type = 'file'
 
-        if volume_type != 'block':
-            storage_pool = conn.storagePoolLookupByName(storage_pool_name)
+        has_boot_storage = False
 
-            if storage_pool is None:
-                error_message = 'Failed to find the "{0}" storage pool'
-                print(error_message.format(storage_pool_name))
+        if args.boot_storage:
+            has_boot_storage = True
+            volume_name = f"{args.name}-boot"
+            error = allocate_storage(conn, 'file', volume_name,
+                                     args.boot_storage)
+
+            if error is not None:
+                print(error)
                 return 1
 
-            # Check for an existing volume, delete it as needed.
-            extension = '' if volume_type != 'file' else '.raw'
-            volume_name = '{0}{1}'.format(args.name, extension)
+        if volume_type != 'block':
+            error = allocate_storage(conn, volume_type, args.name,
+                                     args.storage * 1024, args.keep_volume,
+                                     pool_name=storage_pool_name)
 
-            if volume_name in storage_pool.listVolumes():
-                vol = storage_pool.storageVolLookupByName(volume_name)
-
-                if not args.keep_volume:
-                    vol.delete()
-
-            # Provision new storage for the guest as needed.
-            new_storage = define_storage(args.name, args.storage,
-                                         storage_pool_name, volume_type)
-
-            storage_xml = new_storage.getroot()
-            xml_config = ET.tostring(storage_xml, method='xml').decode()
-
-            if volume_name not in storage_pool.listVolumes():
-                storage = storage_pool.createXML(xml_config, 0)
-
-                if storage is None:
-                    print('Failed to allocate storage for "{0}"'.format(name))
-                    return 1
+            if error is not None:
+                print(error)
+                return 1
 
         # Provision a new (transient) domain/guest.
         # Preseed should shut it down after installation is complete.
@@ -429,11 +548,12 @@ def main(args):
         new_domain = define_domain(conn, caps, domain, bus, device, function,
                                    iftype, args.name, args.vcpus,
                                    args.affinity, args.emu_affinity, 
-                                   args.cpu_pin, args.numanodes, args.mem,
-                                   storage_pool_name, volume_type,
-                                   args.secret_uuid, args.queues, args.nic,
-                                   rom_bar, mac=args.mac_address,
-                                   vlan=args.vlan)
+                                   args.iothread_affinity, args.cpu_pin,
+                                   args.numanodes, args.mem, storage_pool_name,
+                                   volume_type, args.secret_uuid, args.queues,
+                                   args.nic, rom_bar,
+                                   has_boot_storage=has_boot_storage,
+                                   mac=args.mac_address, vlan=args.vlan)
 
         xml_config = ET.tostring(new_domain.getroot(), method='xml').decode()
         new_domain = conn.defineXML(xml_config)
@@ -471,6 +591,11 @@ if __name__ == '__main__':
                         help="Mapping of vCPU to pCPU pins",
                         action='store', type=str, default=None)
 
+    create.add_argument('-i', '--iothread-affinity', metavar='PIN',
+                        dest='iothread_affinity',
+                        help="Physical CPUs to run I/O threads on (and #)",
+                        action='store', type=str, default=None)
+
     create.add_argument('-n', '--numanodes', metavar='NPIN', dest='numanodes',
                         help="NUMA nodes to pin memory to",
                         action='store', type=str, default=None)
@@ -478,6 +603,11 @@ if __name__ == '__main__':
     create.add_argument('-r', '--mem', metavar='RAM', dest='mem',
                         help='Amount of memory (in MiB) to assign',
                         action='store', type=int, default=512)
+
+    create.add_argument('-b', '--boot-storage', metavar='MB',
+                        dest='boot_storage', help='Amount of storage '
+                        '(in MiB) to assign for the boot volume',
+                        action='store', type=int, default=0)
 
     create.add_argument('-s', '--storage', metavar='GB', dest='storage',
                         help='Amount of storage (in GiB) to assign',
@@ -508,11 +638,11 @@ if __name__ == '__main__':
                         action='store', type=int, default=None)
 
     create.add_argument('-q', '--queues', metavar='Q', dest='queues',
-                        help='Number of queues to assign to guest vNIC',
+                        help='Number of queues to assign to guest I/O+vNIC',
                         action='store', type=int, default=1)
 
     ipxe_path = '/usr/lib/ipxe/qemu/pxe-virtio.rom'
-    create.add_argument('-b', '--rom-bar', metavar='ROM', dest='rom_bar',
+    create.add_argument('--rom-bar', metavar='ROM', dest='rom_bar',
                         help='Path to ROM BAR data/firmware for the vNIC',
                         action='store', type=str, default=ipxe_path)
 
