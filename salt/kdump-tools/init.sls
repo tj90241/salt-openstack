@@ -38,6 +38,16 @@ manage-kdump-tools-service:
     - onchanges:
       - file: manage-kdump-tools-service
 
+  service.running:
+    - name: kdump-tools
+    - enable: True
+    - restart: True
+    - watch:
+      - file: manage-kdump-tools
+    - require:
+      - module: manage-kdump-tools-service
+      - file: manage-kdump-tools-service
+
 manage-makedumpfile:
   pkg.installed:
     - name: makedumpfile
