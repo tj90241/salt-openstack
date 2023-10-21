@@ -18,7 +18,7 @@ $debug=0;
 
 # Download options
 $download_method="rsync";
-@sections="main,main/debian-installer,non-free-firmware";
+@sections="main,main/debian-installer,non-free,non-free-firmware";
 @arches="all,{{ grains.osarch }}";
 @excludes="(/.*\/(binutils|ceph|linux|openjdk).*dbg.*)";
 $omit_suite_symlinks=0;
