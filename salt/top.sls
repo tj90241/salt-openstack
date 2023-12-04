@@ -133,6 +133,7 @@ base:
 {% if salt['file.directory_exists']('/sys/class/ipmi') and salt['file.readdir']('/sys/class/ipmi') | difference(['.', '..']) | length > 0 %}
     - ipmitool
 {% endif %}
+    - mmc-utils
     - nvme-cli
     - pciutils
     - smartmontools
