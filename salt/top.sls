@@ -205,6 +205,8 @@ base:
     - match: nodegroup
     - fcgiwrap
     - git
+    - git-daemon
+    - git.user
     - nginx-light
     - gitweb
 
