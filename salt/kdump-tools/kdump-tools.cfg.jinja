@@ -1,1 +1,1 @@
-GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT crashkernel={{ pillar.get('kdump-tools', {}).get('crashkernel', '0M-16G:384M,16G-:512M') }}"
+GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT{% if pillar.get('kdump-tools', {}).get('enabled', True) %} crashkernel={{ pillar.get('kdump-tools', {}).get('crashkernel', '0M-16G:384M,16G-:512M') }}{% endif %}"
