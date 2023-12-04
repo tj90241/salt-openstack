@@ -6,6 +6,11 @@ manage-docker-registry-login:
     - stdin: {{ pillar['docker']['registry']['users']['salt']['password'] }}
 
 manage-debian-container-image:
+  pkg.installed:
+    - name: debootstrap
+    - refresh: False
+    - version: latest
+
   file.managed:
     - name: /usr/local/sbin/mkimage-debian.sh
     - source: salt://docker/containers/mkimage-debian.sh.jinja
