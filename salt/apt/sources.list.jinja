@@ -1,17 +1,17 @@
 {%- set backports = pillar.get('apt', {}).get('backports', False) -%}
 # {{ grains.os }} {{ grains.oscodename.lower() }}
-deb http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }} main
-deb-src http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }} main
+deb http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }} main non-free non-free-firmware
+deb-src http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }} main non-free non-free-firmware
 {%- if not grains.oscodename.lower() in ['testing', 'sid'] %}
 
 # {{ grains.oscodename.lower() }}-security
-deb http://security.debian.org/debian-security {{ grains.oscodename.lower() }}-security main
-deb-src http://security.debian.org/debian-security {{ grains.oscodename.lower() }}-security main
+deb http://security.debian.org/debian-security {{ grains.oscodename.lower() }}-security main non-free non-free-firmware
+deb-src http://security.debian.org/debian-security {{ grains.oscodename.lower() }}-security main non-free non-free-firmware
 {%- endif %}
 
 # {{ grains.oscodename.lower() }}-updates, previously known as 'volatile'
-deb http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }}-updates main
-deb-src http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }}-updates main
+deb http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }}-updates main non-free non-free-firmware
+deb-src http://ftp.us.debian.org/debian/ {{ grains.oscodename.lower() }}-updates main non-free non-free-firmware
 
 # {{ grains.oscodename.lower() }}-backports
 {% if not backports %}#{% endif %}deb http://deb.debian.org/debian {{ grains.oscodename.lower() }}-backports main
