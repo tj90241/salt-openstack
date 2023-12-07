@@ -84,7 +84,7 @@ base:
     - rabbitmq-server.cookie
     - rabbitmq-server.users
 
-  'salt-masters':
+  salt-masters:
     - ignore_missing: True
     - match: nodegroup
     - consul.bootstrap
@@ -92,6 +92,7 @@ base:
     - jenkins.credentials.salt
     - salt.default.master
     - roles
+    - smtp
 
   tftp-servers:
     - match: nodegroup

@@ -1,3 +1,4 @@
 hover:
-  schedule: '0 * * * *'
-  splay: '1800'
+  schedule: '5 * * * *'
+  ping_schedule: '3 */4 * * *'
+  splay: '60'
