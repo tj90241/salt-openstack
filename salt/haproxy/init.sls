@@ -22,6 +22,21 @@ manage-haproxy:
       - file: manage-haproxy-configuration
       - file: manage-haproxy-ssl-cert
 
+manage-haproxy-rsyslog:
+  file.managed:
+    - name: /etc/rsyslog.d/49-haproxy.conf
+    - source: salt://haproxy/rsyslog.conf
+    - user: root
+    - group: root
+    - mode: '0644'
+
+  service.running:
+    - name: rsyslog
+    - enable: True
+    - restart: True
+    - watch:
+      - file: manage-haproxy-rsyslog
+
 manage-haproxy-d:
   file.directory:
     - name: /etc/haproxy/haproxy.d

@@ -1,3 +1,11 @@
+{%- if 'salt-masters' in pillar.get('nodegroups', []) %}
+[Service]
+# Delay the start of the salt-minion when there is a salt-master on the same
+# host so that the master does not e.g. miss the minion start event because
+# it is busy starting up.
+ExecStartPre=/usr/bin/sleep 15
+
+{%- endif %}
 [Unit]
 Requires=time-sync.target{% if 'salt-masters' in pillar.get('nodegroups', []) %} salt-master.service{% endif %}
 After=time-sync.target{% if 'salt-masters' in pillar.get('nodegroups', []) %} salt-master.service{% endif %}

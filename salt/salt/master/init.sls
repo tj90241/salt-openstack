@@ -57,6 +57,14 @@ manage-salt-master:
       - pkg: manage-salt-master
       - file: manage-salt-master
 
+manage-salt-minion-special-configuration:
+  file.managed:
+    - name: /etc/salt/minion.d/master.conf
+    - source: salt://salt/master/master.conf
+    - user: root
+    - group: root
+    - mode: '0644'
+
 {# Do not start the salt master until time is synchronized. #}
 manage-salt-master-override:
   file.managed:
@@ -77,7 +85,7 @@ manage-file-tree-pillar:
   file.directory:
     - name: /etc/salt/file_tree_pillar/hosts
     - user: root
-    - group: root
+    - group: salt
     - dir_mode: 0750
     - makedirs: True
     - follow_symlinks: False
@@ -88,7 +96,7 @@ manage-file-tree-pillar-perms:
   file.directory:
     - name: /etc/salt/file_tree_pillar
     - user: root
-    - group: root
+    - group: salt
     - file_mode: 0640
     - dir_mode: 0750
     - follow_symlinks: False

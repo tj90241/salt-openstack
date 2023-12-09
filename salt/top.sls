@@ -232,6 +232,7 @@ base:
 
   jumphosts:
     - match: nodegroup
+    - rsyslog
     - haproxy
     - ipmitool
 

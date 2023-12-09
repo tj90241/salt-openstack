@@ -3,8 +3,8 @@
 {%- do acls.update({'url_consul': 'path_beg /consul'}) -%}
 {%- endif -%}
 global
-	log /dev/log	local0
-	log /dev/log	local1 notice
+	log /dev/haproxy-log	local0
+	log /dev/haproxy-log	local1 notice
 	chroot /var/lib/haproxy
 	stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
 	stats timeout 30s
@@ -50,7 +50,7 @@ resolvers consul
 {% for frontend, configuration in pillar.get('haproxy', {}).get('frontends', {}).items() %}
 
 frontend {{ frontend }}
-{%- if configuration['mode'] == 'http' %}
+{%- if configuration['mode'] in ['http', 'https-only'] %}
 	mode http
 {% for acl, acl_condition in acls.items() %}
 	acl {{ acl }} {{ acl_condition }}
@@ -62,7 +62,9 @@ frontend {{ frontend }}
 {%- endif %}
 	http-response set-header Strict-Transport-Security max-age=63072000
 {% for bind_addr in configuration['bind_addrs'] %}
+{%- if configuration['mode'] != 'https-only' %}
 	bind {{ bind_addr }}:80
+{%- endif %}
 	bind {{ bind_addr }}:443 ssl crt /etc/haproxy/{{ grains.id }}.pem alpn h2,http/1.1
 {%- endfor %}
 {% for mapping in configuration.get('use_backend', []) %}
