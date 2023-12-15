@@ -42,6 +42,9 @@ base:
 {% endif %}
     - openssl
     - ssl
+{% if pillar.get('dpdk', {}).get('enabled', False) %}
+    - dpdk
+{% endif %}
 {% if grains.get('virtual', 'virtual') == 'physical' %}
     - openvswitch
 {% endif %}
@@ -64,9 +67,6 @@ base:
     - ceph
     - cloud-init
     - curl
-{% if pillar.get('dpdk', {}).get('enabled', False) %}
-    - dpdk
-{% endif %}
     - dosfstools
     - dnsutils
     - ethtool

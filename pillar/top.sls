@@ -113,6 +113,7 @@ base:
     - cpufrequtils.hosts.{{ grains.id }}
     - debian-installer.hosts.{{ grains.id }}
     - devpi.hosts.{{ grains.id }}
+    - dpdk.hosts.{{ grains.id }}
     - grub.hosts.{{ grains.id }}
     - haproxy.hosts.{{ grains.id }}
     - hostapd.hosts.{{ grains.id }}

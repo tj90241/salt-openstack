@@ -23,7 +23,29 @@ manage-openvswitch:
 
 {%- if dpdk %}
   cmd.run:
-    - name: ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
+    - name:
+        ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true;
+        ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-hugepage-dir=/dev/hugepages2M;
+    - require:
+      - service: manage-openvswitch
+
+  alternatives.set:
+    - name: ovs-vswitchd
+    - path: /usr/lib/openvswitch-switch-dpdk/ovs-vswitchd-dpdk
+    - watch:
+      - pkg: manage-openvswitch
+    - require_in:
+      - service: manage-openvswitch
+
+manage-rte-libraries:
+  pkg.latest:
+    - pkgs:
+      - librte-bus-pci24
+      - librte-net-e1000-24
+      - librte-ring24
+    - refresh: False
+    - require_in:
+      - service: manage-openvswitch
 {%- endif %}
 
 # Ensure the /var/log/openvswitch directory exists.
