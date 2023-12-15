@@ -11,6 +11,5 @@ fi
 
 salt-call hover.put_acme_challenge "{{ hover_domain }}" "${CERTBOT_VALIDATION}" "${CERTBOT_HOST}"
 
-# Without this, letsencrypt/certbot challenges will sometimes fail?
-# Hover takes some time to propagate the value from the API to DNS config?
-sleep 10
+# TTL of the TXT records is 60 seconds, so wait patiently...
+sleep 60
