@@ -13,9 +13,13 @@ server {
   }
 
   location = / {
+{%- if 'jumphosts' not in pillar['nodegroups'] %}
     root /var/lib/debmirror;
     index index.html;
     autoindex on;
+{%- else %}
+    return 301 https://{{ grains.fqdn }};
+{%- endif %}
   }
 
   location / {
