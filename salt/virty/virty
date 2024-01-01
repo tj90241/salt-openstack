@@ -34,9 +34,17 @@ def allocate_storage(conn, volume_type, name, size, keep_volume=False,
         ET.SubElement(permissions, 'group').text = '-1'
 
         xml = ET.tostring(pool, method='xml').decode('utf-8')
-        storage_pool = conn.storagePoolDefineXML(xml, 0)
-        storage_pool.setAutostart(1)
-        storage_pool.create()
+
+        # When building lots of VMs at once, it is possible to race to
+        # create the pool, at which point some creations fail. For this
+        # reason, attempt to lookup the pool once more if we fail here.
+        try:
+            storage_pool = conn.storagePoolDefineXML(xml, 0)
+            storage_pool.setAutostart(1)
+            storage_pool.create()
+
+        except libvirt.libvirtError:
+            storage_pool = conn.storagePoolLookupByName(pool_name)
 
     # Check for an existing volume, delete it as needed.
     extension = '' if volume_type != 'file' else '.raw'
