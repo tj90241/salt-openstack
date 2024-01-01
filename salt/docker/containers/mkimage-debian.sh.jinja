@@ -4,11 +4,16 @@ BUILD_DIR="$(mktemp -d ${TMPDIR:-/var/tmp}/mkimage-debian.XXXXXXXXXX)"
 CODENAME="$(lsb_release -cs)"
 VERSION_MAJOR="$(lsb_release -rs)"
 
-debootstrap --variant=minbase "${CODENAME}" "${BUILD_DIR}/rootfs"{{ (' ' + pillar['docker']['debian']['mirror']) if pillar.get('docker', {}).get('debian', {}).get('mirror', '') != '' else '' }}
+debootstrap --variant=minbase "${CODENAME}" "${BUILD_DIR}/rootfs"{{ (' ' + pillar['docker']['debian']['bootstrap_mirror']) if pillar.get('docker', {}).get('debian', {}).get('bootstrap_mirror', '') != '' else '' }}
 
 # Docker mounts tmpfs at /dev and procfs at /proc so we can remove them.
 rm -rf "${BUILD_DIR}/rootfs/dev" "${BUILD_DIR}/rootfs/proc"
 mkdir -p "${BUILD_DIR}/rootfs/dev" "${BUILD_DIR}/rootfs/proc"
+
+# Use the desired mirror instead of the bootstrap one.
+{%- if pillar.get('docker', {}).get('debian', {}).get('mirror', '') != '' %}
+echo "deb {{ pillar['docker']['debian']['mirror'] }} ${CODENAME} main" > "${BUILD_DIR}/rootfs/etc/apt/sources.list"
+{%- endif %}
 
 # Add in -security and -updates pockets.
 {%- if pillar.get('docker', {}).get('debian', {}).get('security_mirror', '') != '' %}
