@@ -18,9 +18,13 @@ manage-host-dhparams:
     - user: root
     - group: root
     - mode: 0644
+{% if pillar.get('openssl', {}).get('dhparam-' + pillar['openssl']['dhparam_bits'] | string + '.pem') == None %}
     - replace: False
 
   cmd.run:
-    - name: sudo openssl dhparam -out /etc/ssl/dhparam-{{ pillar['openssl']['dhparam_bits'] }}.pem {{ pillar['openssl']['dhparam_bits'] }}
+    - name: openssl dhparam -out /etc/ssl/dhparam-{{ pillar['openssl']['dhparam_bits'] }}.pem {{ pillar['openssl']['dhparam_bits'] }}
     - onchanges:
       - file: manage-host-dhparams
+{% else %}
+    - contents_pillar: 'openssl:dhparam-{{ pillar['openssl']['dhparam_bits'] }}.pem'
+{% endif %}

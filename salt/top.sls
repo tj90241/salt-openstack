@@ -16,8 +16,10 @@ base:
   salt-masters:
     - match: nodegroup
     - certbot
-    - ssl
     - openssl
+    - openssl.dhparams
+    - ssh.hostkeys
+    - ssl
     - nginx-light
 
   dhcp-servers:
@@ -41,6 +43,7 @@ base:
     - rng-tools5
 {% endif %}
     - openssl
+    - ssh
     - ssl
 {% if pillar.get('dpdk', {}).get('enabled', False) %}
     - dpdk
