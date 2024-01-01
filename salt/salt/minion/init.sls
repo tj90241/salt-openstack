@@ -41,14 +41,6 @@ manage-salt-minion:
       _schedule.conf file. #}
     - exclude_pat: _*
 
-  {# If the configuration changed substantially, bounce the minion process. #}
-  cmd.run:
-    - name: salt-call --local service.restart salt-minion --out-file /dev/null
-    - bg: True
-    - onchanges:
-      - pkg: manage-salt-minion
-      - file: manage-salt-minion
-
   service.running:
     - name: salt-minion
     - enable: True
